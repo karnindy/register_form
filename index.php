@@ -1556,11 +1556,24 @@ function e($val) {
                 }
             }
 
+            let codeAgent = document.getElementById("viriyahAgentCodeAgent");
+            let codeBroker = document.getElementById("viriyahAgentCodeBroker");
+
             if (isAgent) {
                 agentSection.style.display = "block";
                 for (let id of agentReqFields) {
                     let el = document.getElementById(id);
                     if (el) el.setAttribute("required", "required");
+                }
+                if (codeAgent) {
+                    codeAgent.setAttribute("name", "viriyahAgentCode");
+                    codeAgent.setAttribute("required", "required");
+                }
+                if (codeBroker) {
+                    codeBroker.removeAttribute("name");
+                    codeBroker.removeAttribute("required");
+                    codeBroker.classList.remove("invalid");
+                    codeBroker.value = "";
                 }
             } else {
                 agentSection.style.display = "none";
@@ -1579,6 +1592,16 @@ function e($val) {
                 for (let id of brokerReqFields) {
                     let el = document.getElementById(id);
                     if (el) el.setAttribute("required", "required");
+                }
+                if (codeBroker) {
+                    codeBroker.setAttribute("name", "viriyahAgentCode");
+                    codeBroker.setAttribute("required", "required");
+                }
+                if (codeAgent) {
+                    codeAgent.removeAttribute("name");
+                    codeAgent.removeAttribute("required");
+                    codeAgent.classList.remove("invalid");
+                    codeAgent.value = "";
                 }
             } else {
                 brokerSection.style.display = "none";
