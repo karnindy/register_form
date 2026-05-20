@@ -545,7 +545,6 @@ function e($val) {
         .address-card {
             border: 1px solid var(--border-color);
             border-radius: 10px;
-            overflow: hidden;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             margin-bottom: 10px;
             transition: box-shadow 0.3s ease;
@@ -564,6 +563,7 @@ function e($val) {
             display: flex;
             align-items: center;
             gap: 10px;
+            border-radius: 9px 9px 0 0;
         }
 
         .address-card-header i {
@@ -948,28 +948,28 @@ function e($val) {
                             <div class="form-group">
                                 <label class="required">บ้านเลขที่</label>
                                 <input type="text" class="form-control" name="houseNo" id="houseNo"
-                                    placeholder="เช่น 123/45" required>
+                                    placeholder="เช่น 123/45" required value="<?php echo e($formData['houseNo']); ?>">
                             </div>
                             <div class="form-group">
                                 <label>หมู่</label>
-                                <input type="text" class="form-control" name="moo" id="moo" placeholder="เช่น 5">
+                                <input type="text" class="form-control" name="moo" id="moo" placeholder="เช่น 5" value="<?php echo e($formData['moo']); ?>">
                             </div>
                             <div class="form-group">
                                 <label>หมู่บ้าน/อาคาร</label>
                                 <input type="text" class="form-control" name="village" id="village"
-                                    placeholder="เช่น หมู่บ้านสุขสันต์">
+                                    placeholder="เช่น หมู่บ้านสุขสันต์" value="<?php echo e($formData['village']); ?>">
                             </div>
                         </div>
 
                         <div class="grid-2">
                             <div class="form-group">
                                 <label>ซอย</label>
-                                <input type="text" class="form-control" name="soi" id="soi" placeholder="เช่น ซอย 10">
+                                <input type="text" class="form-control" name="soi" id="soi" placeholder="เช่น ซอย 10" value="<?php echo e($formData['soi']); ?>">
                             </div>
                             <div class="form-group">
                                 <label>ถนน</label>
                                 <input type="text" class="form-control" name="road" id="road"
-                                    placeholder="เช่น สุขุมวิท">
+                                    placeholder="เช่น สุขุมวิท" value="<?php echo e($formData['road']); ?>">
                             </div>
                         </div>
 
@@ -979,7 +979,7 @@ function e($val) {
                                 <div class="autocomplete-wrapper">
                                     <input type="text" class="form-control" name="province" id="province" required
                                         placeholder="พิมพ์ชื่อจังหวัด" autocomplete="off"
-                                        oninput="acSearch(this,'province')" onfocus="acSearch(this,'province')" onclick="acSearch(this,'province')">
+                                        oninput="acSearch(this,'province')" onfocus="acSearch(this,'province')" onclick="acSearch(this,'province')" value="<?php echo e($formData['province']); ?>">
                                     <div class="autocomplete-list" id="province_list"></div>
                                 </div>
                             </div>
@@ -988,7 +988,7 @@ function e($val) {
                                 <div class="autocomplete-wrapper">
                                     <input type="text" class="form-control" name="district" id="district" required
                                         placeholder="พิมพ์ชื่อเขต/อำเภอ" autocomplete="off"
-                                        oninput="acSearch(this,'district')" onfocus="acSearch(this,'district')" onclick="acSearch(this,'district')">
+                                        oninput="acSearch(this,'district')" onfocus="acSearch(this,'district')" onclick="acSearch(this,'district')" value="<?php echo e($formData['district']); ?>">
                                     <div class="autocomplete-list" id="district_list"></div>
                                 </div>
                             </div>
@@ -997,7 +997,7 @@ function e($val) {
                                 <div class="autocomplete-wrapper">
                                     <input type="text" class="form-control" name="subDistrict" id="subDistrict" required
                                         placeholder="พิมพ์ชื่อแขวง/ตำบล" autocomplete="off"
-                                        oninput="acSearch(this,'subDistrict')" onfocus="acSearch(this,'subDistrict')" onclick="acSearch(this,'subDistrict')">
+                                        oninput="acSearch(this,'subDistrict')" onfocus="acSearch(this,'subDistrict')" onclick="acSearch(this,'subDistrict')" value="<?php echo e($formData['subDistrict']); ?>">
                                     <div class="autocomplete-list" id="subDistrict_list"></div>
                                 </div>
                             </div>
@@ -1008,7 +1008,7 @@ function e($val) {
                                 <label class="required">รหัสไปรษณีย์</label>
                                 <input type="text" class="form-control" name="zipcode" id="zipcode" maxlength="5"
                                     placeholder="เช่น 10110" required
-                                    oninput="this.value = this.value.replace(/\D/g, '')">
+                                    oninput="this.value = this.value.replace(/\D/g, '')" value="<?php echo e($formData['zipcode']); ?>">
                             </div>
                         </div>
                     </div>
@@ -1042,17 +1042,17 @@ function e($val) {
                             <div class="form-group">
                                 <label class="required">บ้านเลขที่</label>
                                 <input type="text" class="form-control" name="shipHouseNo" id="shipHouseNo"
-                                    placeholder="เช่น 123/45">
+                                    placeholder="เช่น 123/45" value="<?php echo e($formData['shipHouseNo']); ?>">
                             </div>
                             <div class="form-group">
                                 <label>หมู่</label>
                                 <input type="text" class="form-control" name="shipMoo" id="shipMoo"
-                                    placeholder="เช่น 5">
+                                    placeholder="เช่น 5" value="<?php echo e($formData['shipMoo']); ?>">
                             </div>
                             <div class="form-group">
                                 <label>หมู่บ้าน/อาคาร</label>
                                 <input type="text" class="form-control" name="shipVillage" id="shipVillage"
-                                    placeholder="เช่น หมู่บ้านสุขสันต์">
+                                    placeholder="เช่น หมู่บ้านสุขสันต์" value="<?php echo e($formData['shipVillage']); ?>">
                             </div>
                         </div>
 
@@ -1060,12 +1060,12 @@ function e($val) {
                             <div class="form-group">
                                 <label>ซอย</label>
                                 <input type="text" class="form-control" name="shipSoi" id="shipSoi"
-                                    placeholder="เช่น ซอย 10">
+                                    placeholder="เช่น ซอย 10" value="<?php echo e($formData['shipSoi']); ?>">
                             </div>
                             <div class="form-group">
                                 <label>ถนน</label>
                                 <input type="text" class="form-control" name="shipRoad" id="shipRoad"
-                                    placeholder="เช่น สุขุมวิท">
+                                    placeholder="เช่น สุขุมวิท" value="<?php echo e($formData['shipRoad']); ?>">
                             </div>
                         </div>
 
@@ -1075,7 +1075,7 @@ function e($val) {
                                 <div class="autocomplete-wrapper">
                                     <input type="text" class="form-control" name="shipProvince" id="shipProvince"
                                         placeholder="พิมพ์ชื่อจังหวัด" autocomplete="off"
-                                        oninput="acSearch(this,'province','ship')" onfocus="acSearch(this,'province','ship')" onclick="acSearch(this,'province','ship')">
+                                        oninput="acSearch(this,'province','ship')" onfocus="acSearch(this,'province','ship')" onclick="acSearch(this,'province','ship')" value="<?php echo e($formData['shipProvince']); ?>">
                                     <div class="autocomplete-list" id="shipProvince_list"></div>
                                 </div>
                             </div>
@@ -1084,7 +1084,7 @@ function e($val) {
                                 <div class="autocomplete-wrapper">
                                     <input type="text" class="form-control" name="shipDistrict" id="shipDistrict"
                                         placeholder="พิมพ์ชื่อเขต/อำเภอ" autocomplete="off"
-                                        oninput="acSearch(this,'district','ship')" onfocus="acSearch(this,'district','ship')" onclick="acSearch(this,'district','ship')">
+                                        oninput="acSearch(this,'district','ship')" onfocus="acSearch(this,'district','ship')" onclick="acSearch(this,'district','ship')" value="<?php echo e($formData['shipDistrict']); ?>">
                                     <div class="autocomplete-list" id="shipDistrict_list"></div>
                                 </div>
                             </div>
@@ -1093,7 +1093,7 @@ function e($val) {
                                 <div class="autocomplete-wrapper">
                                     <input type="text" class="form-control" name="shipSubDistrict" id="shipSubDistrict"
                                         placeholder="พิมพ์ชื่อแขวง/ตำบล" autocomplete="off"
-                                        oninput="acSearch(this,'subDistrict','ship')" onfocus="acSearch(this,'subDistrict','ship')" onclick="acSearch(this,'subDistrict','ship')">
+                                        oninput="acSearch(this,'subDistrict','ship')" onfocus="acSearch(this,'subDistrict','ship')" onclick="acSearch(this,'subDistrict','ship')" value="<?php echo e($formData['shipSubDistrict']); ?>">
                                     <div class="autocomplete-list" id="shipSubDistrict_list"></div>
                                 </div>
                             </div>
@@ -1104,7 +1104,7 @@ function e($val) {
                                 <label class="required">รหัสไปรษณีย์</label>
                                 <input type="text" class="form-control" name="shipZipcode" id="shipZipcode"
                                     maxlength="5" placeholder="เช่น 10110"
-                                    oninput="this.value = this.value.replace(/\D/g, '')">
+                                    oninput="this.value = this.value.replace(/\D/g, '')" value="<?php echo e($formData['shipZipcode']); ?>">
                             </div>
                         </div>
                     </div>
@@ -1138,7 +1138,7 @@ function e($val) {
                             <label class="required">สาขา</label>
                             <div class="autocomplete-wrapper">
                                 <input type="text" class="form-control" name="agentBranch" id="agentBranch" placeholder="พิมพ์เพื่อค้นหาสาขา" autocomplete="off"
-                                    oninput="agentAcSearch('agentBranch')" onfocus="agentAcSearch('agentBranch')" onclick="agentAcSearch('agentBranch')">
+                                    oninput="agentAcSearch('agentBranch')" onfocus="agentAcSearch('agentBranch')" onclick="agentAcSearch('agentBranch')" value="<?php echo e($formData['agentBranch']); ?>">
                                 <div class="autocomplete-list" id="agentBranch_list"></div>
                             </div>
                         </div>
@@ -1179,15 +1179,15 @@ function e($val) {
                     <div class="form-group">
                         <label>เลขที่ใบอนุญาต (ถ้ามี)</label>
                         <input type="text" class="form-control" name="licenseNo"
-                            placeholder="กรอกเลขที่ใบอนุญาต 10 หลัก">
+                            placeholder="กรอกเลขที่ใบอนุญาต 10 หลัก" value="<?php echo e($formData['licenseNo']); ?>">
                     </div>
                     <div class="form-group">
                         <label>วันที่ออกใบอนุญาต</label>
-                        <input type="text" class="form-control datepicker" name="licenseIssue" placeholder="DD/MM/YYYY">
+                        <input type="text" class="form-control datepicker" name="licenseIssue" placeholder="DD/MM/YYYY" value="<?php echo e($formData['licenseIssue']); ?>">
                     </div>
                     <div class="form-group">
                         <label>วันหมดอายุใบอนุญาต</label>
-                        <input type="text" class="form-control datepicker" name="licenseExpire" placeholder="DD/MM/YYYY">
+                        <input type="text" class="form-control datepicker" name="licenseExpire" placeholder="DD/MM/YYYY" value="<?php echo e($formData['licenseExpire']); ?>">
                     </div>
                 </div>
             </div>
@@ -2027,25 +2027,40 @@ function e($val) {
 
         async function loadAddressData() {
             try {
-                const [provRes, distRes, subRes] = await Promise.all([
-                    fetch('provinces.json'),
-                    fetch('districts.json'),
-                    fetch('sub_districts.json')
-                ]);
-                const provData = await provRes.json();
-                const distData = await distRes.json();
-                const subData = await subRes.json();
+                const fetchWithFallback = async (filename) => {
+                    let res = await fetch(filename);
+                    let text = await res.text();
+                    // ถ้า Server ส่งกลับมาเป็น HTML (เช่นโดน WordPress หรือ Router ดักหน้า 404)
+                    if (text.trim().startsWith('<')) {
+                        // ลองดึงจาก Root path ดู
+                        res = await fetch('/' + filename);
+                        text = await res.text();
+                        if (text.trim().startsWith('<')) {
+                            throw new Error('ไม่พบไฟล์ JSON (Server ส่งกลับมาเป็น HTML)');
+                        }
+                    }
+                    return JSON.parse(text);
+                };
+
+                const provData = await fetchWithFallback('provinces.json');
+                const distData = await fetchWithFallback('districts.json');
+                const subData = await fetchWithFallback('sub_districts.json');
 
                 rawProvinces = provData.provinces || [];
                 rawDistricts = distData.districts || [];
                 rawSubDistricts = subData.sub_districts || [];
             } catch (err) {
                 console.error("Error loading address data:", err);
+                alert("พบปัญหาในการโหลดข้อมูลที่อยู่\n\nสาเหตุ: ไม่พบไฟล์ JSON ข้อมูลจังหวัดบนเซิร์ฟเวอร์\nหากคุณนำไฟล์ index.php ไปวางในโฟลเดอร์ใหม่ (เช่น /new/) กรุณา Copy ไฟล์ provinces.json, districts.json และ sub_districts.json ตามไปวางในโฟลเดอร์เดียวกันด้วยครับ");
             }
         }
         
         // Load data on page load
-        document.addEventListener('DOMContentLoaded', loadAddressData);
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadAddressData);
+        } else {
+            loadAddressData();
+        }
 
         // ===== Address Autocomplete System =====
         function getFieldId(field, prefix) {
@@ -2347,13 +2362,18 @@ function e($val) {
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        function initDatePicker() {
             flatpickr(".datepicker", {
                 dateFormat: "d/m/Y",
                 locale: "th",
                 allowInput: true
             });
-        });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initDatePicker);
+        } else {
+            initDatePicker();
+        }
     </script>
 </body>
 
