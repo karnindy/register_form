@@ -1143,6 +1143,12 @@ function e($val) {
                             </div>
                         </div>
                     </div>
+                    
+                    <div class="form-group" style="margin-top: 20px; margin-bottom: 0;">
+                        <label class="required">รหัสตัวแทน ที่มีสัญญากับ บมจ.วิริยะประกันภัย</label>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-top: -5px; margin-bottom: 8px;">ถ้าไม่ทราบ สอบถามสาขา หรือตัวแทน/นายหน้าที่ท่านสังกัด , ถ้าเป็นขอรับใบอนุญาต และยังไม่มีรหัส ให้ใส่ 00000</p>
+                        <input type="text" class="form-control" id="viriyahAgentCodeAgent" placeholder="เลข 5 หลักของตัวแทนขาย" maxlength="5" pattern="\d{5}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" value="<?php echo e($formData['viriyahAgentCode'] ?? ''); ?>">
+                    </div>
                 </div>
 
                 <div id="brokerAffiliationSection" style="display: none; background-color: #F8F9FA; padding: 20px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 20px;">
@@ -1155,7 +1161,7 @@ function e($val) {
                     <div class="form-group" style="margin-top: 20px; margin-bottom: 0;">
                         <label class="required">รหัสตัวแทน ที่มีสัญญากับ บมจ.วิริยะประกันภัย</label>
                         <p style="font-size: 13px; color: var(--text-muted); margin-top: -5px; margin-bottom: 8px;">ถ้าไม่ทราบ สอบถามสาขา หรือตัวแทน/นายหน้าที่ท่านสังกัด , ถ้าเป็นขอรับใบอนุญาต และยังไม่มีรหัส ให้ใส่ 00000</p>
-                        <input type="text" class="form-control" name="viriyahAgentCode" id="viriyahAgentCode" placeholder="โปรดใส่ตัวเลขที่น้อยกว่า 99999" required>
+                        <input type="text" class="form-control" name="viriyahAgentCode" id="viriyahAgentCodeBroker" placeholder="เลข 5 หลักของตัวแทนขาย" maxlength="5" pattern="\d{5}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required value="<?php echo e($formData['viriyahAgentCode'] ?? ''); ?>">
                     </div>
                 </div>
 
@@ -1533,7 +1539,7 @@ function e($val) {
             let agentSection = document.getElementById("agentAffiliationSection");
             let brokerSection = document.getElementById("brokerAffiliationSection");
             let agentReqFields = ["agentRegion", "agentBranch"];
-            let brokerReqFields = ["viriyahAgentCode"];
+            let brokerReqFields = [];
             let isAgent = false;
             let isBroker = false;
             let selectedType = "";
