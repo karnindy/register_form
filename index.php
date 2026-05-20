@@ -1146,26 +1146,32 @@ function e($val) {
                     
                     <div class="form-group" style="margin-top: 20px; margin-bottom: 0;">
                         <label class="required">รหัสตัวแทน ที่มีสัญญากับ บมจ.วิริยะประกันภัย</label>
-                        <p style="font-size: 13px; color: var(--text-muted); margin-top: -5px; margin-bottom: 8px;">ถ้าไม่ทราบ สอบถามสาขา หรือตัวแทน/นายหน้าที่ท่านสังกัด , ถ้าเป็นขอรับใบอนุญาต และยังไม่มีรหัส ให้ใส่ 00000</p>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-top: -5px; margin-bottom: 8px;">ถ้าไม่ทราบ สอบถามสาขา หรือตัวแทน/นายหน้าที่ท่านสังกัด , ถ้าเป็นขอรับใบอนุญาต และยังไม่มีรหัส ให้กรอก 00000</p>
                         <input type="text" class="form-control" id="viriyahAgentCodeAgent" placeholder="เลข 5 หลักของตัวแทนขาย" maxlength="5" pattern="\d{5}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" value="<?php echo e($formData['viriyahAgentCode'] ?? ''); ?>">
                     </div>
                 </div>
 
                 <div id="brokerAffiliationSection" style="display: none; background-color: #F8F9FA; padding: 20px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 20px;">
                     <h3 style="color: var(--primary-color); margin-bottom: 20px; font-size: 16px;"><i class="fa-solid fa-building"></i> ข้อมูลสังกัดนายหน้า</h3>
-                    <div class="form-group">
-                        <label>บริษัทนายหน้าที่สังกัด (ถ้ามี)</label>
-                        <input type="text" class="form-control" name="brokerAffiliation" id="brokerAffiliation" placeholder="ใส่คำตอบ">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>ข้อมูลสังกัดบริษัทโบรกเกอร์</label>
+                            <input type="text" class="form-control" name="brokerAffiliation" id="brokerAffiliation" placeholder="ถ้ามีกรุณาระบุชื่อ" value="<?php echo e($formData['brokerAffiliation'] ?? ''); ?>">
+                        </div>
+                        <div class="form-group">
+                            <label>สาขาของบริษัทนายหน้าที่สังกัด (ถ้ามี)</label>
+                            <input type="text" class="form-control" name="branchRecommender" id="branchRecommender" placeholder="ใส่คำตอบ" value="<?php echo e($formData['branchRecommender'] ?? ''); ?>">
+                        </div>
                     </div>
 
                     <div class="form-group" style="margin-top: 20px; margin-bottom: 0;">
                         <label class="required">รหัสตัวแทน ที่มีสัญญากับ บมจ.วิริยะประกันภัย</label>
-                        <p style="font-size: 13px; color: var(--text-muted); margin-top: -5px; margin-bottom: 8px;">ถ้าไม่ทราบ สอบถามสาขา หรือตัวแทน/นายหน้าที่ท่านสังกัด , ถ้าเป็นขอรับใบอนุญาต และยังไม่มีรหัส ให้ใส่ 00000</p>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-top: -5px; margin-bottom: 8px;">ถ้าไม่ทราบ สอบถามสาขา หรือตัวแทน/นายหน้าที่ท่านสังกัด , ถ้าเป็นขอรับใบอนุญาต และยังไม่มีรหัส ให้กรอก 00000</p>
                         <input type="text" class="form-control" name="viriyahAgentCode" id="viriyahAgentCodeBroker" placeholder="เลข 5 หลักของตัวแทนขาย" maxlength="5" pattern="\d{5}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required value="<?php echo e($formData['viriyahAgentCode'] ?? ''); ?>">
                     </div>
                 </div>
 
-                <div class="form-group">
+                <!-- <div class="form-group">
                     <label class="required">สถานะใบอนุญาตตาม e-Licensing</label>
                     <select class="form-control" name="licenseStatus" required>
                         <option value="">- เลือกสถานะใบอนุญาต -</option>
@@ -1179,7 +1185,7 @@ function e($val) {
                         <option value="ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย ครั้งที่ 3">ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย ครั้งที่ 3</option>
                         <option value="ขอต่ออายุใบอนุญาตเป็น ตัวแทนหรือนายหน้า ประกันวินาศภัย ครั้งที่ 4 เป็นต้นไป">ขอต่ออายุใบอนุญาตเป็น ตัวแทนหรือนายหน้า ประกันวินาศภัย ครั้งที่ 4 เป็นต้นไป</option>
                     </select>
-                </div>
+                </div> -->
 
                 <div class="grid-3">
                     <div class="form-group">
@@ -1299,10 +1305,6 @@ function e($val) {
                     </select>
                 </div>
 
-                <div class="form-group">
-                    <label>สาขาของบริษัทนายหน้าที่สังกัด (ถ้ามี)</label>
-                    <input type="text" class="form-control" name="branchRecommender" placeholder="ใส่คำตอบ" value="<?php echo e($formData['branchRecommender']); ?>">
-                </div>
 
                 <div class="form-group">
                     <label>ธุรกิจหลักของท่านคือ</label>
@@ -1616,6 +1618,10 @@ function e($val) {
                 let brokerAffiliation = document.getElementById("brokerAffiliation");
                 if (brokerAffiliation) {
                     brokerAffiliation.value = "";
+                }
+                let branchRecommender = document.getElementById("branchRecommender");
+                if (branchRecommender) {
+                    branchRecommender.value = "";
                 }
             }
 
