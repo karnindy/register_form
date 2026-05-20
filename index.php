@@ -1285,17 +1285,17 @@ function e($val) {
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-top: 20px;">
+                <!-- <div class="form-group" style="margin-top: 20px;">
                     <label>หลักสูตรที่ท่านต้องการรับการอบรมเพิ่มเติม (โปรดระบุ)</label>
                     <input type="text" class="form-control" name="additionalCourseRequirement" id="additionalCourseRequirement" placeholder="ใส่คำตอบ">
-                </div>
+                </div> -->
             </div>
 
             <!-- Step 6: รายละเอียดเพิ่มเติม -->
             <div class="tab">
                 <h2 class="tab-title"><i class="fa-solid fa-list-check"></i> 6. รายละเอียดเพิ่มเติม</h2>
 
-                <div class="form-group">
+                <!-- <div class="form-group">
                     <label class="required">ระดับการศึกษาสูงสุด</label>
                     <select class="form-control" name="education" required>
                         <option value="">- เลือกระดับการศึกษา -</option>
@@ -1304,7 +1304,7 @@ function e($val) {
                         <option value="ปริญญาโท">ปริญญาโท</option>
                         <option value="ปริญญาเอก">ปริญญาเอก</option>
                     </select>
-                </div>
+                </div> -->
 
 
                 <div class="form-group">
@@ -1433,7 +1433,7 @@ function e($val) {
             }
 
             if (n == (tabs.length - 1)) {
-                document.getElementById("nextBtn").innerHTML = '<i class="fa-solid fa-paper-plane"></i> ส่งข้อมูลลงทะเบียน';
+                document.getElementById("nextBtn").innerHTML = '<i class="fa-solid fa-paper-plane"></i> ส่งข้อมูลการสมัคร';
                 document.getElementById("nextBtn").className = "btn btn-submit";
             } else {
                 document.getElementById("nextBtn").innerHTML = 'ถัดไป <i class="fa-solid fa-arrow-right"></i>';

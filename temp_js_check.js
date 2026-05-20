@@ -14,7 +14,7 @@ function showTab(n) {
     }
 
     if (n == (tabs.length - 1)) {
-        document.getElementById("nextBtn").innerHTML = '<i class="fa-solid fa-paper-plane"></i> ส่งข้อมูลลงทะเบียน';
+        document.getElementById("nextBtn").innerHTML = '<i class="fa-solid fa-paper-plane"></i> ส่งข้อมูลการสมัคร';
         document.getElementById("nextBtn").className = "btn btn-submit";
     } else {
         document.getElementById("nextBtn").innerHTML = 'ถัดไป <i class="fa-solid fa-arrow-right"></i>';
