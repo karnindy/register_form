@@ -1226,17 +1226,18 @@ function e($val) {
                 </div>
 
                 <hr style="border: 1px solid var(--border-color); margin: 30px 0;">
-                <div class="form-group">
+                <div class="form-group" id="deductionPrivilegeGroup" style="display: <?php echo e((isset($formData['courseType']) && strpos($formData['courseType'], 'ขอต่อใบอนุญาตตัวแทน/นายหน้าประกันวินาศภัย 4 เป็นต้นไป') !== false) ? 'block' : 'none'); ?>;">
                     <label>สิทธิ์ลดหย่อนชั่วโมงอบรม (สามารถเลือกได้มากกว่า 1 ข้อ)</label>
                     <div class="radio-group">
-                        <label class="radio-item"><input type="checkbox" name="deductionPrivilege[]" value="FChFP"> FChFP (Fellows Chartered Financial Practitioner) Conversion Course</label>
-                        <label class="radio-item"><input type="checkbox" name="deductionPrivilege[]" value="CFP"> CFP (Certified Financial Planner)</label>
-                        <label class="radio-item"><input type="checkbox" name="deductionPrivilege[]" value="AFPT"> AFPT (Associate Financial Planner Thai)</label>
-                        <label class="radio-item"><input type="checkbox" name="deductionPrivilege[]" value="NL"> NL (Diploma in Non-Life Insurance) (วินาศภัยเท่านั้น)</label>
-                        <label class="radio-item"><input type="checkbox" name="deductionPrivilege[]" value="Cert. CII"> Cert. CII (The Chartered Insurance Institute) (วินาศภัยเท่านั้น)</label>
-                        <label class="radio-item"><input type="checkbox" name="deductionPrivilege[]" value="ANZIIF"> ANZIIF (Associate) CIP (วินาศภัยเท่านั้น)</label>
-                        <label class="radio-item"><input type="checkbox" name="deductionPrivilege[]" value="MasterDegree"> สำเร็จการศึกษาตั้งแต่ระดับปริญญาโทขึ้นไป จากสถาบันอุดมศึกษาหรือสถาบันการศึกษาในต่างประเทศที่สำนักงานคณะกรรมการข้าราชการพลเรือนรับรอง</label>
-                        <label class="radio-item"><input type="checkbox" name="deductionPrivilege[]" value="Lecturer"> เป็นหรือเคยเป็นวิทยากร ผู้บรรยายความรู้ หรือเป็นอาจารย์ประจำ หรืออาจารย์พิเศษใน สถาบัน สมาคม หรือองค์กร ในหลักสูตรที่สำนักงาน คปภ.ให้ความเห็นชอบภายในระยะเวลา 5 ปี ก่อนใบอนุญาตสิ้นอายุ</label>
+                        <label class="radio-item"><input type="checkbox" name="deductionPrivilege[]" value="MasterDegree" id="masterDegreeCheckbox" onchange="toggleMasterDegreeRadios()" <?php echo e(in_array('MasterDegree', $formData['deductionPrivilege'] ?? []) ? 'checked' : ''); ?>> สำเร็จการศึกษาตั้งแต่ระดับปริญญาโทขึ้นไป จากสถาบันอุดมศึกษาหรือสถาบันการศึกษาในต่างประเทศที่สำนักงานคณะกรรมการข้าราชการพลเรือนรับรอง</label>
+                        <div id="masterDegreeRadios" style="display: <?php echo e(in_array('MasterDegree', $formData['deductionPrivilege'] ?? []) ? 'block' : 'none'); ?>; margin-top: 15px; margin-left: 25px;">
+                            <label class="required" style="font-size: 16px; margin-bottom: 5px; display: block; color: var(--text-color);">กรุณาระบุสถานะการยื่นเอกสาร</label>
+                            <span style="font-size: 14px; color: #d9534f; display: block; margin-bottom: 10px;">* หากท่านเคยยื่นเอกสารและบันทึกในระบบของสำนักงาน คปภ. แล้วไม่ต้องยื่นซ้ำ</span>
+                            <div class="radio-group vertical" style="display: flex; flex-direction: column; gap: 10px;">
+                                <label class="radio-item"><input type="radio" name="masterDegreeStatus" value="เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว" <?php echo e((isset($formData['masterDegreeStatus']) && $formData['masterDegreeStatus'] === 'เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว') ? 'checked' : ''); ?>> เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว</label>
+                                <label class="radio-item"><input type="radio" name="masterDegreeStatus" value="ไม่เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว" <?php echo e((isset($formData['masterDegreeStatus']) && $formData['masterDegreeStatus'] === 'ไม่เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว') ? 'checked' : ''); ?>> ไม่เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว</label>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1470,6 +1471,26 @@ function e($val) {
 
             showTab(currentTab);
         }
+        function toggleMasterDegreeRadios() {
+            let checkbox = document.getElementById("masterDegreeCheckbox");
+            let radiosDiv = document.getElementById("masterDegreeRadios");
+            if (!checkbox || !radiosDiv) return;
+
+            let radios = radiosDiv.querySelectorAll('input[type="radio"]');
+
+            if (checkbox.checked) {
+                radiosDiv.style.display = "block";
+                radios.forEach(radio => radio.setAttribute("required", "required"));
+            } else {
+                radiosDiv.style.display = "none";
+                radios.forEach(radio => {
+                    radio.removeAttribute("required");
+                    radio.checked = false;
+                    let container = radio.closest('.radio-group');
+                    if (container) container.classList.remove('invalid');
+                });
+            }
+        }
 
         function toggleTitleNameOther() {
             let selectBox = document.getElementsByName("titleName")[0];
@@ -1678,7 +1699,7 @@ function e($val) {
                 "ขอต่อใบอนุญาตตัวแทนประกันวินาศภัย 1": ["25 มิถุนายน 2569"],
                 "ขอต่อใบอนุญาตตัวแทนประกันวินาศภัย 2": ["2 กรกฎาคม 2569"],
                 "ขอต่อใบอนุญาตตัวแทนประกันวินาศภัย 3": ["9 กรกฎาคม 2569"],
-                "ขอต่อใบอนุญาตตัวแทน/นายหน้าประกันวินาศภัย 4": [
+                "ขอต่อใบอนุญาตตัวแทน/นายหน้าประกันวินาศภัย 4 เป็นต้นไป": [
                     "[Pillar 1] [22 เมษายน 2569] : การกำกับดูแลบริษัทประกันภัยตามระดับความเสี่ยง",
                     "[Pillar 1] [22 เมษายน 2569] : การจัดการสินไหมทดแทน Non-Motor",
                     "[Pillar 1] [22 เมษายน 2569] : การประกันความเสี่ยงภัยทรัพย์สิน",
@@ -1720,7 +1741,7 @@ function e($val) {
                 "ขอต่อใบอนุญาตนายหน้าประกันวินาศภัย 1": ["24 มิถุนายน 2569"],
                 "ขอต่อใบอนุญาตนายหน้าประกันวินาศภัย 2": ["1 กรกฎาคม 2569"],
                 "ขอต่อใบอนุญาตนายหน้าประกันวินาศภัย 3": ["8 กรกฎาคม 2569"],
-                "ขอต่อใบอนุญาตตัวแทน/นายหน้าประกันวินาศภัย 4": [
+                "ขอต่อใบอนุญาตตัวแทน/นายหน้าประกันวินาศภัย 4 เป็นต้นไป": [
                     "[Pillar 1] [22 เมษายน 2569] : การกำกับดูแลบริษัทประกันภัยตามระดับความเสี่ยง",
                     "[Pillar 1] [22 เมษายน 2569] : การจัดการสินไหมทดแทน Non-Motor",
                     "[Pillar 1] [22 เมษายน 2569] : การประกันความเสี่ยงภัยทรัพย์สิน",
@@ -1771,6 +1792,14 @@ function e($val) {
             hiddenInput.value = "";
             dateGroup.style.display = "none";
 
+            let deductionGroup = document.getElementById("deductionPrivilegeGroup");
+            if (deductionGroup) {
+                deductionGroup.style.display = "none";
+                let checkboxes = deductionGroup.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(cb => { cb.checked = false; });
+                if (typeof toggleMasterDegreeRadios === 'function') toggleMasterDegreeRadios();
+            }
+
             if (!selectedType || !courseScheduleData[selectedType]) {
                 courseGroup.style.display = "none";
                 return;
@@ -1795,6 +1824,18 @@ function e($val) {
                 input.addEventListener("change", function() {
                     hiddenInput.value = this.value;
                     renderTrainingDates(selectedType, this.value);
+
+                    let deductionGroup = document.getElementById("deductionPrivilegeGroup");
+                    if (deductionGroup) {
+                        if (this.value.includes("ขอต่อใบอนุญาตตัวแทน/นายหน้าประกันวินาศภัย 4 เป็นต้นไป")) {
+                            deductionGroup.style.display = "block";
+                        } else {
+                            deductionGroup.style.display = "none";
+                            let checkboxes = deductionGroup.querySelectorAll('input[type="checkbox"]');
+                            checkboxes.forEach(cb => { cb.checked = false; });
+                            if (typeof toggleMasterDegreeRadios === 'function') toggleMasterDegreeRadios();
+                        }
+                    }
                 });
 
                 labelEl.appendChild(input);
