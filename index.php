@@ -630,7 +630,6 @@ function e($val) {
             <div class="step-dot">4</div>
             <div class="step-dot">5</div>
             <div class="step-dot">6</div>
-            <div class="step-dot">7</div>
         </div>
 
         <form id="regForm" method="POST" action="index.php" onsubmit="event.preventDefault(); submitForm();">
@@ -1245,43 +1244,23 @@ function e($val) {
                     <label>หากท่านถือใบอนุญาตเป็นตัวแทนหรือนายหน้าประกันวินาศภัยที่ต่ออายุครั้งที่ 4 เป็นต้นไป โปรดระบุวิชาที่ท่านเคยเข้าอบรมใน 5 ปีที่ผ่านมา <br>
                     <span style="color: var(--error-color); font-size: 14px;">* สำคัญ * : เพื่อท่านจะต้องไม่อบรมวิชาที่เคยเข้าอบรมซ้ำอีก ตามข้อกำหนดของ คปภ.</span></label>
                     <div class="radio-group" style="max-height: 400px; overflow-y: auto; padding: 15px; border: 1px solid var(--border-color); border-radius: 6px; background-color: #F8F9FA;">
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="ไม่เคยผ่านการอบรมมาก่อน"> ไม่เคยผ่านการอบรมมาก่อน</label>
                         <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การกำกับดูแลบริษัทประกันภัยตามระดับความเสี่ยง"> การกำกับดูแลบริษัทประกันภัยตามระดับความเสี่ยง</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การบริหารการลงทุนของบริษัทประกันภัย"> การบริหารการลงทุนของบริษัทประกันภัย</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="มหันตภัยกับการประกันภัย"> มหันตภัยกับการประกันภัย</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การประกันภัยความรับผิดตามกฏหมาย"> การประกันภัยความรับผิดตามกฏหมาย</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="เสนอขายถูกหลักประกันภัยเติบโต"> เสนอขายถูกหลักประกันภัยเติบโต</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="ธุรกิจประกันภัยไทยกับการเปิดเสรีประชาคมเศรษฐกิจอาเซียน"> ธุรกิจประกันภัยไทยกับการเปิดเสรีประชาคมเศรษฐกิจอาเซียน</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การจ่ายค่าสินไหมทดแทนประกันวินาศภัย"> การจ่ายค่าสินไหมทดแทนประกันวินาศภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การจัดการสินไหมทดแทน Non-Motor"> การจัดการสินไหมทดแทน Non-Motor</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การประกันความเสี่ยงภัยทรัพย์สิน"> การประกันความเสี่ยงภัยทรัพย์สิน</label>
                         <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การวางแผนเพื่อวัยเกษียณ"> การวางแผนเพื่อวัยเกษียณ</label>
                         <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การวางแผนภาษีสำหรับตัวแทนและนายหน้าประกันภัย"> การวางแผนภาษีสำหรับตัวแทนและนายหน้าประกันภัย</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การประกันความเสี่ยงภัยทรัพย์สิน"> การประกันความเสี่ยงภัยทรัพย์สิน</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การวางแผนธุรกิจสำหรับตัวแทนและนายหน้าประกันภัย"> การวางแผนธุรกิจสำหรับตัวแทนและนายหน้าประกันภัย</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การรับประกันภัยรถผ่านแดน"> การรับประกันภัยรถผ่านแดน</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="นวัตกรรมผลิตภัณฑ์ประกันวินาศภัย"> นวัตกรรมผลิตภัณฑ์ประกันวินาศภัย</label>
                         <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การประกันภัยต่อ"> การประกันภัยต่อ</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="มาตรฐานคุณภาพบริการขนส่งด้วยรถบรรทุกและการประกันภัยรถผ่านแดน"> มาตรฐานคุณภาพบริการขนส่งด้วยรถบรรทุกและการประกันภัยรถผ่านแดน</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การจัดการสินไหมทดแทน Non-Motor"> การจัดการสินไหมทดแทน Non-Motor</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การพัฒนาผลิตภัณฑ์ประกันภัยประเภทรองรับกฎหมาย"> การพัฒนาผลิตภัณฑ์ประกันภัยประเภทรองรับกฎหมาย</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การพิจารณารับประกันภัยรถยนต์"> การพิจารณารับประกันภัยรถยนต์</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="กฏหมายและวิธีปฏิบัติที่เกี่ยวข้องกับธุรกิจประกันภัย"> กฏหมายและวิธีปฏิบัติที่เกี่ยวข้องกับธุรกิจประกันภัย</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="ความเสี่ยงต่อความรับผิดในฐานะตัวแทน/นายหน้าประกันภัย"> ความเสี่ยงต่อความรับผิดในฐานะตัวแทน/นายหน้าประกันภัย</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="หลักกฏหมายและวิธีการปฏิบัติในการประกันภัยสินค้าทางทะเล"> หลักกฏหมายและวิธีการปฏิบัติในการประกันภัยสินค้าทางทะเล</label>
                         <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="จรรยาบรรณและศีลธรรมของตัวแทน/นายหน้าประกันภัย"> จรรยาบรรณและศีลธรรมของตัวแทน/นายหน้าประกันภัย</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="กฏหมายว่าด้วยการป้องกันและปราบปรามการฟอกเงินและต่อต้านการสนับสนุนทางการเงินแก่การก่อการร้าย"> กฏหมายว่าด้วยการป้องกันและปราบปรามการฟอกเงินและต่อต้านการสนับสนุนทางการเงินแก่การก่อการร้าย</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="พ.ร.บ.การทวงถามหนี้"> พ.ร.บ.การทวงถามหนี้</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="พระราชบัญญัติประกอบรัฐธรรมนูญว่าด้วยการป้องกันและปราบปรามการทุจริต(ฉบับที่3) พ.ศ.2558"> พระราชบัญญัติประกอบรัฐธรรมนูญว่าด้วยการป้องกันและปราบปรามการทุจริต(ฉบับที่3) พ.ศ.2558</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="พ.ร.บ. จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562) และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร"> พ.ร.บ. จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562) และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="กฎหมายเบื้องต้นที่จำเป็นสำหรับชีวิตประจำวัน"> กฎหมายเบื้องต้นที่จำเป็นสำหรับชีวิตประจำวัน</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การบริหารจัดการความเสี่ยงของบริษัทประกันวินาศภัยในส่วนที่เกี่ยวข้องกับการฉ้อฉล พ.ศ.2561"> การบริหารจัดการความเสี่ยงของบริษัทประกันวินาศภัยในส่วนที่เกี่ยวข้องกับการฉ้อฉล พ.ศ.2561</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="พ.ร.บ.จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562) และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร"> พ.ร.บ.จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562) และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร</label>
                         <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล"> พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="ประมวลกฎหมายแพ่งและพาณิชย์ว่าด้วยละเมิด"> ประมวลกฎหมายแพ่งและพาณิชย์ว่าด้วยละเมิด</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="40 ถาม-ตอบหลักกฎหมายแรงงานที่ควรรู้"> 40 ถาม-ตอบหลักกฎหมายแรงงานที่ควรรู้</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การพัฒนาสภาวะผู้นำของคนกลางประกันภัย"> การพัฒนาสภาวะผู้นำของคนกลางประกันภัย</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="รู้จักประกันภัยสุขภาพ"> รู้จักประกันภัยสุขภาพ</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="เสนอขายถูกหลักประกันภัยเติบโต"> เสนอขายถูกหลักประกันภัยเติบโต</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="กฏหมายว่าด้วยการป้องกันและปราบปรามการฟอกเงินและต่อต้านการสนับสนุนทางการเงินแก่การก่อการร้าย"> กฏหมายว่าด้วยการป้องกันและปราบปรามการฟอกเงินและต่อต้านการสนับสนุนทางการเงินแก่การก่อการร้าย</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="กรมธรรม์ประกันภัยรถยนต์ไฟฟ้ารวมการคุ้มครองผู้ประสบภัยจากรถ"> กรมธรรม์ประกันภัยรถยนต์ไฟฟ้ารวมการคุ้มครองผู้ประสบภัยจากรถ</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="พ.ร.บ.การทวงถามหนี้"> พ.ร.บ.การทวงถามหนี้</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="ความเสี่ยงต่อความรับผิดในฐานะตัวแทน/นายหน้าประกันภัย"> ความเสี่ยงต่อความรับผิดในฐานะตัวแทน/นายหน้าประกันภัย</label>
                         <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การตลาดยุคใหม่"> การตลาดยุคใหม่</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="กรมธรรม์ประกันภัยรถยนต์ไฟฟ้า รวมการคุ้มครองผู้ประสบภัยจากรถ"> กรมธรรม์ประกันภัยรถยนต์ไฟฟ้า รวมการคุ้มครองผู้ประสบภัยจากรถ</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="กฎหมายและหลักการประกันภัยคุ้มครองผู้ประสบภัยจากรถ (พ.ร.บ.)"> กฎหมายและหลักการประกันภัยคุ้มครองผู้ประสบภัยจากรถ (พ.ร.บ.)</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="รู้จักประกันภัยสุขภาพ"> รู้จักประกันภัยสุขภาพ</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การพิจารณารับประกันภัยรถยนต์"> การพิจารณารับประกันภัยรถยนต์</label>
                     </div>
                 </div>
 
@@ -1308,9 +1287,9 @@ function e($val) {
 
 
                 <div class="form-group">
-                    <label>ธุรกิจหลักของท่านคือ</label>
-                    <p style="font-size: 13px; color: var(--text-muted); margin-top: -5px; margin-bottom: 8px;">กรุณาระบุประเภทธุรกิจที่ท่านมี</p>
-                    <input type="text" class="form-control" name="occupation" placeholder="ใส่คำตอบ" value="<?php echo e($formData['occupation']); ?>">
+                    <label>ธุรกิจอื่นที่ท่านทำ</label>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-top: -5px; margin-bottom: 8px;">กรุณาระบุประเภทธุรกิจ</p>
+                    <input type="text" class="form-control" name="occupation" placeholder="กรุณาระบุ" value="<?php echo e($formData['occupation']); ?>">
                 </div>
 
                 <div class="form-group">
@@ -1334,76 +1313,48 @@ function e($val) {
                 <div class="form-group">
                     <label>บริษัทประกันภัยอื่นที่ท่านส่งงานในปัจจุบัน</label>
                     <div class="radio-group" style="max-height: 400px; overflow-y: auto; padding: 15px; border: 1px solid var(--border-color); border-radius: 6px; background-color: #F8F9FA;">
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท กรุงเทพประกันภัย จำกัด (มหาชน)"> บริษัท กรุงเทพประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท กรุงเทพประกันสุขภาพ จำกัด (มหาชน)"> บริษัท กรุงเทพประกันสุขภาพ จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท กรุงไทยพานิชประกันภัย จำกัด (มหาชน)"> บริษัท กรุงไทยพานิชประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท กลางคุ้มครองผู้ประสบภัยจากรถ จำกัด"> บริษัท กลางคุ้มครองผู้ประสบภัยจากรถ จำกัด</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท คุ้มภัยโตเกียวมารีนประกันภัย (ประเทศไทย) จำกัด"> บริษัท คุ้มภัยโตเกียวมารีนประกันภัย (ประเทศไทย) จำกัด</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท เจมาร์ทประกันภัย จำกัด (มหาชน)"> บริษัท เจมาร์ทประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท ชับบ์สามัคคีประกันภัย จำกัด (มหาชน)"> บริษัท ชับบ์สามัคคีประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท ซมโปะ ประกันภัย (ประเทศไทย) จำกัด (มหาชน)"> บริษัท ซมโปะ ประกันภัย (ประเทศไทย) จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท ซันเดย์ประกันภัย (ประเทศไทย) จำกัด (มหาชน)"> บริษัท ซันเดย์ประกันภัย (ประเทศไทย) จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท ทิพยประกันภัย จำกัด (มหาชน)"> บริษัท ทิพยประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท ทูนประกันภัย จำกัด (มหาชน)"> บริษัท ทูนประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท เทเวศประกันภัย จำกัด (มหาชน)"> บริษัท เทเวศประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท ไทยประกันสุขภาพ จำกัด (มหาชน)"> บริษัท ไทยประกันสุขภาพ จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท ไทยพัฒนาประกันภัย จำกัด (มหาชน)"> บริษัท ไทยพัฒนาประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท ไทยไพบูลย์ประกันภัย จำกัด (มหาชน)"> บริษัท ไทยไพบูลย์ประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท ไทยรับประกันภัยต่อ จำกัด (มหาชน)"> บริษัท ไทยรับประกันภัยต่อ จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท ไทยเศรษฐกิจประกันภัย จำกัด (มหาชน)"> บริษัท ไทยเศรษฐกิจประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท ธนชาตประกันภัย จำกัด (มหาชน)"> บริษัท ธนชาตประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท นวกิจประกันภัย จำกัด (มหาชน)"> บริษัท นวกิจประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท นิวอินเดียแอสชัวรันซ์ จำกัด (สาขาประเทศไทย)"> บริษัท นิวอินเดียแอสชัวรันซ์ จำกัด (สาขาประเทศไทย)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท บางกอกสหประกันภัย จำกัด (มหาชน)"> บริษัท บางกอกสหประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท ประกันภัยไทยวิวัฒน์ จำกัด (มหาชน)"> บริษัท ประกันภัยไทยวิวัฒน์ จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท แปซิฟิค ครอส ประกันสุขภาพ จำกัด (มหาชน)"> บริษัท แปซิฟิค ครอส ประกันสุขภาพ จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท ฟอลคอนประกันภัย จำกัด (มหาชน)"> บริษัท ฟอลคอนประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท มิตซุย สุมิโตโม อินชัวรันซ์ จำกัด สาขาประเทศไทย"> บริษัท มิตซุย สุมิโตโม อินชัวรันซ์ จำกัด สาขาประเทศไทย</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท มิตรแท้ประกันภัย จำกัด (มหาชน)"> บริษัท มิตรแท้ประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท เมืองไทยประกันภัย จำกัด (มหาชน)"> บริษัท เมืองไทยประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท รู้ใจประกันภัย จำกัด (มหาชน)"> บริษัท รู้ใจประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท สตาร์ อินเตอร์เนชั่นแนล อินชัวรันซ์ (ประเทศไทย) จำกัด (มหาชน)"> บริษัท สตาร์ อินเตอร์เนชั่นแนล อินชัวรันซ์ (ประเทศไทย) จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท สยามสไมล์ประกันภัย จำกัด (มหาชน)"> บริษัท สยามสไมล์ประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท สหนิรภัยประกันภัย จำกัด (มหาชน)"> บริษัท สหนิรภัยประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท สหมงคลประกันภัย จำกัด (มหาชน)"> บริษัท สหมงคลประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท อลิอันซ์ อยุธยา ประกันภัย จำกัด (มหาชน)"> บริษัท อลิอันซ์ อยุธยา ประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท อินชัวร์เวิร์ส จำกัด (มหาชน)"> บริษัท อินชัวร์เวิร์ส จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท เอ็มเอสไอจี ประกันภัย (ประเทศไทย) จำกัด (มหาชน)"> บริษัท เอ็มเอสไอจี ประกันภัย (ประเทศไทย) จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท เอไอจี ประกันภัย (ประเทศไทย) จำกัด (มหาชน)"> บริษัท เอไอจี ประกันภัย (ประเทศไทย) จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท แอกซ่าประกันภัย จำกัด (มหาชน)"> บริษัท แอกซ่าประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท แอลเอ็มจี ประกันภัย จำกัด (มหาชน)"> บริษัท แอลเอ็มจี ประกันภัย จำกัด (มหาชน)</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บริษัท ไอโออิ กรุงเทพ ประกันภัย จำกัด (มหาชน)"> บริษัท ไอโออิ กรุงเทพ ประกันภัย จำกัด (มหาชน)</label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Step 7: ประสบการณ์ -->
-            <div class="tab">
-                <h2 class="tab-title"><i class="fa-solid fa-briefcase"></i> 7. ประสบการณ์ด้านประกันภัย</h2>
-
-                <div class="form-group">
-                    <label class="required">คุณเคยผ่านการอบรมประกันภัยมาก่อนหรือไม่?</label>
-                    <div class="radio-group">
-                        <label class="radio-item"><input type="radio" name="hasExperience" value="never" required>
-                            ไม่เคยผ่านการอบรมมาก่อน</label>
-                        <label class="radio-item"><input type="radio" name="hasExperience" value="yes">
-                            เคยผ่านการอบรมมาแล้ว</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. กรุงเทพประกันภัย"> บมจ. กรุงเทพประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. กรุงเทพประกันสุขภาพ"> บมจ. กรุงเทพประกันสุขภาพ</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. กรุงไทยพานิชประกันภัย"> บมจ. กรุงไทยพานิชประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บ. กลางคุ้มครองผู้ประสบภัยจากรถ"> บ. กลางคุ้มครองผู้ประสบภัยจากรถ</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. คุ้มภัยโตเกียวมารีนประกันภัย"> บมจ. คุ้มภัยโตเกียวมารีนประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. เจมาร์ทประกันภัย"> บมจ. เจมาร์ทประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. ชับบ์สามัคคีประกันภัย"> บมจ. ชับบ์สามัคคีประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. ซมโปะ ประกันภัย "> บมจ. ซมโปะ ประกันภัย </label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. ซันเดย์ประกันภัย "> บมจ. ซันเดย์ประกันภัย </label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. ทิพยประกันภัย"> บมจ. ทิพยประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. ทูนประกันภัย"> บมจ. ทูนประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. เทเวศประกันภัย"> บมจ. เทเวศประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. ไทยประกันสุขภาพ"> บมจ. ไทยประกันสุขภาพ</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. ไทยพัฒนาประกันภัย"> บมจ. ไทยพัฒนาประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. ไทยไพบูลย์ประกันภัย"> บมจ. ไทยไพบูลย์ประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. ไทยรับประกันภัยต่อ"> บมจ. ไทยรับประกันภัยต่อ</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. ไทยเศรษฐกิจประกันภัย"> บมจ. ไทยเศรษฐกิจประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. ธนชาตประกันภัย"> บมจ. ธนชาตประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. นวกิจประกันภัย"> บมจ. นวกิจประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. นิวอินเดียแอสชัวรันซ์"> บมจ. นิวอินเดียแอสชัวรันซ์</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. บางกอกสหประกันภัย"> บมจ. บางกอกสหประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. ประกันภัยไทยวิวัฒน์"> บมจ. ประกันภัยไทยวิวัฒน์</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. แปซิฟิค ครอส ประกันสุขภาพ"> บมจ. แปซิฟิค ครอส ประกันสุขภาพ</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. ฟอลคอนประกันภัย"> บมจ. ฟอลคอนประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. มิตซุย สุมิโตโม อินชัวรันซ์"> บมจ. มิตซุย สุมิโตโม อินชัวรันซ์</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. มิตรแท้ประกันภัย"> บมจ. มิตรแท้ประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. เมืองไทยประกันภัย"> บมจ. เมืองไทยประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. รู้ใจประกันภัย"> บมจ. รู้ใจประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. สตาร์ อินเตอร์เนชั่นแนล อินชัวรันซ์"> บมจ. สตาร์ อินเตอร์เนชั่นแนล อินชัวรันซ์</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. สยามสไมล์ประกันภัย"> บมจ. สยามสไมล์ประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. สหนิรภัยประกันภัย"> บมจ. สหนิรภัยประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. สหมงคลประกันภัย"> บมจ. สหมงคลประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. อลิอันซ์ อยุธยา ประกันภัย"> บมจ. อลิอันซ์ อยุธยา ประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. อินชัวร์เวิร์ส"> บมจ. อินชัวร์เวิร์ส</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. เอ็มเอสไอจี ประกันภัย"> บมจ. เอ็มเอสไอจี ประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. เอไอจี ประกันภัย"> บมจ. เอไอจี ประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. แอกซ่าประกันภัย"> บมจ. แอกซ่าประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. แอลเอ็มจี ประกันภัย"> บมจ. แอลเอ็มจี ประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. ไอโออิ กรุงเทพ ประกันภัย"> บมจ. ไอโออิ กรุงเทพ ประกันภัย</label>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>ความคาดหวังจากการอบรมครั้งนี้</label>
-                    <textarea class="form-control" name="expectation" rows="4"
-                        placeholder="ระบุความคาดหวังหรือสิ่งที่ต้องการเน้นเป็นพิเศษ (ไม่บังคับ)"></textarea>
-                </div>
-
-                <div class="form-group" style="margin-top: 30px;">
-                    <label class="radio-item" style="background-color: #E8F5E9; border-color: var(--success-color);">
-                        <input type="checkbox" name="certifyTrue" required>
-                        <strong
-                            style="color: var(--success-color);">ข้าพเจ้าขอรับรองว่าข้อความทั้งหมดเป็นความจริงทุกประการ</strong>
-                    </label>
-                </div>
             </div>
 
             <!-- Navigation Buttons -->
@@ -1470,6 +1421,9 @@ function e($val) {
             }
 
             showTab(currentTab);
+
+            // Scroll back to top of the page on tab change
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         function toggleMasterDegreeRadios() {
             let checkbox = document.getElementById("masterDegreeCheckbox");
@@ -2086,12 +2040,74 @@ function e($val) {
         }
 
         function submitForm() {
-            // Validation on final step
-            if (!validateForm()) return;
+            // Validation already done in nextPrev() before calling this function.
+            // Show confirmation modal.
+            showConfirmModal();
+        }
 
-            // Actually submit the form via POST
+        function getFieldValue(name) {
+            let el = document.querySelector('[name="' + name + '"]');
+            return el ? el.value.trim() : '';
+        }
+
+        function getCheckedRadio(name) {
+            let el = document.querySelector('[name="' + name + '"]:checked');
+            return el ? el.value : '-';
+        }
+
+        function showConfirmModal() {
+            // Collect key info
+            let title = getFieldValue('titleName');
+            let titleOther = getFieldValue('titleNameOther');
+            let displayTitle = (title === 'อื่นๆ' && titleOther) ? titleOther : title;
+            let firstName = getFieldValue('firstNameTh');
+            let lastName  = getFieldValue('lastNameTh');
+            let idCard    = getFieldValue('idCard');
+            let phone     = getFieldValue('phone');
+            let email     = getFieldValue('email');
+            let agentType = getCheckedRadio('agentType');
+            let courseType = getFieldValue('courseType');
+
+            // Training date(s)
+            let trainingDates = [];
+            document.querySelectorAll('[name="trainingDate"]:checked, [name="trainingDate[]"]').forEach(el => {
+                if (el.checked) trainingDates.push(el.value);
+            });
+            let singleDate = document.querySelector('[name="trainingDate"]:checked');
+            if (singleDate && !trainingDates.includes(singleDate.value)) trainingDates.push(singleDate.value);
+            let trainingDateText = trainingDates.length > 0 ? trainingDates.join('<br>') : '-';
+
+            let row = (label, value) => `
+                <div class="confirm-row">
+                    <span class="confirm-label">${label}</span>
+                    <span class="confirm-value">${value || '-'}</span>
+                </div>`;
+
+            document.getElementById('confirmSummary').innerHTML =
+                row('คำนำหน้า + ชื่อ-นามสกุล', `${displayTitle} ${firstName} ${lastName}`) +
+                row('เลขบัตรประชาชน', idCard) +
+                row('หมายเลขโทรศัพท์', phone) +
+                row('อีเมล', email) +
+                row('ประเภทใบอนุญาต', agentType) +
+                row('หลักสูตร', courseType || '-') +
+                row('วันที่อบรม', trainingDateText);
+
+            document.getElementById('confirmModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function cancelConfirm() {
+            document.getElementById('confirmModal').classList.remove('show');
+            document.body.style.overflow = '';
+            // Go back to last tab
+            let tabs = document.getElementsByClassName('tab');
+            currentTab = tabs.length - 1;
+            tabs[currentTab].style.display = 'block';
+            showTab(currentTab);
+        }
+
+        function confirmSubmit() {
             let form = document.getElementById('regForm');
-            // Remove the onsubmit preventDefault so form can submit
             form.onsubmit = null;
             form.submit();
         }
@@ -2451,6 +2467,181 @@ function e($val) {
             initDatePicker();
         }
     </script>
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="confirm-overlay">
+        <div class="confirm-card">
+            <div class="confirm-header">
+                <div class="confirm-icon"><i class="fa-solid fa-circle-check"></i></div>
+                <h2>ยืนยันการส่งข้อมูลการสมัคร</h2>
+                <p>กรุณาตรวจสอบข้อมูลด้านล่างให้ถูกต้องก่อนยืนยัน</p>
+            </div>
+            <div class="confirm-body">
+                <div id="confirmSummary"></div>
+            </div>
+            <div class="confirm-footer">
+                <button type="button" class="btn-confirm-cancel" onclick="cancelConfirm()">
+                    <i class="fa-solid fa-arrow-left"></i> ย้อนกลับแก้ไข
+                </button>
+                <button type="button" class="btn-confirm-submit" onclick="confirmSubmit()">
+                    <i class="fa-solid fa-paper-plane"></i> ยืนยันส่งข้อมูล
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* ===== Confirmation Modal ===== */
+        .confirm-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 20, 50, 0.65);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeInOverlay 0.25s ease;
+        }
+        .confirm-overlay.show {
+            display: flex;
+        }
+        @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        .confirm-card {
+            background: #ffffff;
+            border-radius: 18px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+            max-width: 560px;
+            width: 100%;
+            overflow: hidden;
+            animation: slideUpCard 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes slideUpCard {
+            from { opacity: 0; transform: translateY(40px) scale(0.95); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .confirm-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #003B6F 100%);
+            color: #fff;
+            padding: 32px 30px 24px;
+            text-align: center;
+            border-bottom: 4px solid var(--secondary-color);
+        }
+        .confirm-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            color: var(--secondary-color);
+            animation: popIn 0.4s 0.1s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        @keyframes popIn {
+            from { transform: scale(0); opacity: 0; }
+            to   { transform: scale(1); opacity: 1; }
+        }
+        .confirm-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .confirm-header p {
+            font-size: 14px;
+            opacity: 0.85;
+            font-weight: 300;
+        }
+        .confirm-body {
+            padding: 24px 28px;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+        .confirm-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid #F0F0F0;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 15px;
+        }
+        .confirm-row:last-child { border-bottom: none; }
+        .confirm-label {
+            flex: 0 0 170px;
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 14px;
+            padding-top: 2px;
+        }
+        .confirm-value {
+            flex: 1;
+            color: var(--text-main);
+            font-weight: 600;
+            word-break: break-word;
+            line-height: 1.6;
+        }
+        .confirm-footer {
+            display: flex;
+            gap: 12px;
+            padding: 20px 28px;
+            border-top: 1px solid #EEEEEE;
+            background: #FAFBFC;
+        }
+        .btn-confirm-cancel {
+            flex: 1;
+            padding: 13px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: #fff;
+            color: var(--text-main);
+            font-family: 'Sarabun', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        .btn-confirm-cancel:hover {
+            background: #F0F4F8;
+            border-color: #BBBBBB;
+        }
+        .btn-confirm-submit {
+            flex: 1.5;
+            padding: 13px 20px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #1A73E8 100%);
+            color: #fff;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px rgba(0, 90, 156, 0.35);
+            transition: all 0.2s ease;
+        }
+        .btn-confirm-submit:hover {
+            background: linear-gradient(135deg, #1A73E8 0%, var(--primary-color) 100%);
+            box-shadow: 0 6px 20px rgba(26, 115, 232, 0.45);
+            transform: translateY(-1px);
+        }
+        .btn-confirm-submit:active {
+            transform: translateY(0);
+        }
+        @media (max-width: 600px) {
+            .confirm-label { flex: 0 0 130px; font-size: 13px; }
+            .confirm-body  { padding: 18px 18px; }
+            .confirm-footer { flex-direction: column; padding: 16px 18px; }
+            .btn-confirm-submit, .btn-confirm-cancel { flex: unset; }
+        }
+    </style>
+
 </body>
 
 </html>
