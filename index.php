@@ -422,7 +422,7 @@ function e($val) {
         .autocomplete-wrapper { position: relative; }
         .autocomplete-list {
             position: absolute; top: 100%; left: 0; right: 0; z-index: 999;
-            max-height: 200px; overflow-y: auto;
+            max-height: 300px; overflow-y: auto;
             background: #fff; border: 1px solid var(--border-color);
             border-top: none; border-radius: 0 0 8px 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -611,6 +611,148 @@ function e($val) {
                 padding: 15px 12px 5px;
             }
         }
+
+        /* ===== Success / Next-Steps Page ===== */
+        .success-page {
+            padding: 10px 0 20px;
+        }
+        .success-hero {
+            text-align: center;
+            padding: 30px 20px 24px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #003B6F 100%);
+            border-radius: 12px;
+            color: #fff;
+            margin-bottom: 28px;
+            border-bottom: 4px solid var(--secondary-color);
+        }
+        .success-icon-wrap {
+            font-size: 56px;
+            color: var(--secondary-color);
+            margin-bottom: 14px;
+            animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        @keyframes popIn {
+            from { transform: scale(0); opacity: 0; }
+            to   { transform: scale(1); opacity: 1; }
+        }
+        .success-hero h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .success-subtitle {
+            font-size: 15px;
+            opacity: 0.85;
+            font-weight: 300;
+        }
+        .next-steps-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 18px;
+            text-align: center;
+            letter-spacing: 0.3px;
+        }
+        .steps-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .step-card {
+            display: flex;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            animation: fadeSlideIn 0.4s ease both;
+        }
+        .step-card:nth-child(1) { animation-delay: 0.05s; }
+        .step-card:nth-child(2) { animation-delay: 0.15s; }
+        .step-card:nth-child(3) { animation-delay: 0.25s; }
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .step-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+        .step-card__num {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 52px;
+            font-size: 22px;
+            font-weight: 800;
+            color: #fff;
+        }
+        .step-card--primary .step-card__num  { background: var(--primary-color); }
+        .step-card--secondary .step-card__num { background: #6366F1; }
+        .step-card--success .step-card__num   { background: var(--success-color); }
+        .step-card__body {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 20px 22px;
+            background: #fff;
+            flex: 1;
+        }
+        .step-card__icon {
+            font-size: 28px;
+            min-width: 36px;
+            padding-top: 2px;
+        }
+        .step-card--primary   .step-card__icon { color: var(--primary-color); }
+        .step-card--secondary .step-card__icon { color: #6366F1; }
+        .step-card--success   .step-card__icon { color: var(--success-color); }
+        .step-card__content h3 {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+        .step-card__content p {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 14px;
+        }
+        .btn-step-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 22px;
+            border-radius: 6px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            background: var(--primary-color);
+            color: #fff;
+            transition: all 0.2s ease;
+            box-shadow: 0 3px 10px rgba(0,90,156,0.3);
+        }
+        .btn-step-action:hover {
+            background: var(--primary-light);
+            box-shadow: 0 5px 16px rgba(26,115,232,0.4);
+            transform: translateX(2px);
+        }
+        .btn-step-action--outline {
+            background: transparent;
+            color: #6366F1;
+            border: 2px solid #6366F1;
+            box-shadow: none;
+        }
+        .btn-step-action--outline:hover {
+            background: #6366F1;
+            color: #fff;
+            transform: translateX(2px);
+        }
+        @media (max-width: 600px) {
+            .step-card__body { padding: 16px 14px; gap: 12px; }
+            .step-card__icon { font-size: 22px; min-width: 28px; }
+            .step-card__num  { min-width: 42px; font-size: 18px; }
+        }
     </style>
 </head>
 
@@ -623,7 +765,7 @@ function e($val) {
 
     <div class="container">
         <!-- Step Indicators -->
-        <div class="step-indicator">
+        <div class="step-indicator" id="stepIndicator">
             <div class="step-dot">1</div>
             <div class="step-dot">2</div>
             <div class="step-dot">3</div>
@@ -632,16 +774,73 @@ function e($val) {
             <div class="step-dot">6</div>
         </div>
 
+        <!-- ===== SUCCESS / NEXT STEPS PAGE (hidden by default, shown by JS) ===== -->
+        <div class="success-page" id="successPage" style="display:none;">
+
+            <div class="success-hero">
+                <div class="success-icon-wrap">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <h2>ส่งข้อมูลสำเร็จเรียบร้อยแล้ว!</h2>
+                <p class="success-subtitle">ระบบได้รับข้อมูลการลงทะเบียนของท่านเรียบร้อยแล้ว</p>
+            </div>
+
+            <p class="next-steps-title">ขั้นตอนถัดไป — กรุณาดำเนินการตามลำดับด้านล่าง</p>
+
+            <div class="steps-list">
+
+                <!-- Step 1: Upload -->
+                <div class="step-card step-card--primary">
+                    <div class="step-card__num">1</div>
+                    <div class="step-card__body">
+                        <div class="step-card__icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                        <div class="step-card__content">
+                            <h3>อัปโหลดภาพประกอบการลงทะเบียน</h3>
+                            <p>กรุณาอัปโหลดภาพเอกสารประกอบการลงทะเบียน เช่น รูปถ่ายหน้าบัตรประชาชน, ใบอนุญาต เป็นต้น</p>
+                            <a href="index-round2.php" class="btn-step-action">
+                                <i class="fa-solid fa-arrow-right"></i> ไปอัปโหลดเอกสาร
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Check data -->
+                <div class="step-card step-card--secondary">
+                    <div class="step-card__num">2</div>
+                    <div class="step-card__body">
+                        <div class="step-card__icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+                        <div class="step-card__content">
+                            <h3>ตรวจสอบข้อมูลที่ลงทะเบียน</h3>
+                            <p>ท่านสามารถตรวจสอบข้อมูลที่กรอกไว้ได้ทุกเมื่อต้องการ หากพบข้อผิดพลาดกรุณาติดต่อเจ้าหน้าที่</p>
+                            <a href="#" class="btn-step-action btn-step-action--outline">
+                                <i class="fa-solid fa-list-check"></i> ตรวจสอบข้อมูล
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Thank you -->
+                <div class="step-card step-card--success">
+                    <div class="step-card__num">3</div>
+                    <div class="step-card__body">
+                        <div class="step-card__icon"><i class="fa-solid fa-heart"></i></div>
+                        <div class="step-card__content">
+                            <h3>ขอบคุณที่ให้ความไว้วางใจ</h3>
+                            <p>ศูนย์ฝึกอบรมและพัฒนานักประกันภัย บมจ.วิริยะประกันภัย ขอขอบคุณเป็นอย่างสูงในความร่วมมือ และยินดีต้อนรับท่านในการอบรม</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+        <!-- ===== / SUCCESS PAGE ===== -->
+
         <form id="regForm" method="POST" action="index.php" onsubmit="event.preventDefault(); submitForm();">
 
             <?php if ($error !== ''): ?>
                 <div class="alert alert-error" style="background:#fee2e2; color:#b91c1c; border:1px solid #fecaca; border-radius:10px; padding:14px; margin-bottom:16px; font-weight:600;">
                     ⚠️ <?php echo e($error); ?>
-                </div>
-            <?php endif; ?>
-            <?php if ($success !== ''): ?>
-                <div class="alert alert-success" style="background:#dcfce7; color:#065f46; border:2px solid #22c55e; border-radius:10px; padding:14px; margin-bottom:16px; font-size:18px; font-weight:900; text-align:center;">
-                    ✅ <?php echo e($success); ?>
                 </div>
             <?php endif; ?>
 
@@ -807,7 +1006,7 @@ function e($val) {
                         </div>
                         <div class="form-group">
                             <label>ชื่อกลาง (ภาษาไทย) (เดิม)</label>
-                            <input type="text" class="form-control" name="middleNameThPrev" placeholder="ถ้ามี">
+                            <input type="text" class="form-control" name="middleNameThPrev" id="middleNameThPrev" placeholder="ถ้ามี">
                         </div>
                         <div class="form-group">
                             <label class="required">นามสกุล (ภาษาไทย) (เดิม)</label>
@@ -824,7 +1023,7 @@ function e($val) {
                         </div>
                         <div class="form-group">
                             <label>ชื่อกลาง (ภาษาอังกฤษ) (เดิม)</label>
-                            <input type="text" class="form-control" name="middleNameEnPrev" placeholder="Optional">
+                            <input type="text" class="form-control" name="middleNameEnPrev" id="middleNameEnPrev" placeholder="Optional">
                         </div>
                         <div class="form-group">
                             <label class="required">นามสกุล (ภาษาอังกฤษ) (เดิม)</label>
@@ -1366,6 +1565,7 @@ function e($val) {
             </div>
 
         </form>
+
     </div>
 
     <script>
@@ -1503,6 +1703,11 @@ function e($val) {
                     el.value = "";
                     el.classList.remove("invalid");
                 }
+                // Clear middle name fields (no required, but must be cleared too)
+                let midTh = document.getElementById("middleNameThPrev");
+                let midEn = document.getElementById("middleNameEnPrev");
+                if (midTh) { midTh.value = ""; midTh.classList.remove("invalid"); }
+                if (midEn) { midEn.value = ""; midEn.classList.remove("invalid"); }
                 let otherTitlePrevInput = document.getElementById("titleNameOtherPrev");
                 otherTitlePrevInput.removeAttribute("required");
                 otherTitlePrevInput.value = "";
@@ -2107,9 +2312,20 @@ function e($val) {
         }
 
         function confirmSubmit() {
-            let form = document.getElementById('regForm');
-            form.onsubmit = null;
-            form.submit();
+            // Hide modal
+            document.getElementById('confirmModal').classList.remove('show');
+            document.body.style.overflow = '';
+
+            // Hide step indicator and form
+            document.getElementById('stepIndicator').style.display = 'none';
+            document.getElementById('regForm').style.display = 'none';
+
+            // Show success / next-steps page with animation
+            let page = document.getElementById('successPage');
+            page.style.display = 'block';
+
+            // Scroll to top smoothly
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // ===== Relational Address Data System =====
@@ -2203,7 +2419,13 @@ function e($val) {
 
             listEl.innerHTML = '';
             if (items.length === 0) { listEl.classList.remove('show'); return; }
-            items.slice(0, 30).forEach(function(itemObj) {
+
+            // Province: show all 77, District/SubDistrict: limit to 50 when searching
+            var displayItems = (type === 'province')
+                ? items
+                : (query ? items.slice(0, 50) : items);
+
+            displayItems.forEach(function(itemObj) {
                 var val = itemObj.text;
                 var div = document.createElement('div');
                 div.className = 'autocomplete-item';
