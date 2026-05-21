@@ -753,6 +753,10 @@ function e($val) {
             .step-card__icon { font-size: 22px; min-width: 28px; }
             .step-card__num  { min-width: 42px; font-size: 18px; }
         }
+        @keyframes slideInToast {
+            from { opacity: 0; transform: translateX(40px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
     </style>
 </head>
 
@@ -1570,6 +1574,7 @@ function e($val) {
 
     <script>
         let currentTab = 0;
+        let savedNationalId = ''; // เก็บ national_id หลัง Tab 2 save สำเร็จ
         showTab(currentTab);
 
         function showTab(n) {
@@ -1602,11 +1607,24 @@ function e($val) {
             updateStepIndicator(n);
         }
 
-        function nextPrev(n) {
+        async function nextPrev(n) {
             let tabs = document.getElementsByClassName("tab");
 
-            // Exit function if any field in the current tab is invalid
+            // Validate before moving forward
             if (n == 1 && !validateForm()) return false;
+
+            // AJAX save hooks when moving forward
+            if (n == 1) {
+                if (currentTab === 1) {
+                    // Tab 2 → Tab 3: INSERT personal info
+                    let ok = await saveTab2();
+                    if (!ok) return false;
+                } else if (currentTab === 2) {
+                    // Tab 3 → Tab 4: UPDATE address
+                    let ok = await saveTab3();
+                    if (!ok) return false;
+                }
+            }
 
             // Hide current tab
             tabs[currentTab].style.display = "none";
@@ -1625,6 +1643,155 @@ function e($val) {
             // Scroll back to top of the page on tab change
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+
+        // ===== AJAX Save Functions =====
+
+        async function saveTab2() {
+            showSaving(true);
+            try {
+                let data = new FormData();
+
+                // Basic personal info fields
+                const fields = [
+                    'idCard','idCardExpiry','titleName','titleNameOther',
+                    'firstNameTh','middleNameTh','lastNameTh',
+                    'firstNameEn','middleNameEn','lastNameEn',
+                    'birthDate','religion','gender','bloodGroup',
+                    'phone','email','lineId','facebook','instagram',
+                    'foodAllergy','chronicDisease',
+                    'emergencyContactName','emergencyContactPhone'
+                ];
+                fields.forEach(name => {
+                    let el = document.querySelector('[name="' + name + '"]');
+                    if (el) data.append(name, el.value);
+                });
+
+                // Radio: hasChangedName
+                let hasChanged = document.querySelector('[name="hasChangedName"]:checked');
+                data.append('hasChangedName', hasChanged ? hasChanged.value : 'no');
+
+                // Previous name fields
+                const prevFields = [
+                    'titleNamePrev','titleNameOtherPrev',
+                    'firstNameThPrev','middleNameThPrev','lastNameThPrev',
+                    'firstNameEnPrev','middleNameEnPrev','lastNameEnPrev'
+                ];
+                prevFields.forEach(name => {
+                    let el = document.querySelector('[name="' + name + '"]');
+                    if (el) data.append(name, el.value);
+                });
+
+                // PDPA consent
+                let pdpa = document.querySelector('[name="pdpaConsent"]:checked');
+                data.append('pdpaConsent', pdpa ? pdpa.value : 'รับทราบ');
+
+                let res = await fetch('save_tab2.php', { method: 'POST', body: data });
+                let json = await res.json();
+
+                if (json.ok) {
+                    savedNationalId = json.national_id;
+                    return true;
+                } else {
+                    showSaveError(json.error || 'บันทึกข้อมูลส่วนตัวไม่สำเร็จ');
+                    return false;
+                }
+            } catch (e) {
+                showSaveError('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + e.message);
+                return false;
+            } finally {
+                showSaving(false);
+            }
+        }
+
+        async function saveTab3() {
+            if (!savedNationalId) {
+                showSaveError('ไม่พบรหัสประชาชน กรุณากลับไปกรอก Tab 2 ใหม่');
+                return false;
+            }
+            showSaving(true);
+            try {
+                let data = new FormData();
+                data.append('national_id', savedNationalId);
+
+                const fields = [
+                    'houseNo','moo','village','soi','road',
+                    'province','district','subDistrict','zipcode',
+                    'shipHouseNo','shipMoo','shipVillage','shipSoi','shipRoad',
+                    'shipProvince','shipDistrict','shipSubDistrict','shipZipcode'
+                ];
+                fields.forEach(name => {
+                    let el = document.querySelector('[name="' + name + '"]');
+                    if (el) data.append(name, el.value);
+                });
+
+                // shippingAddress radio
+                let shipAddr = document.querySelector('[name="shippingAddress"]:checked');
+                data.append('shippingAddress', shipAddr ? shipAddr.value : 'same');
+
+                let res = await fetch('save_tab3.php', { method: 'POST', body: data });
+                let json = await res.json();
+
+                if (json.ok) {
+                    return true;
+                } else {
+                    showSaveError(json.error || 'บันทึกที่อยู่ไม่สำเร็จ');
+                    return false;
+                }
+            } catch (e) {
+                showSaveError('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + e.message);
+                return false;
+            } finally {
+                showSaving(false);
+            }
+        }
+
+        function showSaving(show) {
+            let btn = document.getElementById('nextBtn');
+            if (!btn) return;
+            if (show) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึก...';
+                btn.style.opacity = '0.7';
+                btn.style.cursor = 'not-allowed';
+            } else {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+                // Restore correct label
+                let tabs = document.getElementsByClassName('tab');
+                if (currentTab == tabs.length - 1) {
+                    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> ส่งข้อมูลการสมัคร';
+                    btn.className = 'btn btn-submit';
+                } else {
+                    btn.innerHTML = 'ถัดไป <i class="fa-solid fa-arrow-right"></i>';
+                    btn.className = 'btn btn-next';
+                }
+            }
+        }
+
+        function showSaveError(msg) {
+            let toast = document.getElementById('saveErrorToast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'saveErrorToast';
+                toast.style.cssText = [
+                    'position:fixed', 'top:24px', 'right:24px',
+                    'background:#C62828', 'color:#fff',
+                    'padding:14px 20px', 'border-radius:10px',
+                    'box-shadow:0 4px 20px rgba(0,0,0,0.25)',
+                    'z-index:99999', 'font-family:Sarabun,sans-serif',
+                    'font-size:15px', 'max-width:420px',
+                    'display:flex', 'align-items:flex-start', 'gap:10px',
+                    'animation:slideInToast 0.3s ease'
+                ].join(';');
+                document.body.appendChild(toast);
+            }
+            toast.innerHTML = '<i class="fa-solid fa-circle-exclamation" style="margin-top:2px;flex-shrink:0"></i><span>' + msg + '</span>';
+            toast.style.display = 'flex';
+            clearTimeout(toast._hideTimer);
+            toast._hideTimer = setTimeout(() => { toast.style.display = 'none'; }, 6000);
+        }
+
         function toggleMasterDegreeRadios() {
             let checkbox = document.getElementById("masterDegreeCheckbox");
             let radiosDiv = document.getElementById("masterDegreeRadios");
