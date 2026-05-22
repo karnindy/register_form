@@ -38,6 +38,11 @@ if (isset($_POST['otherInsuranceCompanies']) && is_array($_POST['otherInsuranceC
     $otherInsuranceCompanies = implode(';', $_POST['otherInsuranceCompanies']);
 }
 
+$insuranceSpecialty = null;
+if (isset($_POST['insuranceSpecialty']) && is_array($_POST['insuranceSpecialty'])) {
+    $insuranceSpecialty = implode(';', $_POST['insuranceSpecialty']);
+}
+
 mysqli_report(MYSQLI_REPORT_OFF);
 try {
     $db = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
@@ -54,6 +59,7 @@ $sql = "UPDATE register_uat SET
     insurance_experience_years = ?,
     sales_area = ?,
     other_insurance_companies = ?,
+    insurance_specialty = ?,
     updated_at = NOW()
 WHERE national_id = ?";
 
@@ -62,7 +68,7 @@ try {
     if (!$stmt) {
         jsonError('เตรียมคำสั่ง SQL ไม่สำเร็จ: ' . $db->error);
     }
-    $stmt->bind_param('sssss', $mainBusiness, $insuranceExperienceYears, $salesArea, $otherInsuranceCompanies, $nationalId);
+    $stmt->bind_param('ssssss', $mainBusiness, $insuranceExperienceYears, $salesArea, $otherInsuranceCompanies, $insuranceSpecialty, $nationalId);
     if (!$stmt->execute()) {
         jsonError('อัปเดตข้อมูลรายละเอียดเพิ่มเติมไม่สำเร็จ: ' . $stmt->error);
     }

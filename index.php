@@ -1514,6 +1514,24 @@ function e($val) {
                 </div>
 
                 <div class="form-group">
+                    <label>ความเชี่ยวชาญประเภทประกันภัย</label>
+                    <div class="radio-group vertical" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                        <label class="radio-item"><input type="checkbox" name="insuranceSpecialty[]" value="ประกันภัยรถยนต์"> ประกันภัยรถยนต์</label>
+                        <label class="radio-item"><input type="checkbox" name="insuranceSpecialty[]" value="ประกันภัยความรับผิดของผู้ขนส่ง"> ประกันภัยความรับผิดของผู้ขนส่ง</label>
+                        <label class="radio-item"><input type="checkbox" name="insuranceSpecialty[]" value="ประกันภัยอุบัติเหตุ"> ประกันภัยอุบัติเหตุ</label>
+                        <label class="radio-item"><input type="checkbox" name="insuranceSpecialty[]" value="ประกันภัยสุขภาพ"> ประกันภัยสุขภาพ</label>
+                        <label class="radio-item"><input type="checkbox" name="insuranceSpecialty[]" value="ประกันเดินทางต่างประเทศ"> ประกันเดินทางต่างประเทศ</label>
+                        <label class="radio-item"><input type="checkbox" name="insuranceSpecialty[]" value="ประกันภัยโจรกรรมรถจักรยานยนต์"> ประกันภัยโจรกรรมรถจักรยานยนต์</label>
+                        <label class="radio-item"><input type="checkbox" name="insuranceSpecialty[]" value="ประกันภัยสำหรับบ้านและทรัพย์สิน"> ประกันภัยสำหรับบ้านและทรัพย์สิน</label>
+                        <label class="radio-item"><input type="checkbox" name="insuranceSpecialty[]" value="ประกันภัยสำหรับธุรกิจและความรับผิด"> ประกันภัยสำหรับธุรกิจและความรับผิด</label>
+                        <label class="radio-item"><input type="checkbox" name="insuranceSpecialty[]" value="ประกันภัยด้านการเงินและการค้ำประกัน"> ประกันภัยด้านการเงินและการค้ำประกัน</label>
+                        <label class="radio-item"><input type="checkbox" name="insuranceSpecialty[]" value="ประกันภัยด้านวิศวกรรม"> ประกันภัยด้านวิศวกรรม</label>
+                        <label class="radio-item"><input type="checkbox" name="insuranceSpecialty[]" value="ประกันภัยทางทะเลและขนส่ง"> ประกันภัยทางทะเลและขนส่ง</label>
+                        <label class="radio-item"><input type="checkbox" name="insuranceSpecialty[]" value="ประกันภัยเบ็ดเตล็ด"> ประกันภัยเบ็ดเตล็ด</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
                     <label>บริษัทประกันภัยอื่นที่ท่านส่งงานในปัจจุบัน</label>
                     <div class="radio-group" style="max-height: 400px; overflow-y: auto; padding: 15px; border: 1px solid var(--border-color); border-radius: 6px; background-color: #F8F9FA;">
                         <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]" value="บมจ. กรุงเทพประกันภัย"> บมจ. กรุงเทพประกันภัย</label>
@@ -1873,6 +1891,9 @@ function e($val) {
 
                 let otherInsuranceCompanies = document.querySelectorAll('[name="otherInsuranceCompanies[]"]:checked');
                 otherInsuranceCompanies.forEach(oic => data.append('otherInsuranceCompanies[]', oic.value));
+
+                let insuranceSpecialty = document.querySelectorAll('[name="insuranceSpecialty[]"]:checked');
+                insuranceSpecialty.forEach(is => data.append('insuranceSpecialty[]', is.value));
 
                 let res = await fetch('save_tab6.php', { method: 'POST', body: data });
                 let json = await res.json();
