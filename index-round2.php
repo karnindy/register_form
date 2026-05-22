@@ -65,8 +65,8 @@ function nextRunningVersion($base, $existingIdCodes) {
 // ========================
 // Init vars
 // ========================
-$idCode = isset($_POST['id_code']) ? $_POST['id_code'] : '';
-$phone  = isset($_POST['phone'])   ? $_POST['phone']   : '';
+$idCode = isset($_POST['id_code']) ? $_POST['id_code'] : (isset($_GET['national_id']) ? $_GET['national_id'] : '');
+$phone  = isset($_POST['phone'])   ? $_POST['phone']   : (isset($_GET['phone']) ? $_GET['phone'] : '');
 
 $emailFromGet = isset($_GET['email']) ? trim($_GET['email']) : '';
 $email = $emailFromGet;

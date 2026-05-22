@@ -801,7 +801,7 @@ function e($val) {
                         <div class="step-card__content">
                             <h3>อัปโหลดภาพประกอบการลงทะเบียน</h3>
                             <p>กรุณาอัปโหลดภาพเอกสารประกอบการลงทะเบียน เช่น รูปถ่ายหน้าบัตรประชาชน, ใบอนุญาต เป็นต้น</p>
-                            <a href="index-round2.php" class="btn-step-action">
+                            <a href="index-round2.php" id="uploadLinkBtn" class="btn-step-action">
                                 <i class="fa-solid fa-arrow-right"></i> ไปอัปโหลดเอกสาร
                             </a>
                         </div>
@@ -2691,6 +2691,11 @@ function e($val) {
             // Hide step indicator and form
             document.getElementById('stepIndicator').style.display = 'none';
             document.getElementById('regForm').style.display = 'none';
+
+            // Append query parameters to upload link
+            let phoneInput = document.querySelector('[name="phone"]');
+            let phoneVal = phoneInput ? phoneInput.value.trim() : '';
+            document.getElementById('uploadLinkBtn').href = 'index-round2.php?national_id=' + encodeURIComponent(savedNationalId) + '&phone=' + encodeURIComponent(phoneVal);
 
             // Show success / next-steps page with animation
             let page = document.getElementById('successPage');
