@@ -81,8 +81,10 @@ if ($trainingExemption === null) {
 }
 
 $pastTraining5y = null;
+$extraTrainingInterest = null;
 if (isset($_POST['previousCourses']) && is_array($_POST['previousCourses'])) {
     $pastTraining5y = implode(';', $_POST['previousCourses']);
+    $extraTrainingInterest = $pastTraining5y;
 }
 
 mysqli_report(MYSQLI_REPORT_OFF);
@@ -111,6 +113,7 @@ $sql = "UPDATE register_uat SET
     training_exemption      = ?,
     training_exemption_yet  = ?,
     past_training_5y        = ?,
+    extra_training_interest = ?,
     updated_at              = NOW()
 WHERE national_id = ?";
 
@@ -120,7 +123,7 @@ try {
         jsonError('เตรียมคำสั่ง SQL ไม่สำเร็จ: ' . $db->error);
     }
     $stmt->bind_param(
-        'sssssssssssssss',
+        'ssssssssssssssss',
         $dbCourseType,
         $agentLevel,
         $brokerLevel,
@@ -135,6 +138,7 @@ try {
         $trainingExemption,
         $trainingExemptionYet,
         $pastTraining5y,
+        $extraTrainingInterest,
         $nationalId
     );
     if (!$stmt->execute()) {
