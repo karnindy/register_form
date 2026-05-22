@@ -71,7 +71,7 @@ if (strpos($courseType, '4 เป็นต้นไป') !== false || strpos($co
 $trainingExemption = null;
 if (isset($_POST['deductionPrivilege']) && is_array($_POST['deductionPrivilege'])) {
     if (in_array('MasterDegree', $_POST['deductionPrivilege'])) {
-        $trainingExemption = 'MasterDegree';
+        $trainingExemption = 'สำเร็จการศึกษาตั้งแต่ระดับปริญญาโทขึ้นไป จากสถาบันอุดมศึกษาหรือสถาบันการศึกษาในต่างประเทศที่สำนักงานคณะกรรมการข้าราชการพลเรือนรับรอง';
     }
 }
 
