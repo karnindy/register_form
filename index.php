@@ -1631,6 +1631,10 @@ function e($val) {
                     // Tab 5 → Tab 6: UPDATE training
                     let ok = await saveTab5();
                     if (!ok) return false;
+                } else if (currentTab === 5) {
+                    // Tab 6 → Submit: UPDATE details
+                    let ok = await saveTab6();
+                    if (!ok) return false;
                 }
             }
 
@@ -1838,6 +1842,45 @@ function e($val) {
                     return true;
                 } else {
                     showSaveError(json.error || 'บันทึกข้อมูลการอบรมไม่สำเร็จ');
+                    return false;
+                }
+            } catch (e) {
+                showSaveError('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + e.message);
+                return false;
+            } finally {
+                showSaving(false);
+            }
+        }
+
+        async function saveTab6() {
+            if (!savedNationalId) {
+                showSaveError('ไม่พบรหัสประชาชน กรุณากลับไปกรอก Tab 2 ใหม่');
+                return false;
+            }
+            showSaving(true);
+            try {
+                let data = new FormData();
+                data.append('national_id', savedNationalId);
+
+                let occupation = document.querySelector('[name="occupation"]');
+                if (occupation) data.append('occupation', occupation.value);
+
+                let experience = document.querySelector('[name="insuranceExperienceYears"]');
+                if (experience) data.append('insuranceExperienceYears', experience.value);
+
+                let salesTerritories = document.querySelectorAll('[name="salesTerritories[]"]:checked');
+                salesTerritories.forEach(st => data.append('salesTerritories[]', st.value));
+
+                let otherInsuranceCompanies = document.querySelectorAll('[name="otherInsuranceCompanies[]"]:checked');
+                otherInsuranceCompanies.forEach(oic => data.append('otherInsuranceCompanies[]', oic.value));
+
+                let res = await fetch('save_tab6.php', { method: 'POST', body: data });
+                let json = await res.json();
+
+                if (json.ok) {
+                    return true;
+                } else {
+                    showSaveError(json.error || 'บันทึกข้อมูลรายละเอียดเพิ่มเติมไม่สำเร็จ');
                     return false;
                 }
             } catch (e) {
@@ -2581,7 +2624,45 @@ function e($val) {
             showTab(currentTab);
         }
 
-        function confirmSubmit() {
+        async function confirmSubmit() {
+            if (!savedNationalId) {
+                alert('ไม่พบรหัสประชาชน');
+                return;
+            }
+
+            // Show loading on the confirm button
+            let btn = document.querySelector('.modal-footer .btn-submit');
+            let origHtml = '';
+            if (btn) {
+                origHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังส่งข้อมูล...';
+                btn.disabled = true;
+            }
+
+            try {
+                let data = new FormData();
+                data.append('national_id', savedNationalId);
+
+                let res = await fetch('save_final.php', { method: 'POST', body: data });
+                let json = await res.json();
+
+                if (!json.ok) {
+                    alert('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + (json.error || 'Unknown error'));
+                    if (btn) {
+                        btn.innerHTML = origHtml;
+                        btn.disabled = false;
+                    }
+                    return;
+                }
+            } catch (e) {
+                alert('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + e.message);
+                if (btn) {
+                    btn.innerHTML = origHtml;
+                    btn.disabled = false;
+                }
+                return;
+            }
+
             // Hide modal
             document.getElementById('confirmModal').classList.remove('show');
             document.body.style.overflow = '';
