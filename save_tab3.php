@@ -36,7 +36,13 @@ $addrSubDistrict = p('subDistrict');
 $addrPostcode    = p('zipcode');
 
 $shipRadio = p('shippingAddress', 'same');
-$contactAddress = $shipRadio;
+if ($shipRadio === 'same') {
+    $contactAddress = 'ตรงกับที่อยู่ตามทะเบียนบ้าน';
+} elseif ($shipRadio === 'different') {
+    $contactAddress = 'ที่อยู่อื่น ๆ (โปรดระบุ)';
+} else {
+    $contactAddress = $shipRadio;
+}
 
 $contactHouseNo     = p('shipHouseNo');
 $contactMoo         = p('shipMoo');
@@ -69,16 +75,16 @@ $sql = "UPDATE register_uat SET
     addr_district         = ?,
     addr_subdistrict      = ?,
     addr_postcode         = ?,
-    shipping_address_type = ?,
-    ship_house_no         = ?,
-    ship_moo              = ?,
-    ship_village          = ?,
-    ship_soi              = ?,
-    ship_road             = ?,
-    ship_province         = ?,
-    ship_district         = ?,
-    ship_subdistrict      = ?,
-    ship_postcode         = ?,
+    contact_address       = ?,
+    contact_house_no      = ?,
+    contact_moo           = ?,
+    contact_village       = ?,
+    contact_soi           = ?,
+    contact_road          = ?,
+    contact_province      = ?,
+    contact_district      = ?,
+    contact_subdistrict   = ?,
+    contact_postcode      = ?,
     updated_at            = NOW()
 WHERE national_id = ?";
 

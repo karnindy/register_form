@@ -1429,7 +1429,7 @@ function e($val) {
 
                 <hr style="border: 1px solid var(--border-color); margin: 30px 0;">
                 <div class="form-group" id="deductionPrivilegeGroup" style="display: <?php echo e((isset($formData['courseType']) && strpos($formData['courseType'], 'ขอต่อใบอนุญาตตัวแทน/นายหน้าประกันวินาศภัย 4 เป็นต้นไป') !== false) ? 'block' : 'none'); ?>;">
-                    <label>สิทธิ์ลดหย่อนชั่วโมงอบรม (สามารถเลือกได้มากกว่า 1 ข้อ)</label>
+                    <label>สิทธิ์ลดหย่อนชั่วโมงอบรม</label>
                     <div class="radio-group">
                         <label class="radio-item"><input type="checkbox" name="deductionPrivilege[]" value="MasterDegree" id="masterDegreeCheckbox" onchange="toggleMasterDegreeRadios()" <?php echo e(in_array('MasterDegree', $formData['deductionPrivilege'] ?? []) ? 'checked' : ''); ?>> สำเร็จการศึกษาตั้งแต่ระดับปริญญาโทขึ้นไป จากสถาบันอุดมศึกษาหรือสถาบันการศึกษาในต่างประเทศที่สำนักงานคณะกรรมการข้าราชการพลเรือนรับรอง</label>
                         <div id="masterDegreeRadios" style="display: <?php echo e(in_array('MasterDegree', $formData['deductionPrivilege'] ?? []) ? 'block' : 'none'); ?>; margin-top: 15px; margin-left: 25px;">
@@ -1623,6 +1623,10 @@ function e($val) {
                     // Tab 3 → Tab 4: UPDATE address
                     let ok = await saveTab3();
                     if (!ok) return false;
+                } else if (currentTab === 3) {
+                    // Tab 4 → Tab 5: UPDATE license
+                    let ok = await saveTab4();
+                    if (!ok) return false;
                 }
             }
 
@@ -1735,6 +1739,51 @@ function e($val) {
                     return true;
                 } else {
                     showSaveError(json.error || 'บันทึกที่อยู่ไม่สำเร็จ');
+                    return false;
+                }
+            } catch (e) {
+                showSaveError('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + e.message);
+                return false;
+            } finally {
+                showSaving(false);
+            }
+        }
+
+        async function saveTab4() {
+            if (!savedNationalId) {
+                showSaveError('ไม่พบรหัสประชาชน กรุณากลับไปกรอก Tab 2 ใหม่');
+                return false;
+            }
+            showSaving(true);
+            try {
+                let data = new FormData();
+                data.append('national_id', savedNationalId);
+
+                let agentType = document.querySelector('[name="agentType"]:checked');
+                if (agentType) data.append('agentType', agentType.value);
+
+                const fields = [
+                    'agentRegion','agentBranch','brokerAffiliation',
+                    'branchRecommender','licenseNo','licenseIssue','licenseExpire'
+                ];
+                fields.forEach(name => {
+                    let el = document.querySelector('[name="' + name + '"]');
+                    if (el) data.append(name, el.value);
+                });
+
+                let codeAgent = document.getElementById("viriyahAgentCodeAgent");
+                if (codeAgent) data.append('viriyahAgentCodeAgent', codeAgent.value);
+
+                let codeBroker = document.getElementById("viriyahAgentCodeBroker");
+                if (codeBroker) data.append('viriyahAgentCodeBroker', codeBroker.value);
+
+                let res = await fetch('save_tab4.php', { method: 'POST', body: data });
+                let json = await res.json();
+
+                if (json.ok) {
+                    return true;
+                } else {
+                    showSaveError(json.error || 'บันทึกข้อมูลใบอนุญาตไม่สำเร็จ');
                     return false;
                 }
             } catch (e) {
