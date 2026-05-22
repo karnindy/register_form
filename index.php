@@ -1627,6 +1627,10 @@ function e($val) {
                     // Tab 4 → Tab 5: UPDATE license
                     let ok = await saveTab4();
                     if (!ok) return false;
+                } else if (currentTab === 4) {
+                    // Tab 5 → Tab 6: UPDATE training
+                    let ok = await saveTab5();
+                    if (!ok) return false;
                 }
             }
 
@@ -1784,6 +1788,56 @@ function e($val) {
                     return true;
                 } else {
                     showSaveError(json.error || 'บันทึกข้อมูลใบอนุญาตไม่สำเร็จ');
+                    return false;
+                }
+            } catch (e) {
+                showSaveError('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + e.message);
+                return false;
+            } finally {
+                showSaving(false);
+            }
+        }
+
+        async function saveTab5() {
+            if (!savedNationalId) {
+                showSaveError('ไม่พบรหัสประชาชน กรุณากลับไปกรอก Tab 2 ใหม่');
+                return false;
+            }
+            showSaving(true);
+            try {
+                let data = new FormData();
+                data.append('national_id', savedNationalId);
+
+                let agentType = document.querySelector('[name="agentType"]:checked');
+                if (agentType) data.append('agentType', agentType.value);
+
+                let courseType = document.getElementById("courseTypeHidden");
+                if (courseType) data.append('courseType', courseType.value);
+
+                let trainingDates = document.querySelectorAll('[name="trainingDate[]"]:checked');
+                if (trainingDates.length > 0) {
+                    trainingDates.forEach(td => data.append('trainingDate[]', td.value));
+                } else {
+                    let tdRadio = document.querySelector('[name="trainingDate"]:checked');
+                    if (tdRadio) data.append('trainingDate', tdRadio.value);
+                }
+
+                let deductionPrivilege = document.querySelectorAll('[name="deductionPrivilege[]"]:checked');
+                deductionPrivilege.forEach(dp => data.append('deductionPrivilege[]', dp.value));
+
+                let masterStatus = document.querySelector('[name="masterDegreeStatus"]:checked');
+                if (masterStatus) data.append('masterDegreeStatus', masterStatus.value);
+
+                let prevCourses = document.querySelectorAll('[name="previousCourses[]"]:checked');
+                prevCourses.forEach(pc => data.append('previousCourses[]', pc.value));
+
+                let res = await fetch('save_tab5.php', { method: 'POST', body: data });
+                let json = await res.json();
+
+                if (json.ok) {
+                    return true;
+                } else {
+                    showSaveError(json.error || 'บันทึกข้อมูลการอบรมไม่สำเร็จ');
                     return false;
                 }
             } catch (e) {
