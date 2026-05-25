@@ -29,7 +29,7 @@ try {
     $salesTerritories = isset($_POST['salesTerritories']) ? implode(',', $_POST['salesTerritories']) : '';
     $otherInsuranceCompanies = isset($_POST['otherInsuranceCompanies']) ? implode(',', $_POST['otherInsuranceCompanies']) : '';
 
-    $stmt = $pdo->prepare("INSERT INTO register_uat (
+    $stmt = $pdo->prepare("INSERT INTO " . DB_TABLE_REGISTER . " (
         pdpa_consent, national_id, id_card_expiry,
         title_th, title_custom,
         first_name_th, middle_name_th, last_name_th,
@@ -38,7 +38,7 @@ try {
         first_name_th_prev, middle_name_th_prev, last_name_th_prev,
         first_name_en_prev, middle_name_en_prev, last_name_en_prev,
         birth_date, religion, gender, blood_group,
-        phone_otp, email,
+        phone_otp, email_alt, email,
         line_id, facebook, instagram,
         food_allergy, medical_condition,
         emergency_contact_name, emergency_contact_phone,
@@ -54,7 +54,7 @@ try {
         highest_education, occupation, branch_recommender, insurance_experience_years,
         sales_territories, other_insurance_companies,
         has_experience, expectation, certify_true,
-        created_at
+        created_at, start_time, completion_time
     ) VALUES (
         :pdpa_consent, :national_id, :id_card_expiry,
         :title_th, :title_custom,
@@ -64,7 +64,7 @@ try {
         :first_name_th_prev, :middle_name_th_prev, :last_name_th_prev,
         :first_name_en_prev, :middle_name_en_prev, :last_name_en_prev,
         :birth_date, :religion, :gender, :blood_group,
-        :phone_otp, :email,
+        :phone_otp, :email_alt, :email,
         :line_id, :facebook, :instagram,
         :food_allergy, :medical_condition,
         :emergency_contact_name, :emergency_contact_phone,
@@ -80,7 +80,7 @@ try {
         :highest_education, :occupation, :branch_recommender, :insurance_experience_years,
         :sales_territories, :other_insurance_companies,
         :has_experience, :expectation, :certify_true,
-        NOW()
+        NOW(), NOW(), NOW()
     )");
 
     // Helper to get POST value safely
@@ -88,10 +88,51 @@ try {
         return isset($_POST[$key]) ? trim($_POST[$key]) : '';
     }
 
+    $idCardExpiry = p('idCardExpiry');
+    $dbIdCardExpiry = null;
+    if (!empty($idCardExpiry)) {
+        $parts = explode('/', $idCardExpiry);
+        if (count($parts) === 3) {
+            $dbIdCardExpiry = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+        }
+    }
+
+    $birthDate = p('birthDate');
+    $dbBirthDate = null;
+    if (!empty($birthDate)) {
+        $parts = explode('/', $birthDate);
+        if (count($parts) === 3) {
+            $dbBirthDate = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+        }
+    }
+
+    $licenseIssue = p('licenseIssue');
+    $dbLicenseIssue = null;
+    if (!empty($licenseIssue)) {
+        $parts = explode('/', $licenseIssue);
+        if (count($parts) === 3) {
+            $dbLicenseIssue = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+        }
+    }
+
+    $licenseExpire = p('licenseExpire');
+    $dbLicenseExpire = null;
+    if (!empty($licenseExpire)) {
+        $parts = explode('/', $licenseExpire);
+        if (count($parts) === 3) {
+            $dbLicenseExpire = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+        }
+    }
+
+    $insuranceExperienceYears = p('insuranceExperienceYears');
+    if ($insuranceExperienceYears === '') {
+        $insuranceExperienceYears = 0;
+    }
+    
     $stmt->execute([
         ':pdpa_consent' => p('pdpaConsent'),
         ':national_id' => $idRaw,
-        ':id_card_expiry' => p('idCardExpiry'),
+        ':id_card_expiry' => $dbIdCardExpiry,
         ':title_th' => p('titleName'),
         ':title_custom' => p('titleNameOther'),
         ':first_name_th' => p('firstNameTh'),
@@ -109,11 +150,12 @@ try {
         ':first_name_en_prev' => p('firstNameEnPrev'),
         ':middle_name_en_prev' => p('middleNameEnPrev'),
         ':last_name_en_prev' => p('lastNameEnPrev'),
-        ':birth_date' => p('birthDate'),
+        ':birth_date' => $dbBirthDate,
         ':religion' => p('religion'),
         ':gender' => p('gender'),
         ':blood_group' => p('bloodGroup'),
         ':phone_otp' => $phoneRaw,
+        ':email_alt' => p('email'),
         ':email' => p('email'),
         ':line_id' => p('lineId'),
         ':facebook' => p('facebook'),
@@ -144,8 +186,8 @@ try {
         ':agent_type' => p('agentType'),
         ':license_status' => p('licenseStatus'),
         ':license_no' => p('licenseNo'),
-        ':license_issue_date' => p('licenseIssue'),
-        ':license_expiry_date' => p('licenseExpire'),
+        ':license_issue_date' => $dbLicenseIssue,
+        ':license_expiry_date' => $dbLicenseExpire,
         ':agent_region' => p('agentRegion'),
         ':agent_branch' => p('agentBranch'),
         ':broker_affiliation' => p('brokerAffiliation'),
@@ -159,7 +201,7 @@ try {
         ':highest_education' => p('education'),
         ':occupation' => p('occupation'),
         ':branch_recommender' => p('branchRecommender'),
-        ':insurance_experience_years' => p('insuranceExperienceYears'),
+        ':insurance_experience_years' => $insuranceExperienceYears,
         ':sales_territories' => $salesTerritories,
         ':other_insurance_companies' => $otherInsuranceCompanies,
         ':has_experience' => p('hasExperience'),

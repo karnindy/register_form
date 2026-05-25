@@ -517,10 +517,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div id="step23Block" class="premium-bar focus-target">
                 <div style="font-size:150%; font-weight:900;">* ขั้นตอนการลงทะเบียนอบรมปี 2569 *</div><br>
 
-                1.กรอกรหัสบัตรประชาชน/หมายเลขโทรศัพท์มือถือ และ upload ภาพ<br>
-                เพื่อใช้เป็นหลักฐานประกอบในการลงทะเบียนอบรมกับศูนย์ฝึกอบรมฯ ทางด้านขวาของหน้านี้
-                <br><br>
-                2.ตรวจสอบประวัติการฝึกอบรมของท่านที่ระบบ e-Licensing ของ คปภ. โดยกด link ข้างล่าง เพื่อดูข้อมูลวิชาที่ท่านอบรมผ่านมาแล้ว<br>
+                1.ตรวจสอบประวัติการฝึกอบรมของท่านที่ระบบ e-Licensing ของ คปภ. โดยกด link ข้างล่าง เพื่อดูข้อมูลวิชาที่ท่านอบรมผ่านมาแล้ว<br>
                 <span class="step-links">
                     <a id="step2Link" href="https://smart.oic.or.th/E_Licensing_Entry/Login" target="_blank" rel="noopener noreferrer">
                         https://smart.oic.or.th/E_Licensing_Entry/Login
@@ -534,13 +531,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 หลังจากตรวจสอบข้อมูลประวัติการฝึกอบรมของท่านแล้ว ให้<br><br>
 
-                3. กรอกข้อมูลตาม Link ที่ท่านได้รับจาก email<br><br>
+                2. กรอกข้อมูลตาม Link <a href=https://iptc.xn--z3cbl2brb.com/form2 target=_black>https://iptc.xn--z3cbl2brb.com/form2</a><br><br>
+                3. upload ภาพ<br>
+                เพื่อใช้เป็นหลักฐานประกอบในการลงทะเบียนอบรมกับศูนย์ฝึกอบรมฯ ทางด้านขวาของหน้านี้
+                <br><br>
 
                 ถ้าท่านดำเนินการครบ 3 ขั้นตอน ถือว่าดำเนินการครบถ้วนแล้ว<br>
-                หากไม่มีเจ้าหน้าที่ติดต่อกลับไป แสดงว่าการสมัครของท่านเสร็จสมบูรณ์<br>
-                ศูนย์ฝึกอบรมฯ จะประกาศรายชื่อผู้เข้าอบรมให้ท่านทราบอีกครั้งหนึ่ง<br>
-                ภายในเดือนมีนาคม 2569 <br><br>
-
+                ศูนย์ฝึกอบรมฯ จะประกาศรายชื่อผู้เข้าอบรมให้ท่านทราบอีกครั้งหนึ่ง<br><br>
+                หรือตรวจสอบข้อมูลที่ท่านลงทะเบียนได้ที่<br> <a href=https://iptc.xn--z3cbl2brb.com/form2/enquiry.corse.php target=_blank>https://iptc.xn--z3cbl2brb.com/form2/enquiry.corse.php<a><br><br>
+                <b>วิชาที่ท่านผ่านการอบรมแล้ว จะไม่จัดท่านเข้าอบรมหลักสูตรนั้นอีก</b>
+                <br><br>
                 หากท่านมีข้อสงสัยหรือต้องการสอบถามเพิ่มเติม กรุณาติดต่อ ผ่าน<br>
                 Line Official Account :
                 <a href="https://lin.ee/4k6FJ6g" target="_blank" rel="noopener noreferrer">@viriyahiptc</a>
@@ -735,41 +735,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div id="successModalTitle" class="modal-title">
                     <?php echo htmlspecialchars($success, ENT_QUOTES, 'UTF-8'); ?>
                 </div>
-                <div class="modal-sub">ดำเนินขั้นตอนที่ 2 และ 3 ต่อได้เลยครับ</div>
             </div>
             <button type="button" class="modal-x" aria-label="ปิด" onclick="closeSuccessModal(true)">×</button>
         </div>
 
         <div class="modal-body">
             <div class="modal-steps">
-                <h3>* ขั้นตอนการลงทะเบียนอบรมปี 2569 *</h3>
                 <ol>
-                    <li>
-                        กรอกรหัสบัตรประชาชน/หมายเลขโทรศัพท์มือถือ และอัปโหลดภาพ
-                        <div class="small">เพื่อใช้เป็นหลักฐานประกอบในการลงทะเบียนอบรมกับศูนย์ฝึกอบรมฯ</div>
-                    </li>
-                    <li>
-                        ตรวจสอบประวัติการฝึกอบรมของท่านที่ระบบ e-Licensing ของ คปภ. โดยกด link ข้างล่าง :
-                        <div class="small">
-                            <a href="https://smart.oic.or.th/E_Licensing_Entry/Login" target="_blank" rel="noopener noreferrer">
-                                https://smart.oic.or.th/E_Licensing_Entry/Login
-                            </a>
-                        </div>
-                        <div class="small">
-                        สำหรับปัญหาการใช้งานระบบ e-Licensing<br>
-                            - ปัญหาเรื่องกระบวนการต่ออายุ 025153999 ต่อ 6503 หรือ 6302<br>
-                            - ปัญหาเรื่องการเข้าใช้งาน 093-301-9738, 093-301-8768<br>
-                            - ปัญหาการยืนยันตัวตนผ่านระบบ คปภ. รอบรู้
-                            <a href="https://oicconnect-incident-report.paperform.co/" target="_blank" rel="noopener noreferrer">[กดที่นี่]</a>
-                        </div>
-                    </li>
-                    <li>
-                        กรอกข้อมูลตามลิงก์:
-                        <div class="small">
-                               กรอกข้อมูลตามลิงก์ตามที่ได้รับจาก eMail
-                        </div>
-                        <div class="small">หากดำเนินการครบ 3 ขั้นตอน ถือว่าดำเนินการครบถ้วนแล้ว</div>
-                    </li>
+                ถ้าท่านดำเนินการครบ 3 ขั้นตอน ถือว่าดำเนินการครบถ้วนแล้ว<br>
+                ศูนย์ฝึกอบรมฯ จะประกาศรายชื่อผู้เข้าอบรมให้ท่านทราบอีกครั้งหนึ่ง<br><br>
+                หรือตรวจสอบข้อมูลที่ท่านลงทะเบียนได้ที่<br> <a href=https://iptc.xn--z3cbl2brb.com/form2/enquiry.corse.php target=_blank>https://iptc.xn--z3cbl2brb.com/form2/enquiry.corse.php<a><br><br>
+                <b>วิชาที่ท่านผ่านการอบรมแล้ว จะไม่จัดท่านเข้าอบรมหลักสูตรนั้นอีก</b>
+                <br><br>
+                หากท่านมีข้อสงสัยหรือต้องการสอบถามเพิ่มเติม กรุณาติดต่อ ผ่าน<br>
+                Line Official Account :
+                <a href="https://lin.ee/4k6FJ6g" target="_blank" rel="noopener noreferrer">@viriyahiptc</a>
+                หรือ
+                <a href="https://lin.ee/4k6FJ6g" target="_blank" rel="noopener noreferrer">https://lin.ee/4k6FJ6g</a>
+                <br><br>
                 </ol>
                 </div>
             </div>

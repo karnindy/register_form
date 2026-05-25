@@ -95,6 +95,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // --- Insert to DB ---
+    // --- Format Date for DB ---
+    $dbIdCardExpiry = null;
+    if (!empty($formData['idCardExpiry'])) {
+        $parts = explode('/', $formData['idCardExpiry']);
+        if (count($parts) === 3) {
+            $dbIdCardExpiry = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+        }
+    }
+
+    $dbBirthDate = null;
+    if (!empty($formData['birthDate'])) {
+        $parts = explode('/', $formData['birthDate']);
+        if (count($parts) === 3) {
+            $dbBirthDate = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+        }
+    }
+
+    $dbLicenseIssue = null;
+    if (!empty($formData['licenseIssue'])) {
+        $parts = explode('/', $formData['licenseIssue']);
+        if (count($parts) === 3) {
+            $dbLicenseIssue = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+        }
+    }
+
+    $dbLicenseExpire = null;
+    if (!empty($formData['licenseExpire'])) {
+        $parts = explode('/', $formData['licenseExpire']);
+        if (count($parts) === 3) {
+            $dbLicenseExpire = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+        }
+    }
+
     if ($error === '') {
 
         $db = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
@@ -105,22 +138,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->begin_transaction();
 
             try {
-                $sql = "INSERT INTO register_uat (
+                $sql = "INSERT INTO " . DB_TABLE_REGISTER . " (
                     pdpa_consent, national_id, id_card_expiry,
                     title_th, title_custom,
                     first_name_th, middle_name_th, last_name_th,
                     first_name_en, middle_name_en, last_name_en,
                     has_changed_name, title_prev, title_custom_prev,
-                    first_name_th_prev, middle_name_th_prev, last_name_th_prev,
+                    first_name_old_th, middle_name_old_th, last_name_old_th,
                     first_name_en_prev, middle_name_en_prev, last_name_en_prev,
                     birth_date, religion, gender, blood_group,
-                    phone_otp, email,
+                    phone_otp, email_alt, email,
                     line_id, facebook, instagram,
                     food_allergy, medical_condition,
                     emergency_contact_name, emergency_contact_phone,
                     addr_house_no, addr_moo, addr_village, addr_soi, addr_road,
                     addr_province, addr_district, addr_subdistrict, addr_postcode,
-                    shipping_address_type,
+                    shipping_address,
                     ship_house_no, ship_moo, ship_village, ship_soi, ship_road,
                     ship_province, ship_district, ship_subdistrict, ship_postcode,
                     agent_type, license_status, license_no, license_issue_date, license_expiry_date,
@@ -128,8 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     course_type, training_date, training_format,
                     deduction_privilege, previous_courses,
                     highest_education, occupation, branch_recommender,
-                    has_experience, expectation, certify_true,
-                    created_at
+                    has_experience, expectation, certify_true, start_time, completion_time
                 ) VALUES (
                     ?, ?, ?,
                     ?, ?,
@@ -139,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ?, ?, ?,
                     ?, ?, ?,
                     ?, ?, ?, ?,
-                    ?, ?,
+                    ?, ?, ?,
                     ?, ?, ?,
                     ?, ?,
                     ?, ?,
@@ -164,16 +196,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $coursesStr = implode(',', $previousCourses);
                 $emergPhone = preg_replace('/[^0-9]/', '', $formData['emergencyContactPhone']);
 
-                $stmt->bind_param("sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
-                    $formData['pdpaConsent'], $idRaw, $formData['idCardExpiry'],
+                $stmt->bind_param("ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+                    $formData['pdpaConsent'], $idRaw, $dbIdCardExpiry,
                     $formData['titleName'], $formData['titleNameOther'],
                     $formData['firstNameTh'], $formData['middleNameTh'], $formData['lastNameTh'],
                     $formData['firstNameEn'], $formData['middleNameEn'], $formData['lastNameEn'],
                     $formData['hasChangedName'], $formData['titleNamePrev'], $formData['titleNameOtherPrev'],
                     $formData['firstNameThPrev'], $formData['middleNameThPrev'], $formData['lastNameThPrev'],
                     $formData['firstNameEnPrev'], $formData['middleNameEnPrev'], $formData['lastNameEnPrev'],
-                    $formData['birthDate'], $formData['religion'], $formData['gender'], $formData['bloodGroup'],
-                    $phoneRaw, $formData['email'],
+                    $dbBirthDate, $formData['religion'], $formData['gender'], $formData['bloodGroup'],
+                    $phoneRaw, $formData['email'], $formData['email'],
                     $formData['lineId'], $formData['facebook'], $formData['instagram'],
                     $formData['foodAllergy'], $formData['chronicDisease'],
                     $formData['emergencyContactName'], $emergPhone,
@@ -182,7 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $formData['shippingAddress'],
                     $formData['shipHouseNo'], $formData['shipMoo'], $formData['shipVillage'], $formData['shipSoi'], $formData['shipRoad'],
                     $formData['shipProvince'], $formData['shipDistrict'], $formData['shipSubDistrict'], $formData['shipZipcode'],
-                    $formData['agentType'], $formData['licenseStatus'], $formData['licenseNo'], $formData['licenseIssue'], $formData['licenseExpire'],
+                    $formData['agentType'], $formData['licenseStatus'], $formData['licenseNo'], $dbLicenseIssue, $dbLicenseExpire,
                     $formData['agentRegion'], $formData['agentBranch'],
                     $formData['courseType'], $formData['trainingDate'], $formData['trainingFormat'],
                     $deductStr, $coursesStr,

@@ -6,7 +6,7 @@ try {
         throw new Exception("Connection failed: " . $db->connect_error);
     }
     $db->set_charset("utf8mb4");
-    $res = $db->query("DESCRIBE register_uat");
+    $res = $db->query("DESCRIBE " . DB_TABLE_REGISTER);
     $cols = [];
     while ($row = $res->fetch_assoc()) {
         $cols[] = $row['Field'];

@@ -27,6 +27,9 @@ if (strlen($nationalId) !== 13) {
 
 $mainBusiness = p('occupation');
 $insuranceExperienceYears = p('insuranceExperienceYears');
+if ($insuranceExperienceYears === '') {
+    $insuranceExperienceYears = 0;
+}
 
 $salesArea = null;
 if (isset($_POST['salesTerritories']) && is_array($_POST['salesTerritories'])) {
@@ -54,7 +57,7 @@ try {
 }
 $db->set_charset('utf8mb4');
 
-$sql = "UPDATE register_uat SET
+$sql = "UPDATE " . DB_TABLE_REGISTER . " SET
     main_business = ?,
     insurance_experience_years = ?,
     sales_area = ?,

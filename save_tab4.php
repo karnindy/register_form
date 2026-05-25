@@ -56,7 +56,22 @@ $brokerAffiliation = p('brokerAffiliation');
 $branchRecommender = p('branchRecommender');
 $licenseNo = p('licenseNo');
 $licenseIssue = p('licenseIssue');
+$dbLicenseIssue = null;
+if (!empty($licenseIssue)) {
+    $parts = explode('/', $licenseIssue);
+    if (count($parts) === 3) {
+        $dbLicenseIssue = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+    }
+}
+
 $licenseExpire = p('licenseExpire');
+$dbLicenseExpire = null;
+if (!empty($licenseExpire)) {
+    $parts = explode('/', $licenseExpire);
+    if (count($parts) === 3) {
+        $dbLicenseExpire = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+    }
+}
 
 mysqli_report(MYSQLI_REPORT_OFF);
 try {
@@ -69,7 +84,7 @@ try {
 }
 $db->set_charset('utf8mb4');
 
-$sql = "UPDATE register_uat SET
+$sql = "UPDATE " . DB_TABLE_REGISTER . " SET
     license_type        = ?,
     region_affiliation  = ?,
     region_north        = ?,
@@ -106,8 +121,8 @@ try {
         $brokerAffiliation,
         $branchRecommender,
         $licenseNo,
-        $licenseIssue,
-        $licenseExpire,
+        $dbLicenseIssue,
+        $dbLicenseExpire,
         $nationalId
     );
     if (!$stmt->execute()) {

@@ -65,7 +65,7 @@ try {
 }
 $db->set_charset('utf8mb4');
 
-$sql = "UPDATE register_uat SET
+$sql = "UPDATE " . DB_TABLE_REGISTER . " SET
     addr_house_no         = ?,
     addr_moo              = ?,
     addr_village          = ?,

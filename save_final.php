@@ -36,9 +36,10 @@ try {
 }
 $db->set_charset('utf8mb4');
 
-$sql = "UPDATE register_uat SET
+$sql = "UPDATE " . DB_TABLE_REGISTER . " SET
     confirmed = 'ยืนยันการสมัคร',
-    updated_at = NOW()
+    updated_at = NOW(),
+    completion_time = NOW()
 WHERE national_id = ?";
 
 try {

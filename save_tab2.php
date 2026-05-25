@@ -45,6 +45,13 @@ if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
 $pdpaConsent     = 'รับทราบ';
 $idCardExpiry    = p('idCardExpiry');
+$dbIdCardExpiry  = null;
+if (!empty($idCardExpiry)) {
+    $parts = explode('/', $idCardExpiry);
+    if (count($parts) === 3) {
+        $dbIdCardExpiry = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+    }
+}
 $titleTh         = p('titleName');
 $titleCustom     = p('titleNameOther');
 $firstNameTh     = p('firstNameTh');
@@ -63,6 +70,13 @@ $firstNameEnOld  = p('firstNameEnPrev');
 $middleNameEnOld = p('middleNameEnPrev');
 $lastNameOldEn   = p('lastNameEnPrev');
 $birthDate       = p('birthDate');
+$dbBirthDate     = null;
+if (!empty($birthDate)) {
+    $parts = explode('/', $birthDate);
+    if (count($parts) === 3) {
+        $dbBirthDate = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+    }
+}
 $religion        = p('religion');
 $gender          = p('gender');
 $bloodGroup      = p('bloodGroup');
@@ -85,25 +99,25 @@ try {
 }
 $db->set_charset('utf8mb4');
 
-$sql = "INSERT INTO register_uat (
+$sql = "INSERT INTO " . DB_TABLE_REGISTER . " (
     pdpa_consent, national_id, id_card_expiry,
     title_th, title_custom,
     first_name_th, middle_name_th, last_name_th,
     first_name_en, middle_name_en, last_name_en,
     has_changed_name,
     title_prev, title_custom_prev,
-    first_name_th_prev, middle_name_th_prev, last_name_th_prev,
+    first_name_old_th, middle_name_old_th, last_name_old_th,
     first_name_en_prev, middle_name_en_prev, last_name_en_prev,
     birth_date, religion, gender, blood_group,
-    phone_otp, email,
+    phone_otp, email_alt, email,
     line_id, facebook, instagram,
     food_allergy, medical_condition,
     emergency_contact_name, emergency_contact_phone,
-    created_at
+    created_at, start_time, completion_time
 ) VALUES (
     ?, ?, ?,  ?, ?,  ?, ?, ?,  ?, ?, ?,
     ?,  ?, ?,  ?, ?, ?,  ?, ?, ?,
-    ?, ?, ?, ?,  ?, ?,  ?, ?, ?,  ?, ?,  ?, ?,  NOW()
+    ?, ?, ?, ?,  ?, ?,  ?, ?, ?,  ?, ?,  ?, ?, ?, NOW(), NOW(), NOW()
 ) ON DUPLICATE KEY UPDATE
     pdpa_consent            = VALUES(pdpa_consent),
     id_card_expiry          = VALUES(id_card_expiry),
@@ -118,9 +132,9 @@ $sql = "INSERT INTO register_uat (
     has_changed_name        = VALUES(has_changed_name),
     title_prev              = VALUES(title_prev),
     title_custom_prev       = VALUES(title_custom_prev),
-    first_name_th_prev      = VALUES(first_name_th_prev),
-    middle_name_th_prev     = VALUES(middle_name_th_prev),
-    last_name_th_prev       = VALUES(last_name_th_prev),
+    first_name_old_th       = VALUES(first_name_old_th),
+    middle_name_old_th      = VALUES(middle_name_old_th),
+    last_name_old_th        = VALUES(last_name_old_th),
     first_name_en_prev      = VALUES(first_name_en_prev),
     middle_name_en_prev     = VALUES(middle_name_en_prev),
     last_name_en_prev       = VALUES(last_name_en_prev),
@@ -129,6 +143,7 @@ $sql = "INSERT INTO register_uat (
     gender                  = VALUES(gender),
     blood_group             = VALUES(blood_group),
     phone_otp               = VALUES(phone_otp),
+    email_alt               = VALUES(email_alt),
     email                   = VALUES(email),
     line_id                 = VALUES(line_id),
     facebook                = VALUES(facebook),
@@ -137,7 +152,8 @@ $sql = "INSERT INTO register_uat (
     medical_condition       = VALUES(medical_condition),
     emergency_contact_name  = VALUES(emergency_contact_name),
     emergency_contact_phone = VALUES(emergency_contact_phone),
-    updated_at              = NOW()";
+    updated_at              = NOW(),
+    completion_time         = NOW()";
 
 try {
     $stmt = $db->prepare($sql);
@@ -145,8 +161,8 @@ try {
         jsonError('เตรียมคำสั่ง SQL ไม่สำเร็จ: ' . $db->error);
     }
     $stmt->bind_param(
-        'sssssssssssssssssssssssssssssssss',
-        $pdpaConsent, $idRaw, $idCardExpiry,
+        'ssssssssssssssssssssssssssssssssss',
+        $pdpaConsent, $idRaw, $dbIdCardExpiry,
         $titleTh, $titleCustom,
         $firstNameTh, $middleNameTh, $lastNameTh,
         $firstNameEn, $middleNameEn, $lastNameEn,
@@ -154,8 +170,8 @@ try {
         $titleThOld, $titleCustomOld,
         $firstNameOldTh, $middleNameOldTh, $lastNameOldTh,
         $firstNameEnOld, $middleNameEnOld, $lastNameOldEn,
-        $birthDate, $religion, $gender, $bloodGroup,
-        $phoneRaw, $email,
+        $dbBirthDate, $religion, $gender, $bloodGroup,
+        $phoneRaw, $email, $email,
         $lineId, $facebook, $instagram,
         $foodAllergy, $medicalCond,
         $emergencyName, $emergencyPhone
