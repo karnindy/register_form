@@ -22,6 +22,14 @@ try {
     $idRaw = preg_replace('/[^0-9]/', '', isset($_POST['idCard']) ? $_POST['idCard'] : '');
     $phoneRaw = preg_replace('/[^0-9]/', '', isset($_POST['phone']) ? $_POST['phone'] : '');
     $emergPhoneRaw = preg_replace('/[^0-9]/', '', isset($_POST['emergencyContactPhone']) ? $_POST['emergencyContactPhone'] : '');
+    
+    if (strlen($phoneRaw) !== 10 || substr($phoneRaw, 0, 1) !== '0') {
+        jsonError('หมายเลขโทรศัพท์มือถือต้องมี 10 หลักและขึ้นต้นด้วย 0 เท่านั้น');
+    }
+    
+    if (strlen($emergPhoneRaw) !== 10 || substr($emergPhoneRaw, 0, 1) !== '0') {
+        jsonError('เบอร์โทรศัพท์ติดต่อฉุกเฉินต้องมี 10 หลักและขึ้นต้นด้วย 0 เท่านั้น');
+    }
 
     // Checkbox arrays to comma-separated strings
     $deductionPrivilege = isset($_POST['deductionPrivilege']) ? implode(',', $_POST['deductionPrivilege']) : '';
@@ -93,7 +101,12 @@ try {
     if (!empty($idCardExpiry)) {
         $parts = explode('/', $idCardExpiry);
         if (count($parts) === 3) {
-            $dbIdCardExpiry = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+            $year = (int)$parts[2];
+            if ($year > 2500) $year -= 543;
+            $dbIdCardExpiry = $year . '-' . $parts[1] . '-' . $parts[0];
+            if (strtotime($dbIdCardExpiry) <= strtotime(date('Y-m-d'))) {
+                jsonError('วันหมดอายุบัตรประชาชน ต้องมากกว่าวันที่ปัจจุบันเท่านั้น');
+            }
         }
     }
 
@@ -102,7 +115,15 @@ try {
     if (!empty($birthDate)) {
         $parts = explode('/', $birthDate);
         if (count($parts) === 3) {
-            $dbBirthDate = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+            $year = (int)$parts[2];
+            if ($year > 2500) $year -= 543;
+            $dbBirthDate = $year . '-' . $parts[1] . '-' . $parts[0];
+            
+            $bday = new DateTime($dbBirthDate);
+            $today = new DateTime('today');
+            if ($today->diff($bday)->y < 20) {
+                jsonError('วัน/เดือน/ปี เกิด ต้องมากกว่า 20 นับจากวันที่ปัจจุบันเท่านั้น');
+            }
         }
     }
 
@@ -111,7 +132,9 @@ try {
     if (!empty($licenseIssue)) {
         $parts = explode('/', $licenseIssue);
         if (count($parts) === 3) {
-            $dbLicenseIssue = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+            $year = (int)$parts[2];
+            if ($year > 2500) $year -= 543;
+            $dbLicenseIssue = $year . '-' . $parts[1] . '-' . $parts[0];
         }
     }
 
@@ -120,7 +143,9 @@ try {
     if (!empty($licenseExpire)) {
         $parts = explode('/', $licenseExpire);
         if (count($parts) === 3) {
-            $dbLicenseExpire = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+            $year = (int)$parts[2];
+            if ($year > 2500) $year -= 543;
+            $dbLicenseExpire = $year . '-' . $parts[1] . '-' . $parts[0];
         }
     }
 

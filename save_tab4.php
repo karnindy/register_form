@@ -29,7 +29,7 @@ $agentType = p('agentType');
 $licenseType = '';
 if ($agentType === 'ตัวแทนประกันวินาศภัย') {
     $licenseType = 'ใบอนุญาตเป็นตัวแทนประกันวินาศภัย';
-} elseif ($agentType === 'นายหน้าประกันวินาศภัย') {
+} elseif (strpos($agentType, 'นายหน้า') !== false) {
     $licenseType = 'ใบอนุญาตเป็นนายหน้าประกันวินาศภัย';
 }
 
@@ -60,7 +60,9 @@ $dbLicenseIssue = null;
 if (!empty($licenseIssue)) {
     $parts = explode('/', $licenseIssue);
     if (count($parts) === 3) {
-        $dbLicenseIssue = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+        $year = (int)$parts[2];
+        if ($year > 2500) $year -= 543;
+        $dbLicenseIssue = $year . '-' . $parts[1] . '-' . $parts[0];
     }
 }
 
@@ -69,7 +71,9 @@ $dbLicenseExpire = null;
 if (!empty($licenseExpire)) {
     $parts = explode('/', $licenseExpire);
     if (count($parts) === 3) {
-        $dbLicenseExpire = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+        $year = (int)$parts[2];
+        if ($year > 2500) $year -= 543;
+        $dbLicenseExpire = $year . '-' . $parts[1] . '-' . $parts[0];
     }
 }
 

@@ -49,7 +49,12 @@ $dbIdCardExpiry  = null;
 if (!empty($idCardExpiry)) {
     $parts = explode('/', $idCardExpiry);
     if (count($parts) === 3) {
-        $dbIdCardExpiry = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+        $year = (int)$parts[2];
+        if ($year > 2500) $year -= 543;
+        $dbIdCardExpiry = $year . '-' . $parts[1] . '-' . $parts[0];
+        if (strtotime($dbIdCardExpiry) <= strtotime(date('Y-m-d'))) {
+            jsonError('วันหมดอายุบัตรประชาชน ต้องมากกว่าวันที่ปัจจุบันเท่านั้น');
+        }
     }
 }
 $titleTh         = p('titleName');
@@ -74,7 +79,15 @@ $dbBirthDate     = null;
 if (!empty($birthDate)) {
     $parts = explode('/', $birthDate);
     if (count($parts) === 3) {
-        $dbBirthDate = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+        $year = (int)$parts[2];
+        if ($year > 2500) $year -= 543;
+        $dbBirthDate = $year . '-' . $parts[1] . '-' . $parts[0];
+        
+        $bday = new DateTime($dbBirthDate);
+        $today = new DateTime('today');
+        if ($today->diff($bday)->y < 20) {
+            jsonError('วัน/เดือน/ปี เกิด ต้องมากกว่า 20 นับจากวันที่ปัจจุบันเท่านั้น');
+        }
     }
 }
 $religion        = p('religion');

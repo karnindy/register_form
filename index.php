@@ -84,8 +84,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $phoneRaw = preg_replace('/[^0-9]/', '', $formData['phone']);
         if ($phoneRaw === '') {
             $error = "กรุณากรอกหมายเลขโทรศัพท์มือถือ";
-        } elseif (strlen($phoneRaw) != 10) {
-            $error = "หมายเลขโทรศัพท์มือถือต้องมี 10 หลัก";
+        } elseif (strlen($phoneRaw) != 10 || substr($phoneRaw, 0, 1) !== '0') {
+            $error = "หมายเลขโทรศัพท์มือถือต้องมี 10 หลักและขึ้นต้นด้วย 0 เท่านั้น";
         }
     }
 
@@ -100,7 +100,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($formData['idCardExpiry'])) {
         $parts = explode('/', $formData['idCardExpiry']);
         if (count($parts) === 3) {
-            $dbIdCardExpiry = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+            $year = (int)$parts[2];
+            if ($year > 2500) $year -= 543;
+            $dbIdCardExpiry = $year . '-' . $parts[1] . '-' . $parts[0];
         }
     }
 
@@ -108,7 +110,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($formData['birthDate'])) {
         $parts = explode('/', $formData['birthDate']);
         if (count($parts) === 3) {
-            $dbBirthDate = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+            $year = (int)$parts[2];
+            if ($year > 2500) $year -= 543;
+            $dbBirthDate = $year . '-' . $parts[1] . '-' . $parts[0];
+            
+            $bday = new DateTime($dbBirthDate);
+            $today = new DateTime('today');
+            if ($today->diff($bday)->y < 20) {
+                $error = "วัน/เดือน/ปี เกิด ต้องมากกว่า 20 นับจากวันที่ปัจจุบันเท่านั้น";
+            }
         }
     }
 
@@ -116,7 +126,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($formData['licenseIssue'])) {
         $parts = explode('/', $formData['licenseIssue']);
         if (count($parts) === 3) {
-            $dbLicenseIssue = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+            $year = (int)$parts[2];
+            if ($year > 2500) $year -= 543;
+            $dbLicenseIssue = $year . '-' . $parts[1] . '-' . $parts[0];
         }
     }
 
@@ -124,7 +136,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($formData['licenseExpire'])) {
         $parts = explode('/', $formData['licenseExpire']);
         if (count($parts) === 3) {
-            $dbLicenseExpire = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+            $year = (int)$parts[2];
+            if ($year > 2500) $year -= 543;
+            $dbLicenseExpire = $year . '-' . $parts[1] . '-' . $parts[0];
         }
     }
 
@@ -292,6 +306,7 @@ function e($val) {
         }
 
         .header {
+            position: relative;
             background: linear-gradient(135deg, var(--primary-color) 0%, #003B6F 100%);
             color: var(--white);
             padding: 40px 20px;
@@ -795,7 +810,8 @@ function e($val) {
 <body>
 
     <header class="header">
-        <h1><i class="fa-solid fa-shield-halved"></i> ลงทะเบียนอบรมวิริยะประกันภัย</h1>
+        <img src="logo.jpg" alt="V Online Learning" style="position: absolute; left: 30px; top: 50%; transform: translateY(-50%); max-height: 60px; background: #ffffff; padding: 5px 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
+        <h1>ลงทะเบียนอบรมวิริยะประกันภัย</h1>
         <p>ฟอร์มลงทะเบียนตัวแทนและนายหน้า (ระบบออนไลน์)</p>
     </header>
 
@@ -814,14 +830,9 @@ function e($val) {
         <div class="success-page" id="successPage" style="display:none;">
 
             <div class="success-hero">
-                <div class="success-icon-wrap">
-                    <i class="fa-solid fa-circle-check"></i>
-                </div>
-                <h2>ส่งข้อมูลสำเร็จเรียบร้อยแล้ว!</h2>
+                <h2>ขั้นตอนถัดไป — กรุณาดำเนินการตามลำดับด้านล่าง</h2>
                 <p class="success-subtitle">ระบบได้รับข้อมูลการลงทะเบียนของท่านเรียบร้อยแล้ว</p>
             </div>
-
-            <p class="next-steps-title">ขั้นตอนถัดไป — กรุณาดำเนินการตามลำดับด้านล่าง</p>
 
             <div class="steps-list">
 
@@ -833,7 +844,7 @@ function e($val) {
                         <div class="step-card__content">
                             <h3>อัปโหลดภาพประกอบการลงทะเบียน</h3>
                             <p>กรุณาอัปโหลดภาพเอกสารประกอบการลงทะเบียน เช่น รูปถ่ายหน้าบัตรประชาชน, ใบอนุญาต เป็นต้น</p>
-                            <a href="index-round2.php" id="uploadLinkBtn" class="btn-step-action">
+                            <a href="index-round2.php" id="uploadLinkBtn" class="btn-step-action" target="_blank">
                                 <i class="fa-solid fa-arrow-right"></i> ไปอัปโหลดเอกสาร
                             </a>
                         </div>
@@ -890,20 +901,21 @@ function e($val) {
                         <p><strong>เรียน ผู้เข้าอบรมทุกท่าน</strong></p>
                         <br>
                         <p>ศูนย์ฝึกอบรมและพัฒนานักประกันภัย บมจ.วิริยะประกันภัย
-                            ใคร่ขอให้ท่านตรวจสอบประวัติการอบรมของท่าน และดำเนินการลงทะเบียนเพื่อเข้ารับการอบรมในปี 2569
+                            ใคร่แจ้งให้ท่านทราบว่าท่านจำเป็นต้องตรวจสอบประวัติการอบรมของท่านผ่านระบบ e-Licensing ของสำนักงาน คปภ. ก่อนดำเนินการในขั้นตอนต่อไป
+                        </p>
+                        <p>การลงทะเบียนเพื่อเข้ารับการอบรมในปี 2569
                             โดยขอให้กรอกประวัติการอบรมที่ละเอียด ถูกต้อง และข้อมูลอื่น ๆ
                             ซึ่งอาจรวมถึงข้อมูลส่วนบุคคลบางประเภทที่มีความอ่อนไหว (Sensitive Personal Data)
                             อย่างไรก็ตาม ศูนย์ฝึกอบรมฯ ขอให้ท่านมั่นใจว่า ข้อมูลทั้งหมดจะถูกจัดเก็บ
                             ใช้ด้วยความระมัดระวัง และคำนึงถึงความปลอดภัยสูงสุด ภายใต้นโยบายคุ้มครองข้อมูลส่วนบุคคล
                             (PDPA)
-                            และจะไม่เปิดเผยต่อบุคคลภายนอกโดยไม่ได้รับความยินยอมจากท่าน</p><br>
+                            และจะไม่เปิดเผยต่อบุคคลภายนอกคามนโยบายการกำกับดูแลข้อมูลฯ ของบริษัทฯ</p><br>
                         <p>การลงทะเบียนครั้งนี้ ขอให้ท่านกรอกข้อมูลด้วยความถูกต้อง
-                            การให้ข้อมูลที่คลาดเคลื่อนหรือไม่ถูกต้องจะส่งผลให้ศูนย์ฝึกอบรมฯ ส่งข้อมูลให้ สำนักงาน คปภ.
-                            ไม่ถูกต้อง
-                            ทำให้ไม่สามารถนับชั่วโมงอบรมสะสมให้ท่านได้ ทำให้ท่านเสียเวลา และค่าใช้จ่ายในการเดินทาง</p>
+                            การให้ข้อมูลที่คลาดเคลื่อนหรือไม่ถูกต้องจะส่งผลให้ระบบของ สำนักงาน คปภ. ปฏิเสธข้อมูลของท่าน
+                            และทำให้ท่านเสียประโยชน์ </p>
                         <br>
                         <p>ท่านที่ดำเนินการตามขั้นตอนที่ครบถ้วนตามที่แจ้งด้านล่าง
-                            จะได้รับการจัดสรรที่นั่งสำหรับการอบรมตามลำดับของการให้ข้อมูล การจัดลำดับเป็นไปตาม วัน/เวลา
+                            จะได้รับการจัดสรรที่นั่งสำหรับการอบรมตามวันและเวลา
                             ของการบันทึกในระบบ</p><br>
                         <br>
                         <p><strong>*** ท่านที่ดำเนินการเรียบร้อยภายในเวลาที่กำหนดเท่านั้น
@@ -917,7 +929,7 @@ function e($val) {
                             ศูนย์ฝึกอบรมและพัฒนานักประกันภัย บมจ.วิริยะประกันภัย โดยเสมอมา</p><br>
                         <br>
                         <p>ขอแสดงความนับถือ</p><br>
-                        <p>ศูนย์ฝึกอบรมและพัฒนานักประกันภัยบมจ.วิริยะประกันภัย</p>
+                        <p>ศูนย์ฝึกอบรมและพัฒนานักประกันภัย <br>บมจ.วิริยะประกันภัย</p>
                     </div>
                 </div>
 
@@ -926,7 +938,7 @@ function e($val) {
                     <div class="radio-group">
                         <label class="radio-item">
                             <input type="radio" name="pdpaConsent" value="accept" required onchange="checkPDPA()">
-                            ข้าพเจ้าได้อ่านและยอมรับนโยบายคุ้มครองข้อมูลส่วนบุคคล
+                            ข้าพเจ้าได้อ่านและรับทราบนโยบายคุ้มครองข้อมูลส่วนบุคคล
                         </label>
                     </div>
                 </div>
@@ -945,16 +957,16 @@ function e($val) {
                     <div class="form-group">
                         <label class="required">วันหมดอายุบัตรประชาชน</label>
                         <input type="text" class="form-control datepicker" name="idCardExpiry" placeholder="DD/MM/YYYY" required value="<?php echo e($formData['idCardExpiry']); ?>">
-                        <small style="color: var(--text-muted); display: block; margin-top: 5px;">* บัตรประชาชนตลอดชีพ ให้ใส่เป็นวันที่ 31 ธันวาคม 2099</small>
+                        <small style="color: var(--text-muted); display: block; margin-top: 5px;">* บัตรประชาชนตลอดชีพ ให้กรอกเป็นวันที่ 31 ธันวาคม 2599</small>
                     </div>
                 </div>
 
                 <hr style="border: 1px solid var(--border-color); margin: 30px 0;">
                 <h3 style="color: var(--primary-color); margin-bottom: 20px; font-size: 18px;"><i
-                        class="fa-solid fa-address-card"></i> ข้อมูลชื่อ-นามสกุล (ปัจจุบัน)</h3>
+                        class="fa-solid fa-address-card"></i> ข้อมูลชื่อ-นามสกุล (ปัจจุบัน) เป็นภาษาไทยเท่านั้น</h3>
 
                 <div class="form-group">
-                    <label class="required">คำนำหน้าชื่อ (ปัจจุบัน)</label>
+                    <label class="required">คำนำหน้าชื่อ</label>
                     <select class="form-control" name="titleName" required onchange="toggleTitleNameOther()">
                         <option value="">- เลือกคำนำหน้า -</option>
                         <option value="นาย">นาย</option>
@@ -963,7 +975,7 @@ function e($val) {
                         <option value="อื่นๆ">อื่นๆ</option>
                     </select>
                     <div id="titleNameOtherContainer" style="display:none; margin-top: 10px;">
-                        <label class="required" style="font-size: 14px;">คำนำหน้าตามบัตรประชาชน (ระบุเอง)</label>
+                        <label class="required" style="font-size: 14px;">คำนำหน้าตามบัตรประชาชน (โปรดระบุ)</label>
                         <input type="text" class="form-control" name="titleNameOther" id="titleNameOther"
                             placeholder="ใส่คำตอบ">
                     </div>
@@ -971,20 +983,20 @@ function e($val) {
 
                 <div class="grid-3">
                     <div class="form-group">
-                        <label class="required">ชื่อ (ภาษาไทย) (ปัจจุบัน)</label>
+                        <label class="required">ชื่อ</label>
                         <input type="text" class="form-control" name="firstNameTh" placeholder="สมชาย" required value="<?php echo e($formData['firstNameTh']); ?>">
                     </div>
                     <div class="form-group">
-                        <label>ชื่อกลาง (ภาษาไทย) (ปัจจุบัน)</label>
+                        <label>ชื่อกลาง (ตามบัตรประชาชน)</label>
                         <input type="text" class="form-control" name="middleNameTh" placeholder="ถ้ามี" value="<?php echo e($formData['middleNameTh']); ?>">
                     </div>
                     <div class="form-group">
-                        <label class="required">นามสกุล (ภาษาไทย) (ปัจจุบัน)</label>
+                        <label class="required">นามสกุล</label>
                         <input type="text" class="form-control" name="lastNameTh" placeholder="ใจดี" required value="<?php echo e($formData['lastNameTh']); ?>">
                     </div>
                 </div>
 
-                <div class="grid-3">
+                <!-- <div class="grid-3">
                     <div class="form-group">
                         <label class="required">ชื่อ (ภาษาอังกฤษ) (ปัจจุบัน)</label>
                         <input type="text" class="form-control" name="firstNameEn" placeholder="Somchai" required value="<?php echo e($formData['firstNameEn']); ?>">
@@ -997,7 +1009,7 @@ function e($val) {
                         <label class="required">นามสกุล (ภาษาอังกฤษ) (ปัจจุบัน)</label>
                         <input type="text" class="form-control" name="lastNameEn" placeholder="Jaidee" required value="<?php echo e($formData['lastNameEn']); ?>">
                     </div>
-                </div>
+                </div> -->
 
                 <hr style="border: 1px solid var(--border-color); margin: 30px 0;">
 
@@ -1017,7 +1029,7 @@ function e($val) {
                             class="fa-solid fa-clock-rotate-left"></i> ข้อมูลชื่อ-นามสกุล (เดิม)</h3>
 
                     <div class="form-group">
-                        <label class="required">คำนำหน้าชื่อ (เดิม)</label>
+                        <label class="required">คำนำหน้าชื่อ</label>
                         <select class="form-control" name="titleNamePrev" id="titleNamePrev"
                             onchange="toggleTitleNameOtherPrev()">
                             <option value="">- เลือกคำนำหน้า -</option>
@@ -1027,8 +1039,7 @@ function e($val) {
                             <option value="อื่นๆ">อื่นๆ</option>
                         </select>
                         <div id="titleNameOtherContainerPrev" style="display:none; margin-top: 10px;">
-                            <label class="required" style="font-size: 14px;">คำนำหน้าตามบัตรประชาชน (เดิม)
-                                (ระบุเอง)</label>
+                            <label class="required" style="font-size: 14px;">คำนำหน้าตามบัตรประชาชน (โปรดระบุ)</label>
                             <input type="text" class="form-control" name="titleNameOtherPrev" id="titleNameOtherPrev"
                                 placeholder="ใส่คำตอบ">
                         </div>
@@ -1036,22 +1047,22 @@ function e($val) {
 
                     <div class="grid-3">
                         <div class="form-group">
-                            <label class="required">ชื่อ (ภาษาไทย) (เดิม)</label>
+                            <label class="required">ชื่อ</label>
                             <input type="text" class="form-control" name="firstNameThPrev" id="firstNameThPrev"
                                 placeholder="ชื่อเดิม">
                         </div>
                         <div class="form-group">
-                            <label>ชื่อกลาง (ภาษาไทย) (เดิม)</label>
+                            <label>ชื่อกลาง (ตามบัตรประชาชน)</label>
                             <input type="text" class="form-control" name="middleNameThPrev" id="middleNameThPrev" placeholder="ถ้ามี">
                         </div>
                         <div class="form-group">
-                            <label class="required">นามสกุล (ภาษาไทย) (เดิม)</label>
+                            <label class="required">นามสกุล</label>
                             <input type="text" class="form-control" name="lastNameThPrev" id="lastNameThPrev"
                                 placeholder="นามสกุลเดิม">
                         </div>
                     </div>
 
-                    <div class="grid-3">
+                    <!-- <div class="grid-3">
                         <div class="form-group">
                             <label class="required">ชื่อ (ภาษาอังกฤษ) (เดิม)</label>
                             <input type="text" class="form-control" name="firstNameEnPrev" id="firstNameEnPrev"
@@ -1066,7 +1077,7 @@ function e($val) {
                             <input type="text" class="form-control" name="lastNameEnPrev" id="lastNameEnPrev"
                                 placeholder="Previous Last Name">
                         </div>
-                    </div>
+                    </div> -->
                 </div>
 
                 <div class="grid-2">
@@ -1151,16 +1162,16 @@ function e($val) {
 
                 <hr style="border: 1px solid var(--border-color); margin: 30px 0;">
                 <h3 style="color: var(--primary-color); margin-bottom: 20px; font-size: 18px;"><i
-                        class="fa-solid fa-phone-volume"></i> ผู้ติดต่อกรณีฉุกเฉิน</h3>
+                        class="fa-solid fa-phone-volume"></i> กรณีฉุกเฉิน</h3>
 
                 <div class="grid-2">
                     <div class="form-group">
-                        <label class="required">บุคคลที่สามารถติดต่อได้ในกรณีฉุกเฉิน</label>
+                        <label class="required">บุคคลที่สามารถติดต่อได้</label>
                         <input type="text" class="form-control" name="emergencyContactName"
                             placeholder="โปรดระบุชื่อ-นามสกุล" required>
                     </div>
                     <div class="form-group">
-                        <label class="required">หมายเลขที่สามารถติดต่อได้ในกรณีฉุกเฉิน</label>
+                        <label class="required">หมายเลขโทรศัพท์</label>
                         <input type="tel" class="form-control" name="emergencyContactPhone"
                             placeholder="โปรดระบุหมายเลขโทรศัพท์" maxlength="12" required oninput="formatPhone(this)">
                     </div>
@@ -1169,7 +1180,7 @@ function e($val) {
 
             <!-- Step 3: ข้อมูลที่อยู่ -->
             <div class="tab">
-                <h2 class="tab-title"><i class="fa-solid fa-map-location-dot"></i> 3. ข้อมูลสถานที่ติดต่อ</h2>
+                <h2 class="tab-title"><i class="fa-solid fa-map-location-dot"></i> 3. ข้อมูลที่อยู่</h2>
 
                 <!-- ที่อยู่ตามบัตรประชาชน -->
                 <div class="address-card">
@@ -1351,42 +1362,50 @@ function e($val) {
 
                 <div class="form-group">
                     <label class="required">ประเภทใบอนุญาต</label>
+                    <input type="hidden" name="agentType" id="actualAgentType" value="">
                     <div class="radio-group">
-                        <label class="radio-item"><input type="radio" name="agentType" value="ตัวแทนประกันวินาศภัย"
+                        <label class="radio-item"><input type="radio" name="agentTypeMain" value="ตัวแทนประกันวินาศภัย"
                                 required onchange="toggleAgentAffiliation()"> ตัวแทนประกันวินาศภัย</label>
-                        <label class="radio-item"><input type="radio" name="agentType" value="นายหน้าประกันวินาศภัย" onchange="toggleAgentAffiliation()">
+                        <label class="radio-item"><input type="radio" name="agentTypeMain" value="นายหน้าประกันวินาศภัย" onchange="toggleAgentAffiliation()">
                             นายหน้าประกันวินาศภัย</label>
+                    </div>
+                    <div id="brokerTypeSection" style="display: none; margin-top: 10px; margin-left: 20px; border-left: 2px solid var(--primary-color); padding-left: 15px;">
+                        <label style="font-size: 14px; margin-bottom: 8px; display: block;" class="required">ประเภทนายหน้า</label>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="brokerType" value="นายหน้าบุคคล" onchange="toggleAgentAffiliation()">
+                                นายหน้าบุคคล</label>
+                            <label class="radio-item"><input type="radio" name="brokerType" value="นายหน้านิติบุคคล" onchange="toggleAgentAffiliation()">
+                                นายหน้านิติบุคคล</label>
+                        </div>
                     </div>
                 </div>
 
-                <div id="agentAffiliationSection" style="display: none; background-color: #F8F9FA; padding: 20px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 20px;">
-                    <h3 style="color: var(--primary-color); margin-bottom: 20px; font-size: 16px;"><i class="fa-solid fa-building"></i> ข้อมูลสังกัดตัวแทน</h3>
                     <div class="grid-2">
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label class="required">สังกัดภาค</label>
-                            <div class="autocomplete-wrapper">
-                                <input type="text" class="form-control" name="agentRegion" id="agentRegion" placeholder="ระบบจะเติมให้อัตโนมัติ" autocomplete="off" readonly style="background-color: #E9ECEF; cursor: not-allowed;" value="<?php echo e($formData['agentRegion']); ?>">
-                            </div>
-                        </div>
-                        <div class="form-group" style="margin-bottom: 0;">
+                        <div class="form-group">
                             <label class="required">สาขา</label>
                             <div class="autocomplete-wrapper">
                                 <input type="text" class="form-control" name="agentBranch" id="agentBranch" placeholder="พิมพ์เพื่อค้นหาสาขา" autocomplete="off"
-                                    oninput="agentAcSearch('agentBranch')" onfocus="agentAcSearch('agentBranch')" onclick="agentAcSearch('agentBranch')" value="<?php echo e($formData['agentBranch']); ?>">
+                                    oninput="agentAcSearch('agentBranch')" onfocus="agentAcSearch('agentBranch')" onclick="agentAcSearch('agentBranch')" value="<?php echo e($formData['agentBranch']); ?>" required>
                                 <div class="autocomplete-list" id="agentBranch_list"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="required">ภาค</label>
+                            <div class="autocomplete-wrapper">
+                                <input type="text" class="form-control" name="agentRegion" id="agentRegion" placeholder="ระบบจะเติมให้อัตโนมัติ" autocomplete="off" readonly style="background-color: #E9ECEF; cursor: not-allowed;" value="<?php echo e($formData['agentRegion']); ?>" required>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="form-group" style="margin-top: 20px; margin-bottom: 0;">
-                        <label class="required">รหัสตัวแทน ที่มีสัญญากับ บมจ.วิริยะประกันภัย</label>
+                    <div class="form-group">
+                        <label class="required">รหัสที่มีสัญญากับ บมจ.วิริยะประกันภัย</label>
                         <p style="font-size: 13px; color: var(--text-muted); margin-top: -5px; margin-bottom: 8px;">ถ้าไม่ทราบ สอบถามสาขา หรือตัวแทน/นายหน้าที่ท่านสังกัด , ถ้าเป็นขอรับใบอนุญาต และยังไม่มีรหัส ให้กรอก 00000</p>
-                        <input type="text" class="form-control" id="viriyahAgentCodeAgent" placeholder="เลข 5 หลักของตัวแทนขาย" maxlength="5" pattern="\d{5}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" value="<?php echo e($formData['viriyahAgentCode'] ?? ''); ?>">
+                        <input type="text" class="form-control" id="viriyahAgentCodeAgent" name="viriyahAgentCode" placeholder="เลข 5 หลักของตัวแทนขาย" maxlength="5" pattern="\d{5}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" value="<?php echo e($formData['viriyahAgentCode'] ?? ''); ?>" required>
                     </div>
-                </div>
 
                 <div id="brokerAffiliationSection" style="display: none; background-color: #F8F9FA; padding: 20px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 20px;">
-                    <h3 style="color: var(--primary-color); margin-bottom: 20px; font-size: 16px;"><i class="fa-solid fa-building"></i> ข้อมูลสังกัดนายหน้า</h3>
+                    <h3 style="color: var(--primary-color); margin-bottom: 20px; font-size: 16px;"><i class="fa-solid fa-building"></i> ข้อมูลสังกัด</h3>
                     <div class="grid-2">
                         <div class="form-group">
                             <label>ข้อมูลสังกัดบริษัทโบรกเกอร์</label>
@@ -1398,11 +1417,6 @@ function e($val) {
                         </div>
                     </div>
 
-                    <div class="form-group" style="margin-top: 20px; margin-bottom: 0;">
-                        <label class="required">รหัสตัวแทน ที่มีสัญญากับ บมจ.วิริยะประกันภัย</label>
-                        <p style="font-size: 13px; color: var(--text-muted); margin-top: -5px; margin-bottom: 8px;">ถ้าไม่ทราบ สอบถามสาขา หรือตัวแทน/นายหน้าที่ท่านสังกัด , ถ้าเป็นขอรับใบอนุญาต และยังไม่มีรหัส ให้กรอก 00000</p>
-                        <input type="text" class="form-control" name="viriyahAgentCode" id="viriyahAgentCodeBroker" placeholder="เลข 5 หลักของตัวแทนขาย" maxlength="5" pattern="\d{5}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required value="<?php echo e($formData['viriyahAgentCode'] ?? ''); ?>">
-                    </div>
                 </div>
 
                 <!-- <div class="form-group">
@@ -1425,7 +1439,7 @@ function e($val) {
                     <div class="form-group">
                         <label>เลขที่ใบอนุญาต (ถ้ามี)</label>
                         <input type="text" class="form-control" name="licenseNo"
-                            placeholder="กรอกเลขที่ใบอนุญาต 10 หลัก" value="<?php echo e($formData['licenseNo']); ?>">
+                            placeholder="กรอกเลขที่ใบอนุญาต 10 หลัก" maxlength="10" minlength="10" pattern="\d{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" value="<?php echo e($formData['licenseNo']); ?>">
                     </div>
                     <div class="form-group">
                         <label>วันที่ออกใบอนุญาต</label>
@@ -1438,9 +1452,11 @@ function e($val) {
                 </div>
             </div>
 
-            <!-- Step 5: ข้อมูลการอบรม -->
+            <!-- Step 5:  -->
             <div class="tab">
-                <h2 class="tab-title"><i class="fa-solid fa-chalkboard-user"></i> 5. ข้อมูลการอบรม</h2>
+                <h2 class="tab-title"><i class="fa-solid fa-chalkboard-user"></i> 5. หลักสูตรที่ประสงค์เข้าอบรม</h2>
+
+                
 
                 <div id="dynamicCourseSelection">
                     <div class="form-group" id="courseTypeGroup" style="display: none; margin-bottom: 30px;">
@@ -1450,6 +1466,30 @@ function e($val) {
                         </div>
                         <input type="hidden" name="courseType" id="courseTypeHidden" required>
                     </div>
+
+                    <div class="form-group" id="previousCoursesSection" style="display: none; margin-top: 20px;">
+                    <label>หากท่านถือใบอนุญาตเป็นตัวแทนหรือนายหน้าประกันวินาศภัยที่ต่ออายุครั้งที่ 4 เป็นต้นไป โปรดระบุวิชาที่ท่านเคยเข้าอบรมในรอบการสะสมชั่วโมงอบรมปัจจุบัน (5 ปี)<br>
+                    <span style="color: var(--error-color); font-size: 14px;">* สำคัญ * : เพื่อท่านจะต้องไม่อบรมวิชาที่เคยเข้าอบรมซ้ำอีก ตามข้อกำหนดของ สำนักงาน คปภ.</span></label>
+                    <div class="radio-group" style="padding: 15px; border: 1px solid var(--border-color); border-radius: 6px; background-color: #F8F9FA;">
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การกำกับดูแลบริษัทประกันภัยตามระดับความเสี่ยง"> การกำกับดูแลบริษัทประกันภัยตามระดับความเสี่ยง</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การจัดการสินไหมทดแทน Non-Motor"> การจัดการสินไหมทดแทน Non-Motor</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การประกันความเสี่ยงภัยทรัพย์สิน"> การประกันความเสี่ยงภัยทรัพย์สิน</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การวางแผนเพื่อวัยเกษียณ"> การวางแผนเพื่อวัยเกษียณ</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การวางแผนภาษีสำหรับตัวแทนและนายหน้าประกันภัย"> การวางแผนภาษีสำหรับตัวแทนและนายหน้าประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การประกันภัยต่อ"> การประกันภัยต่อ</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="จรรยาบรรณและศีลธรรมของตัวแทน/นายหน้าประกันภัย"> จรรยาบรรณและศีลธรรมของตัวแทน/นายหน้าประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="พ.ร.บ.จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562) และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร"> พ.ร.บ.จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562) และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล"> พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="เสนอขายถูกหลักประกันภัยเติบโต"> เสนอขายถูกหลักประกันภัยเติบโต</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="กฏหมายว่าด้วยการป้องกันและปราบปรามการฟอกเงินและต่อต้านการสนับสนุนทางการเงินแก่การก่อการร้าย"> กฏหมายว่าด้วยการป้องกันและปราบปรามการฟอกเงินและต่อต้านการสนับสนุนทางการเงินแก่การก่อการร้าย</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="กรมธรรม์ประกันภัยรถยนต์ไฟฟ้ารวมการคุ้มครองผู้ประสบภัยจากรถ"> กรมธรรม์ประกันภัยรถยนต์ไฟฟ้ารวมการคุ้มครองผู้ประสบภัยจากรถ</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="พ.ร.บ.การทวงถามหนี้"> พ.ร.บ.การทวงถามหนี้</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="ความเสี่ยงต่อความรับผิดในฐานะตัวแทน/นายหน้าประกันภัย"> ความเสี่ยงต่อความรับผิดในฐานะตัวแทน/นายหน้าประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การตลาดยุคใหม่"> การตลาดยุคใหม่</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="รู้จักประกันภัยสุขภาพ"> รู้จักประกันภัยสุขภาพ</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การพิจารณารับประกันภัยรถยนต์"> การพิจารณารับประกันภัยรถยนต์</label>
+                    </div>
+                </div>
 
                     <div class="form-group" id="trainingDateGroup" style="display: none; margin-bottom: 30px;">
                         <label class="required" id="trainingDateLabel" style="font-size: 18px; color: var(--primary-color);">เลือกรอบวันที่ต้องการเข้าอบรม</label>
@@ -1475,29 +1515,7 @@ function e($val) {
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-top: 20px;">
-                    <label>หากท่านถือใบอนุญาตเป็นตัวแทนหรือนายหน้าประกันวินาศภัยที่ต่ออายุครั้งที่ 4 เป็นต้นไป โปรดระบุวิชาที่ท่านเคยเข้าอบรมใน 5 ปีที่ผ่านมา <br>
-                    <span style="color: var(--error-color); font-size: 14px;">* สำคัญ * : เพื่อท่านจะต้องไม่อบรมวิชาที่เคยเข้าอบรมซ้ำอีก ตามข้อกำหนดของ คปภ.</span></label>
-                    <div class="radio-group" style="max-height: 400px; overflow-y: auto; padding: 15px; border: 1px solid var(--border-color); border-radius: 6px; background-color: #F8F9FA;">
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การกำกับดูแลบริษัทประกันภัยตามระดับความเสี่ยง"> การกำกับดูแลบริษัทประกันภัยตามระดับความเสี่ยง</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การจัดการสินไหมทดแทน Non-Motor"> การจัดการสินไหมทดแทน Non-Motor</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การประกันความเสี่ยงภัยทรัพย์สิน"> การประกันความเสี่ยงภัยทรัพย์สิน</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การวางแผนเพื่อวัยเกษียณ"> การวางแผนเพื่อวัยเกษียณ</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การวางแผนภาษีสำหรับตัวแทนและนายหน้าประกันภัย"> การวางแผนภาษีสำหรับตัวแทนและนายหน้าประกันภัย</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การประกันภัยต่อ"> การประกันภัยต่อ</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="จรรยาบรรณและศีลธรรมของตัวแทน/นายหน้าประกันภัย"> จรรยาบรรณและศีลธรรมของตัวแทน/นายหน้าประกันภัย</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="พ.ร.บ.จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562) และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร"> พ.ร.บ.จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562) และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล"> พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="เสนอขายถูกหลักประกันภัยเติบโต"> เสนอขายถูกหลักประกันภัยเติบโต</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="กฏหมายว่าด้วยการป้องกันและปราบปรามการฟอกเงินและต่อต้านการสนับสนุนทางการเงินแก่การก่อการร้าย"> กฏหมายว่าด้วยการป้องกันและปราบปรามการฟอกเงินและต่อต้านการสนับสนุนทางการเงินแก่การก่อการร้าย</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="กรมธรรม์ประกันภัยรถยนต์ไฟฟ้ารวมการคุ้มครองผู้ประสบภัยจากรถ"> กรมธรรม์ประกันภัยรถยนต์ไฟฟ้ารวมการคุ้มครองผู้ประสบภัยจากรถ</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="พ.ร.บ.การทวงถามหนี้"> พ.ร.บ.การทวงถามหนี้</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="ความเสี่ยงต่อความรับผิดในฐานะตัวแทน/นายหน้าประกันภัย"> ความเสี่ยงต่อความรับผิดในฐานะตัวแทน/นายหน้าประกันภัย</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การตลาดยุคใหม่"> การตลาดยุคใหม่</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="รู้จักประกันภัยสุขภาพ"> รู้จักประกันภัยสุขภาพ</label>
-                        <label class="radio-item"><input type="checkbox" name="previousCourses[]" value="การพิจารณารับประกันภัยรถยนต์"> การพิจารณารับประกันภัยรถยนต์</label>
-                    </div>
-                </div>
+                
 
                 <!-- <div class="form-group" style="margin-top: 20px;">
                     <label>หลักสูตรที่ท่านต้องการรับการอบรมเพิ่มเติม (โปรดระบุ)</label>
@@ -1625,7 +1643,29 @@ function e($val) {
     <script>
         let currentTab = 0;
         let savedNationalId = ''; // เก็บ national_id หลัง Tab 2 save สำเร็จ
-        showTab(currentTab);
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('success')) {
+                // We are on the success page tab
+                let stepInd = document.getElementById('stepIndicator');
+                if (stepInd) stepInd.style.display = 'none';
+                let regForm = document.getElementById('regForm');
+                if (regForm) regForm.style.display = 'none';
+                let page = document.getElementById('successPage');
+                if (page) page.style.display = 'block';
+                
+                let nid = urlParams.get('national_id');
+                let ph = urlParams.get('phone');
+                let uploadBtn = document.getElementById('uploadLinkBtn');
+                if (uploadBtn && nid) {
+                    uploadBtn.href = 'index-round2.php?national_id=' + encodeURIComponent(nid) + '&phone=' + encodeURIComponent(ph || '');
+                }
+                return;
+            }
+            
+            showTab(currentTab);
+        });
 
         function showTab(n) {
             let tabs = document.getElementsByClassName("tab");
@@ -1817,8 +1857,8 @@ function e($val) {
                 let data = new FormData();
                 data.append('national_id', savedNationalId);
 
-                let agentType = document.querySelector('[name="agentType"]:checked');
-                if (agentType) data.append('agentType', agentType.value);
+                let agentType = document.getElementById("actualAgentType");
+                if (agentType && agentType.value) data.append('agentType', agentType.value);
 
                 const fields = [
                     'agentRegion','agentBranch','brokerAffiliation',
@@ -1832,8 +1872,7 @@ function e($val) {
                 let codeAgent = document.getElementById("viriyahAgentCodeAgent");
                 if (codeAgent) data.append('viriyahAgentCodeAgent', codeAgent.value);
 
-                let codeBroker = document.getElementById("viriyahAgentCodeBroker");
-                if (codeBroker) data.append('viriyahAgentCodeBroker', codeBroker.value);
+
 
                 let res = await fetch('save_tab4.php', { method: 'POST', body: data });
                 let json = await res.json();
@@ -1862,8 +1901,8 @@ function e($val) {
                 let data = new FormData();
                 data.append('national_id', savedNationalId);
 
-                let agentType = document.querySelector('[name="agentType"]:checked');
-                if (agentType) data.append('agentType', agentType.value);
+                let agentType = document.getElementById("actualAgentType");
+                if (agentType && agentType.value) data.append('agentType', agentType.value);
 
                 let courseType = document.getElementById("courseTypeHidden");
                 if (courseType) data.append('courseType', courseType.value);
@@ -2083,18 +2122,20 @@ function e($val) {
         }
 
         function toggleAgentAffiliation() {
-            let radios = document.getElementsByName("agentType");
-            let agentSection = document.getElementById("agentAffiliationSection");
+            let mainRadios = document.getElementsByName("agentTypeMain");
+            let subRadios = document.getElementsByName("brokerType");
+            let actualAgentTypeInput = document.getElementById("actualAgentType");
+            let brokerTypeSection = document.getElementById("brokerTypeSection");
             let brokerSection = document.getElementById("brokerAffiliationSection");
-            let agentReqFields = ["agentRegion", "agentBranch"];
             let brokerReqFields = [];
             let isAgent = false;
             let isBroker = false;
+            let isCorporateBroker = false;
             let selectedType = "";
 
-            for (let i = 0; i < radios.length; i++) {
-                if (radios[i].checked) {
-                    selectedType = radios[i].value;
+            for (let i = 0; i < mainRadios.length; i++) {
+                if (mainRadios[i].checked) {
+                    selectedType = mainRadios[i].value;
                     if (selectedType === "ตัวแทนประกันวินาศภัย") {
                         isAgent = true;
                     } else if (selectedType === "นายหน้าประกันวินาศภัย") {
@@ -2104,63 +2145,37 @@ function e($val) {
                 }
             }
 
-            let codeAgent = document.getElementById("viriyahAgentCodeAgent");
-            let codeBroker = document.getElementById("viriyahAgentCodeBroker");
-
-            if (isAgent) {
-                agentSection.style.display = "block";
-                for (let id of agentReqFields) {
-                    let el = document.getElementById(id);
-                    if (el) el.setAttribute("required", "required");
-                }
-                if (codeAgent) {
-                    codeAgent.setAttribute("name", "viriyahAgentCode");
-                    codeAgent.setAttribute("required", "required");
-                }
-                if (codeBroker) {
-                    codeBroker.removeAttribute("name");
-                    codeBroker.removeAttribute("required");
-                    codeBroker.classList.remove("invalid");
-                    codeBroker.value = "";
+            if (isBroker) {
+                brokerTypeSection.style.display = "block";
+                for (let el of subRadios) el.setAttribute("required", "required");
+                for (let i = 0; i < subRadios.length; i++) {
+                    if (subRadios[i].checked) {
+                        selectedType = subRadios[i].value;
+                        if (selectedType === "นายหน้านิติบุคคล") {
+                            isCorporateBroker = true;
+                        }
+                        break;
+                    }
                 }
             } else {
-                agentSection.style.display = "none";
-                for (let id of agentReqFields) {
-                    let el = document.getElementById(id);
-                    if (el) {
-                        el.removeAttribute("required");
-                        el.value = "";
-                        el.classList.remove("invalid");
-                    }
+                brokerTypeSection.style.display = "none";
+                for (let el of subRadios) {
+                    el.removeAttribute("required");
+                    el.checked = false;
                 }
             }
 
-            if (isBroker) {
+            if (actualAgentTypeInput) {
+                actualAgentTypeInput.value = selectedType;
+            }
+
+
+
+
+            if (isCorporateBroker) {
                 brokerSection.style.display = "block";
-                for (let id of brokerReqFields) {
-                    let el = document.getElementById(id);
-                    if (el) el.setAttribute("required", "required");
-                }
-                if (codeBroker) {
-                    codeBroker.setAttribute("name", "viriyahAgentCode");
-                    codeBroker.setAttribute("required", "required");
-                }
-                if (codeAgent) {
-                    codeAgent.removeAttribute("name");
-                    codeAgent.removeAttribute("required");
-                    codeAgent.classList.remove("invalid");
-                    codeAgent.value = "";
-                }
             } else {
                 brokerSection.style.display = "none";
-                for (let id of brokerReqFields) {
-                    let el = document.getElementById(id);
-                    if (el) {
-                        el.removeAttribute("required");
-                        el.value = "";
-                        el.classList.remove("invalid");
-                    }
-                }
                 let brokerAffiliation = document.getElementById("brokerAffiliation");
                 if (brokerAffiliation) {
                     brokerAffiliation.value = "";
@@ -2190,7 +2205,7 @@ function e($val) {
                 licenseSelect.innerHTML += '<option value="ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 2">ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 2</option>';
                 licenseSelect.innerHTML += '<option value="ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 3">ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 3</option>';
                 licenseSelect.innerHTML += '<option value="ขอต่ออายุใบอนุญาตเป็น ตัวแทนหรือนายหน้า ประกันวินาศภัย ครั้งที่ 4 เป็นต้นไป">ขอต่ออายุใบอนุญาตเป็น ตัวแทนหรือนายหน้า ประกันวินาศภัย ครั้งที่ 4 เป็นต้นไป</option>';
-            } else if (selectedType === "นายหน้าประกันวินาศภัย") {
+            } else if (selectedType && selectedType.includes("นายหน้า")) {
                 licenseSelect.innerHTML += '<option value="ไม่มีใบอนุญาต/ใบอนุญาตขาดต่อ">ไม่มีใบอนุญาต/ใบอนุญาตขาดต่อ</option>';
                 licenseSelect.innerHTML += '<option value="ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย">ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย</option>';
                 licenseSelect.innerHTML += '<option value="ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย ครั้งที่ 1">ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย ครั้งที่ 1</option>';
@@ -2221,27 +2236,10 @@ function e($val) {
         const courseScheduleData = {
             "ตัวแทนประกันวินาศภัย": {
                 "ขอรับอนุญาตเป็นตัวแทนประกันวินาศภัย": ["18 มิถุนายน 2569"],
-                "ขอต่อใบอนุญาตตัวแทนประกันวินาศภัย 1": ["25 มิถุนายน 2569"],
-                "ขอต่อใบอนุญาตตัวแทนประกันวินาศภัย 2": ["2 กรกฎาคม 2569"],
-                "ขอต่อใบอนุญาตตัวแทนประกันวินาศภัย 3": ["9 กรกฎาคม 2569"],
-                "ขอต่อใบอนุญาตตัวแทน/นายหน้าประกันวินาศภัย 4 เป็นต้นไป": [
-                    "[Pillar 1] [22 เมษายน 2569] : การกำกับดูแลบริษัทประกันภัยตามระดับความเสี่ยง",
-                    "[Pillar 1] [22 เมษายน 2569] : การจัดการสินไหมทดแทน Non-Motor",
-                    "[Pillar 1] [22 เมษายน 2569] : การประกันความเสี่ยงภัยทรัพย์สิน",
-                    "[Pillar 1] [6 พฤษภาคม 2569] : การวางแผนเพื่อวัยเกษียณ",
-                    "[Pillar 1] [6 พฤษภาคม 2569] : การวางแผนภาษีสำหรับตัวแทนและนายหน้าประกันภัย",
-                    "[Pillar 1] [6 พฤษภาคม 2569] : การประกันภัยต่อ",
-                    "[Pillar 3] [13 พฤษภาคม 2569] : จรรยาบรรณและศีลธรรมของตัวแทน/นายหน้าประกันภัย",
-                    "[Pillar 3] [13 พฤษภาคม 2569] : พ.ร.บ. จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562) และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร",
-                    "[Pillar 3] [13 พฤษภาคม 2569] : หัวข้อการบรรยาย : พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล",
-                    "[Pillar 1] [20 พฤษภาคม 2569] : เสนอขายถูกหลักประกันภัยเติบโต",
-                    "[Pillar 3] [20 พฤษภาคม 2569] : กฏหมายว่าด้วยการป้องกันและปราบปรามการฟอกเงินและต่อต้านการสนับสนุนทางการเงินแก่การก่อการร้าย",
-                    "[Pillar 1] [20 พฤษภาคม 2569] : กรมธรรม์ประกันภัยรถยนต์ไฟฟ้ารวมการคุ้มครองผู้ประสบภัยจากรถ",
-                    "[Pillar 3] [20 พฤษภาคม 2569] : พ.ร.บ.การทวงถามหนี้",
-                    "[Pillar 3] [10 มิถุนายน 2569] : ความเสี่ยงต่อความรับผิดในฐานะตัวแทน/นายหน้าประกันภัย",
-                    "[Pillar 2] [10 มิถุนายน 2569] : การตลาดยุคใหม่",
-                    "[Pillar 1] [10 มิถุนายน 2569] : รู้จักประกันภัยสุขภาพ",
-                    "[Pillar 1] [10 มิถุนายน 2569] : การพิจารณารับประกันภัยรถยนต์",
+                "ขอต่อใบอนุญาตเป็นตัวแทนประกันวินาศภัย 1": ["25 มิถุนายน 2569"],
+                "ขอต่อใบอนุญาตเป็นตัวแทนประกันวินาศภัย 2": ["2 กรกฎาคม 2569"],
+                "ขอต่อใบอนุญาตเป็นตัวแทนประกันวินาศภัย 3": ["9 กรกฎาคม 2569"],
+                "ขอต่อใบอนุญาตเป็นตัวแทน/นายหน้าประกันวินาศภัย 4 เป็นต้นไป": [
                     "[Pillar 1] [5 สิงหาคม 2569] : การประกันความเสี่ยงภัยทรัพย์สิน",
                     "[Pillar 1] [5 สิงหาคม 2569] : การกำกับดูแลบริษัทประกันภัยตามระดับความเสี่ยง",
                     "[Pillar 1] [5 สิงหาคม 2569] : การจัดการสินไหมทดแทน Non-Motor",
@@ -2250,7 +2248,7 @@ function e($val) {
                     "[Pillar 1] [19 สิงหาคม 2569] : การประกันภัยต่อ",
                     "[Pillar 3] [26 สิงหาคม 2569] : จรรยาบรรณและศีลธรรมของตัวแทน/นายหน้าประกันภัย",
                     "[Pillar 3] [26 สิงหาคม 2569] : พ.ร.บ. จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562) และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร",
-                    "[Pillar 3] [26 สิงหาคม 2569] : หัวข้อการบรรยาย : พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล",
+                    "[Pillar 3] [26 สิงหาคม 2569] : พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล",
                     "[Pillar 1] [2 กันยายน 2569] : กรมธรรม์ประกันภัยรถยนต์ไฟฟ้ารวมการคุ้มครองผู้ประสบภัยจากรถ",
                     "[Pillar 1] [2 กันยายน 2569] : เสนอขายถูกหลักประกันภัยเติบโต",
                     "[Pillar 3] [2 กันยายน 2569] : กฏหมายว่าด้วยการป้องกันและปราบปรามการฟอกเงินและต่อต้านการสนับสนุนทางการเงินแก่การก่อการร้าย",
@@ -2263,27 +2261,10 @@ function e($val) {
             },
             "นายหน้าประกันวินาศภัย": {
                 "ขอรับใบอนุญาตเป็นนายหน้าประกันวินาศภัย": ["17 มิถุนายน 2569"],
-                "ขอต่อใบอนุญาตนายหน้าประกันวินาศภัย 1": ["24 มิถุนายน 2569"],
-                "ขอต่อใบอนุญาตนายหน้าประกันวินาศภัย 2": ["1 กรกฎาคม 2569"],
-                "ขอต่อใบอนุญาตนายหน้าประกันวินาศภัย 3": ["8 กรกฎาคม 2569"],
-                "ขอต่อใบอนุญาตตัวแทน/นายหน้าประกันวินาศภัย 4 เป็นต้นไป": [
-                    "[Pillar 1] [22 เมษายน 2569] : การกำกับดูแลบริษัทประกันภัยตามระดับความเสี่ยง",
-                    "[Pillar 1] [22 เมษายน 2569] : การจัดการสินไหมทดแทน Non-Motor",
-                    "[Pillar 1] [22 เมษายน 2569] : การประกันความเสี่ยงภัยทรัพย์สิน",
-                    "[Pillar 1] [6 พฤษภาคม 2569] : การวางแผนเพื่อวัยเกษียณ",
-                    "[Pillar 1] [6 พฤษภาคม 2569] : การวางแผนภาษีสำหรับตัวแทนและนายหน้าประกันภัย",
-                    "[Pillar 1] [6 พฤษภาคม 2569] : การประกันภัยต่อ",
-                    "[Pillar 3] [13 พฤษภาคม 2569] : จรรยาบรรณและศีลธรรมของตัวแทน/นายหน้าประกันภัย",
-                    "[Pillar 3] [13 พฤษภาคม 2569] : พ.ร.บ. จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562) และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร",
-                    "[Pillar 3] [13 พฤษภาคม 2569] : หัวข้อการบรรยาย : พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล",
-                    "[Pillar 1] [20 พฤษภาคม 2569] : เสนอขายถูกหลักประกันภัยเติบโต",
-                    "[Pillar 3] [20 พฤษภาคม 2569] : กฏหมายว่าด้วยการป้องกันและปราบปรามการฟอกเงินและต่อต้านการสนับสนุนทางการเงินแก่การก่อการร้าย",
-                    "[Pillar 1] [20 พฤษภาคม 2569] : กรมธรรม์ประกันภัยรถยนต์ไฟฟ้ารวมการคุ้มครองผู้ประสบภัยจากรถ",
-                    "[Pillar 3] [20 พฤษภาคม 2569] : พ.ร.บ.การทวงถามหนี้",
-                    "[Pillar 3] [10 มิถุนายน 2569] : ความเสี่ยงต่อความรับผิดในฐานะตัวแทน/นายหน้าประกันภัย",
-                    "[Pillar 2] [10 มิถุนายน 2569] : การตลาดยุคใหม่",
-                    "[Pillar 1] [10 มิถุนายน 2569] : รู้จักประกันภัยสุขภาพ",
-                    "[Pillar 1] [10 มิถุนายน 2569] : การพิจารณารับประกันภัยรถยนต์",
+                "ขอต่อใบอนุญาตเป็นนายหน้าประกันวินาศภัย 1": ["24 มิถุนายน 2569"],
+                "ขอต่อใบอนุญาตเป็นนายหน้าประกันวินาศภัย 2": ["1 กรกฎาคม 2569"],
+                "ขอต่อใบอนุญาตเป็นนายหน้าประกันวินาศภัย 3": ["8 กรกฎาคม 2569"],
+                "ขอต่อใบอนุญาตเป็นตัวแทน/นายหน้าประกันวินาศภัย 4 เป็นต้นไป": [
                     "[Pillar 1] [5 สิงหาคม 2569] : การประกันความเสี่ยงภัยทรัพย์สิน",
                     "[Pillar 1] [5 สิงหาคม 2569] : การกำกับดูแลบริษัทประกันภัยตามระดับความเสี่ยง",
                     "[Pillar 1] [5 สิงหาคม 2569] : การจัดการสินไหมทดแทน Non-Motor",
@@ -2316,6 +2297,12 @@ function e($val) {
             container.innerHTML = "";
             hiddenInput.value = "";
             dateGroup.style.display = "none";
+            let previousCoursesSection = document.getElementById("previousCoursesSection");
+            if (previousCoursesSection) {
+                previousCoursesSection.style.display = "none";
+                let checkboxes = previousCoursesSection.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(cb => { cb.checked = false; });
+            }
 
             let deductionGroup = document.getElementById("deductionPrivilegeGroup");
             if (deductionGroup) {
@@ -2325,16 +2312,19 @@ function e($val) {
                 if (typeof toggleMasterDegreeRadios === 'function') toggleMasterDegreeRadios();
             }
 
-            if (!selectedType || !courseScheduleData[selectedType]) {
+            let baseType = (selectedType && selectedType.includes("นายหน้า")) ? "นายหน้าประกันวินาศภัย" : "ตัวแทนประกันวินาศภัย";
+
+            if (!selectedType || !courseScheduleData[baseType]) {
                 courseGroup.style.display = "none";
                 return;
             }
 
             courseGroup.style.display = "block";
-            let roleLabel = selectedType === "ตัวแทนประกันวินาศภัย" ? "[ตัวแทน]" : "[นายหน้า]";
-            label.textContent = `ระดับขอต่อ ${roleLabel}`;
+            // let roleLabel = baseType === "ตัวแทนประกันวินาศภัย" ? "[ตัวแทน]" : "[นายหน้า]";
+            // label.textContent = `ระดับขอต่อ ${roleLabel}`;
+            label.textContent = `หลักสูตร`;
 
-            let courses = Object.keys(courseScheduleData[selectedType]);
+            let courses = Object.keys(courseScheduleData[baseType]);
             
             courses.forEach((course) => {
                 let labelEl = document.createElement("label");
@@ -2361,6 +2351,17 @@ function e($val) {
                             if (typeof toggleMasterDegreeRadios === 'function') toggleMasterDegreeRadios();
                         }
                     }
+
+                    let previousCoursesSection = document.getElementById("previousCoursesSection");
+                    if (previousCoursesSection) {
+                        if (this.value.includes("4 เป็นต้นไป") || this.value.includes("ครั้งที่ 4")) {
+                            previousCoursesSection.style.display = "block";
+                        } else {
+                            previousCoursesSection.style.display = "none";
+                            let checkboxes = previousCoursesSection.querySelectorAll('input[type="checkbox"]');
+                            checkboxes.forEach(cb => { cb.checked = false; });
+                        }
+                    }
                 });
 
                 labelEl.appendChild(input);
@@ -2376,7 +2377,8 @@ function e($val) {
             
             container.innerHTML = "";
             
-            let dataList = courseScheduleData[agentType][courseType];
+            let baseType = (agentType && agentType.includes("นายหน้า")) ? "นายหน้าประกันวินาศภัย" : "ตัวแทนประกันวินาศภัย";
+            let dataList = courseScheduleData[baseType][courseType];
             if (!dataList || dataList.length === 0) {
                 dateGroup.style.display = "none";
                 return;
@@ -2402,14 +2404,17 @@ function e($val) {
                 labelEl.appendChild(document.createTextNode(" " + item));
                 container.appendChild(labelEl);
             });
-            
+            let oldNote = document.getElementById("trainingNoteMsg");
+            if (oldNote) oldNote.remove();
+
             if (isMultiple) {
                 // Add an asterisk note for multiple checkboxes
-                let note = document.createElement("span");
-                note.style.color = "var(--error-color)";
-                note.style.fontSize = "14px";
-                note.textContent = " * สามารถเลือกได้มากกว่า 1 หัวข้อ";
-                label.appendChild(note);
+                let note = document.createElement("div");
+                note.id = "trainingNoteMsg";
+                note.style.marginTop = "5px";
+                note.style.marginBottom = "10px";
+                note.innerHTML = "<span style='color: var(--error-color); font-size: 14px;'>* เลือกได้มากกว่า 1 วิชา *</span><br><span style='color: var(--error-color); font-size: 14px; font-weight: normal;'>* ห้ามเลือกวิชาที่เคยผ่านการอบรมในรอบการสะสมชั่วโมงอบรมปัจจุบัน (5 ปี) *</span>";
+                label.insertAdjacentElement('afterend', note);
             }
         }
 
@@ -2463,9 +2468,70 @@ function e($val) {
                 }
             }
 
+            // Custom check for idCardExpiry in Step 2 (Index 1)
+            if (currentTab === 1) {
+                let idCardExpiry = document.querySelector('input[name="idCardExpiry"]');
+                if (idCardExpiry && idCardExpiry.value.trim() !== "") {
+                    let parts = idCardExpiry.value.split('/');
+                    if (parts.length === 3) {
+                        let expDate = new Date(parts[2], parts[1] - 1, parts[0]);
+                        let today = new Date();
+                        today.setHours(0,0,0,0);
+                        if (expDate <= today) {
+                            alert("วันหมดอายุบัตรประชาชน ต้องมากกว่าวันที่ปัจจุบันเท่านั้น");
+                            idCardExpiry.classList.add("invalid");
+                            valid = false;
+                            return valid;
+                        }
+                    }
+                }
+            }
+
+            // Custom check for licenseNo in Step 4 (Index 3)
+            if (currentTab === 3) {
+                let licenseNo = document.querySelector('input[name="licenseNo"]');
+                if (licenseNo && licenseNo.value.trim() !== "") {
+                    if (licenseNo.value.trim().length !== 10) {
+                        alert("เลขที่ใบอนุญาตต้องมี 10 หลัก");
+                        licenseNo.classList.add("invalid");
+                        valid = false;
+                        return valid;
+                    }
+                }
+            }
+
+            // Custom check for training dates in Step 5 (Index 4)
+            if (currentTab === 4) {
+                let dateGroup = document.getElementById("trainingDateGroup");
+                if (dateGroup && dateGroup.style.display !== "none") {
+                    let trainingCheckboxes = dateGroup.querySelectorAll('input[name="trainingDate[]"]');
+                    if (trainingCheckboxes.length > 0) {
+                        let checked = Array.from(trainingCheckboxes).some(cb => cb.checked);
+                        if (!checked) {
+                            alert("โปรดเลือกหัวข้อรอบวันจองอบรมอย่างน้อย 1 วิชา");
+                            let container = document.getElementById("trainingDateContainer");
+                            if (container) container.classList.add("invalid");
+                            valid = false;
+                            return valid;
+                        }
+                    }
+                }
+            }
+
             // Normal validation
             for (let i = 0; i < inputs.length; i++) {
-                if (inputs[i].type === "radio" || inputs[i].type === "checkbox") {
+                if (inputs[i].type === "tel") {
+                    let telRaw = inputs[i].value.replace(/\D/g, '');
+                    if (telRaw !== "" || inputs[i].required) {
+                        if (telRaw.length !== 10 || telRaw.charAt(0) !== '0') {
+                            alert("หมายเลขโทรศัพท์ต้องมี 10 หลักและขึ้นต้นด้วย 0 เท่านั้น");
+                            inputs[i].classList.add("invalid");
+                            valid = false;
+                        } else {
+                            inputs[i].classList.remove("invalid");
+                        }
+                    }
+                } else if (inputs[i].type === "radio" || inputs[i].type === "checkbox") {
                     let group = document.getElementsByName(inputs[i].name);
                     let checked = false;
                     for (let j = 0; j < group.length; j++) {
@@ -2636,7 +2702,7 @@ function e($val) {
             let idCard    = getFieldValue('idCard');
             let phone     = getFieldValue('phone');
             let email     = getFieldValue('email');
-            let agentType = getCheckedRadio('agentType');
+            let agentType = getFieldValue('agentType') || '-';
             let courseType = getFieldValue('courseType');
 
             // Training date(s)
@@ -2660,8 +2726,7 @@ function e($val) {
                 row('หมายเลขโทรศัพท์', phone) +
                 row('อีเมล', email) +
                 row('ประเภทใบอนุญาต', agentType) +
-                row('หลักสูตร', courseType || '-') +
-                row('วันที่อบรม', trainingDateText);
+                row('หลักสูตร', courseType || '-')
 
             document.getElementById('confirmModal').classList.add('show');
             document.body.style.overflow = 'hidden';
@@ -2720,21 +2785,25 @@ function e($val) {
             document.getElementById('confirmModal').classList.remove('show');
             document.body.style.overflow = '';
 
-            // Hide step indicator and form
-            document.getElementById('stepIndicator').style.display = 'none';
-            document.getElementById('regForm').style.display = 'none';
+            // Restore button state
+            if (btn) {
+                btn.innerHTML = origHtml;
+                btn.disabled = false;
+            }
+
+            // Restore the tab view so the user can click back or edit again
+            let tabs = document.getElementsByClassName('tab');
+            currentTab = tabs.length - 1;
+            tabs[currentTab].style.display = 'block';
+            showTab(currentTab);
 
             // Append query parameters to upload link
             let phoneInput = document.querySelector('[name="phone"]');
             let phoneVal = phoneInput ? phoneInput.value.trim() : '';
-            document.getElementById('uploadLinkBtn').href = 'index-round2.php?national_id=' + encodeURIComponent(savedNationalId) + '&phone=' + encodeURIComponent(phoneVal);
-
-            // Show success / next-steps page with animation
-            let page = document.getElementById('successPage');
-            page.style.display = 'block';
-
-            // Scroll to top smoothly
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Open success page in a new tab
+            let successUrl = window.location.pathname + '?success=1&national_id=' + encodeURIComponent(savedNationalId) + '&phone=' + encodeURIComponent(phoneVal);
+            window.open(successUrl, '_blank');
         }
 
         // ===== Relational Address Data System =====
@@ -3086,10 +3155,49 @@ function e($val) {
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
     <script>
         function initDatePicker() {
+            function forceBE(instance) {
+                setTimeout(function() {
+                    if (instance.currentYearElement) {
+                        let y = instance.currentYear;
+                        if (y < 2500) {
+                            y += 543;
+                        }
+                        instance.currentYearElement.value = y;
+                    }
+                }, 0);
+            }
+
             flatpickr(".datepicker", {
                 dateFormat: "d/m/Y",
                 locale: "th",
-                allowInput: true
+                allowInput: true,
+                onReady: function(selectedDates, dateStr, instance) { forceBE(instance); },
+                onOpen: function(selectedDates, dateStr, instance) { forceBE(instance); },
+                onValueUpdate: function(selectedDates, dateStr, instance) { forceBE(instance); },
+                onYearChange: function(selectedDates, dateStr, instance) { forceBE(instance); },
+                onMonthChange: function(selectedDates, dateStr, instance) { forceBE(instance); },
+                formatDate: function(date, format, locale) {
+                    let d = date.getDate().toString().padStart(2, '0');
+                    let m = (date.getMonth() + 1).toString().padStart(2, '0');
+                    let y = date.getFullYear();
+                    if (y < 2500) {
+                        y += 543;
+                    }
+                    return d + '/' + m + '/' + y;
+                },
+                parseDate: function(datestr, format) {
+                    let parts = datestr.split('/');
+                    if (parts.length === 3) {
+                        let d = parseInt(parts[0], 10);
+                        let m = parseInt(parts[1], 10) - 1;
+                        let y = parseInt(parts[2], 10);
+                        if (y > 2500) {
+                            y -= 543;
+                        }
+                        return new Date(y, m, d);
+                    }
+                    return false;
+                }
             });
         }
         if (document.readyState === 'loading') {
@@ -3103,7 +3211,7 @@ function e($val) {
         <div class="confirm-card">
             <div class="confirm-header">
                 <div class="confirm-icon"><i class="fa-solid fa-circle-check"></i></div>
-                <h2>ยืนยันการส่งข้อมูลการสมัคร</h2>
+                <h2>ยืนยันการส่งข้อมูล</h2>
                 <p>กรุณาตรวจสอบข้อมูลด้านล่างให้ถูกต้องก่อนยืนยัน</p>
             </div>
             <div class="confirm-body">

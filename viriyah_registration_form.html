@@ -1346,49 +1346,53 @@
 
                 <div class="form-group">
                     <label class="required">ประเภทใบอนุญาต</label>
+                    <input type="hidden" name="agentType" id="actualAgentType" value="">
                     <div class="radio-group">
-                        <label class="radio-item"><input type="radio" name="agentType" value="ตัวแทนประกันวินาศภัย"
+                        <label class="radio-item"><input type="radio" name="agentTypeMain" value="ตัวแทนประกันวินาศภัย"
                                 required onchange="toggleAgentAffiliation()"> ตัวแทนประกันวินาศภัย</label>
-                        <label class="radio-item"><input type="radio" name="agentType" value="นายหน้าประกันวินาศภัย"
-                                onchange="toggleAgentAffiliation()">
+                        <label class="radio-item"><input type="radio" name="agentTypeMain" value="นายหน้าประกันวินาศภัย" onchange="toggleAgentAffiliation()">
                             นายหน้าประกันวินาศภัย</label>
+                    </div>
+                    <div id="brokerTypeSection" style="display: none; margin-top: 10px; margin-left: 20px; border-left: 2px solid var(--primary-color); padding-left: 15px;">
+                        <label style="font-size: 14px; margin-bottom: 8px; display: block;" class="required">ประเภทนายหน้า</label>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="brokerType" value="นายหน้าบุคคล" onchange="toggleAgentAffiliation()">
+                                นายหน้าบุคคล</label>
+                            <label class="radio-item"><input type="radio" name="brokerType" value="นายหน้านิติบุคคล" onchange="toggleAgentAffiliation()">
+                                นายหน้านิติบุคคล</label>
+                        </div>
                     </div>
                 </div>
 
-                <div id="agentAffiliationSection"
-                    style="display: none; background-color: #F8F9FA; padding: 20px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 20px;">
-                    <h3 style="color: var(--primary-color); margin-bottom: 20px; font-size: 16px;"><i
-                            class="fa-solid fa-building"></i> ข้อมูลสังกัดตัวแทน</h3>
                     <div class="grid-2">
-                        <div class="form-group" style="margin-bottom: 0;">
+                        <div class="form-group">
                             <label class="required">สังกัดภาค</label>
                             <div class="autocomplete-wrapper">
                                 <input type="text" class="form-control" name="agentRegion" id="agentRegion"
                                     placeholder="ระบบจะเติมให้อัตโนมัติ" autocomplete="off" readonly
-                                    style="background-color: #E9ECEF; cursor: not-allowed;">
+                                    style="background-color: #E9ECEF; cursor: not-allowed;" required>
                             </div>
                         </div>
-                        <div class="form-group" style="margin-bottom: 0;">
+                        <div class="form-group">
                             <label class="required">สาขา</label>
                             <div class="autocomplete-wrapper">
                                 <input type="text" class="form-control" name="agentBranch" id="agentBranch"
                                     placeholder="พิมพ์เพื่อค้นหาสาขา" autocomplete="off"
                                     oninput="agentAcSearch('agentBranch')" onfocus="agentAcSearch('agentBranch')"
-                                    onclick="agentAcSearch('agentBranch')">
+                                    onclick="agentAcSearch('agentBranch')" required>
                                 <div class="autocomplete-list" id="agentBranch_list"></div>
                             </div>
                         </div>
                     </div>
-                    <div class="form-group" style="margin-top: 20px; margin-bottom: 0;">
+                    <div class="form-group">
                         <label class="required">รหัสตัวแทน ที่มีสัญญากับ บมจ.วิริยะประกันภัย</label>
                         <p style="font-size: 13px; color: var(--text-muted); margin-top: -5px; margin-bottom: 8px;">
                             ถ้าไม่ทราบ สอบถามสาขา หรือตัวแทน/นายหน้าที่ท่านสังกัด , ถ้าเป็นขอรับใบอนุญาต และยังไม่มีรหัส
                             ให้กรอก 00000</p>
-                        <input type="text" class="form-control" id="viriyahAgentCodeAgent"
-                            placeholder="เลข 5 หลักของตัวแทนขาย" maxlength="5" pattern="\d{5}"
-                            oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        <input type="text" class="form-control" id="viriyahAgentCodeAgent" name="viriyahAgentCode"
+                            placeholder="เลข 5 หลัก" maxlength="5" pattern="\d{5}"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
                     </div>
-                </div>
 
                 <div id="brokerAffiliationSection"
                     style="display: none; background-color: #F8F9FA; padding: 20px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 20px;">
@@ -1405,15 +1409,6 @@
                         <input type="text" class="form-control" name="branchRecommender" placeholder="ใส่คำตอบ">
                     </div>
 
-                    <div class="form-group" style="margin-top: 20px; margin-bottom: 0;">
-                        <label class="required">รหัสตัวแทน ที่มีสัญญากับ บมจ.วิริยะประกันภัย</label>
-                        <p style="font-size: 13px; color: var(--text-muted); margin-top: -5px; margin-bottom: 8px;">
-                            ถ้าไม่ทราบ สอบถามสาขา หรือตัวแทน/นายหน้าที่ท่านสังกัด , ถ้าเป็นขอรับใบอนุญาต และยังไม่มีรหัส
-                            ให้กรอก 00000</p>
-                        <input type="text" class="form-control" id="viriyahAgentCodeBroker"
-                            placeholder="เลข 5 หลักของตัวแทนขาย" maxlength="5" pattern="\d{5}"
-                            oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                    </div>
                 </div>
 
                 <!-- <div class="form-group">
@@ -1443,7 +1438,7 @@
                     <div class="form-group">
                         <label>เลขที่ใบอนุญาต (ถ้ามี)</label>
                         <input type="text" class="form-control" name="licenseNo"
-                            placeholder="กรอกเลขที่ใบอนุญาต 10 หลัก">
+                            placeholder="กรอกเลขที่ใบอนุญาต 10 หลัก" maxlength="10" minlength="10" pattern="\d{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                     </div>
                     <div class="form-group">
                         <label>วันที่ออกใบอนุญาต</label>
@@ -1507,13 +1502,13 @@
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-top: 20px;">
+                <div class="form-group" id="previousCoursesSection" style="display: none; margin-top: 20px;">
                     <label>หากท่านถือใบอนุญาตเป็นตัวแทนหรือนายหน้าประกันวินาศภัยที่ต่ออายุครั้งที่ 4 เป็นต้นไป
                         โปรดระบุวิชาที่ท่านเคยเข้าอบรมใน 5 ปีที่ผ่านมา <br>
                         <span style="color: var(--error-color); font-size: 14px;">* สำคัญ * :
                             เพื่อท่านจะต้องไม่อบรมวิชาที่เคยเข้าอบรมซ้ำอีก ตามข้อกำหนดของ คปภ.</span></label>
                     <div class="radio-group"
-                        style="max-height: 400px; overflow-y: auto; padding: 15px; border: 1px solid var(--border-color); border-radius: 6px; background-color: #F8F9FA;">
+                        style="padding: 15px; border: 1px solid var(--border-color); border-radius: 6px; background-color: #F8F9FA;">
                         <label class="radio-item"><input type="checkbox" name="previousCourses"
                                 value="ไม่เคยผ่านการอบรมมาก่อน"> ไม่เคยผ่านการอบรมมาก่อน</label>
                         <label class="radio-item"><input type="checkbox" name="previousCourses"
@@ -1660,23 +1655,41 @@
                                 value="บมจ. กรุงเทพประกันภัย"> บมจ. กรุงเทพประกันภัย</label>
                         <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
                                 value="บมจ. กรุงเทพประกันสุขภาพ"> บมจ. กรุงเทพประกันสุขภาพ</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
-                                value="บมจ. กรุงไทยพานิชประกันภัย"> บมจ. กรุงไทยพานิชประกันภัย</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
-                                value="บ. กลางคุ้มครองผู้ประสบภัยจากรถ"> บ. กลางคุ้มครองผู้ประสบภัยจากรถ</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
-                                value="บมจ. คุ้มภัยโตเกียวมารีนประกันภัย"> บมจ. คุ้มภัยโตเกียวมารีนประกันภัย</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
-                                value="บมจ. เจมาร์ทประกันภัย"> บมจ. เจมาร์ทประกันภัย</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
-                                value="บมจ. ชับบ์สามัคคีประกันภัย"> บมจ. ชับบ์สามัคคีประกันภัย</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
-                                value="บมจ. ซมโปะ ประกันภัย"> บมจ. ซมโปะ ประกันภัย</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
-                                value="บมจ. ซันเดย์ประกันภัย"> บมจ. ซันเดย์ประกันภัย</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
-                                value="บมจ. ทิพยประกันภัย"> บมจ. ทิพยประกันภัย</label>
-                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                        <label class="radio-item"><input type="checkbox" name="otherInsura            let codeAgent = document.getElementById("viriyahAgentCodeAgent");
+
+            if (isAgent || isBroker) {
+                agentSection.style.display = "block";
+                for (let id of agentReqFields) {
+                    let el = document.getElementById(id);
+                    if (el) el.setAttribute("required", "required");
+                }
+                if (codeAgent) {
+                    codeAgent.setAttribute("name", "viriyahAgentCode");
+                    codeAgent.setAttribute("required", "required");
+                }
+            } else {
+                agentSection.style.display = "none";
+                for (let id of agentReqFields) {
+                    let el = document.getElementById(id);
+                    if (el) {
+                        el.removeAttribute("required");
+                        el.value = "";
+                        el.classList.remove("invalid");
+                    }
+                }
+                if (codeAgent) {
+                    codeAgent.removeAttribute("name");
+                    codeAgent.removeAttribute("required");
+                    codeAgent.value = "";
+                    codeAgent.classList.remove("invalid");
+                }
+            }
+
+            if (isBroker) {
+                brokerSection.style.display = "block";
+            } else {
+                brokerSection.style.display = "none";
+            }                      <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
                                 value="บมจ. ทูนประกันภัย"> บมจ. ทูนประกันภัย</label>
                         <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
                                 value="บมจ. เทเวศประกันภัย"> บมจ. เทเวศประกันภัย</label>
@@ -1906,6 +1919,7 @@
                     statusMsg.style.border = '1px solid #fecaca';
                     statusMsg.textContent = '⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่';
                 }
+
             };
             xhr.send(fd);
         }
@@ -1995,17 +2009,21 @@
         }
 
         function toggleAgentAffiliation() {
-            let radios = document.getElementsByName("agentType");
-            let agentSection = document.getElementById("agentAffiliationSection");
+
+            let mainRadios = document.getElementsByName("agentTypeMain");
+            let subRadios = document.getElementsByName("brokerType");
+            let actualAgentTypeInput = document.getElementById("actualAgentType");
+            let brokerTypeSection = document.getElementById("brokerTypeSection");
             let brokerSection = document.getElementById("brokerAffiliationSection");
-            let agentReqFields = ["agentRegion", "agentBranch"];
+
             let isAgent = false;
             let isBroker = false;
+            let isCorporateBroker = false;
             let selectedType = "";
 
-            for (let i = 0; i < radios.length; i++) {
-                if (radios[i].checked) {
-                    selectedType = radios[i].value;
+            for (let i = 0; i < mainRadios.length; i++) {
+                if (mainRadios[i].checked) {
+                    selectedType = mainRadios[i].value;
                     if (selectedType === "ตัวแทนประกันวินาศภัย") {
                         isAgent = true;
                     } else if (selectedType === "นายหน้าประกันวินาศภัย") {
@@ -2015,59 +2033,35 @@
                 }
             }
 
-            let codeAgent = document.getElementById("viriyahAgentCodeAgent");
-            let codeBroker = document.getElementById("viriyahAgentCodeBroker");
-
-            if (isAgent) {
-                agentSection.style.display = "block";
-                for (let id of agentReqFields) {
-                    let el = document.getElementById(id);
-                    if (el) el.setAttribute("required", "required");
-                }
-                if (codeAgent) {
-                    codeAgent.setAttribute("name", "viriyahAgentCode");
-                    codeAgent.setAttribute("required", "required");
-                }
-                if (codeBroker) {
-                    codeBroker.removeAttribute("name");
-                    codeBroker.removeAttribute("required");
-                }
-            } else {
-                agentSection.style.display = "none";
-                for (let id of agentReqFields) {
-                    let el = document.getElementById(id);
-                    if (el) {
-                        el.removeAttribute("required");
-                        el.value = "";
-                        el.classList.remove("invalid");
+            if (isBroker) {
+                brokerTypeSection.style.display = "block";
+                for (let el of subRadios) el.setAttribute("required", "required");
+                for (let i = 0; i < subRadios.length; i++) {
+                    if (subRadios[i].checked) {
+                        selectedType = subRadios[i].value;
+                        if (selectedType === "นายหน้านิติบุคคล") {
+                            isCorporateBroker = true;
+                        }
+                        break;
                     }
                 }
-                if (codeAgent) {
-                    codeAgent.removeAttribute("name");
-                    codeAgent.removeAttribute("required");
-                    codeAgent.value = "";
-                    codeAgent.classList.remove("invalid");
+            } else {
+                brokerTypeSection.style.display = "none";
+                for (let el of subRadios) {
+                    el.removeAttribute("required");
+                    el.checked = false;
                 }
             }
 
-            if (isBroker) {
+            if (actualAgentTypeInput) {
+                actualAgentTypeInput.value = selectedType;
+            }
+
+
+            if (isCorporateBroker) {
                 brokerSection.style.display = "block";
-                if (codeBroker) {
-                    codeBroker.setAttribute("name", "viriyahAgentCode");
-                    codeBroker.setAttribute("required", "required");
-                }
-                if (codeAgent) {
-                    codeAgent.removeAttribute("name");
-                    codeAgent.removeAttribute("required");
-                }
             } else {
                 brokerSection.style.display = "none";
-                if (codeBroker) {
-                    codeBroker.removeAttribute("name");
-                    codeBroker.removeAttribute("required");
-                    codeBroker.value = "";
-                    codeBroker.classList.remove("invalid");
-                }
                 let brokerAffiliation = document.getElementById("brokerAffiliation");
                 if (brokerAffiliation) {
                     brokerAffiliation.value = "";
@@ -2092,7 +2086,7 @@
                 licenseSelect.innerHTML += '<option value="ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 2">ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 2</option>';
                 licenseSelect.innerHTML += '<option value="ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 3">ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 3</option>';
                 licenseSelect.innerHTML += '<option value="ขอต่ออายุใบอนุญาตเป็น ตัวแทนหรือนายหน้า ประกันวินาศภัย ครั้งที่ 4 เป็นต้นไป">ขอต่ออายุใบอนุญาตเป็น ตัวแทนหรือนายหน้า ประกันวินาศภัย ครั้งที่ 4 เป็นต้นไป</option>';
-            } else if (selectedType === "นายหน้าประกันวินาศภัย") {
+            } else if (selectedType && selectedType.includes("นายหน้า")) {
                 licenseSelect.innerHTML += '<option value="ไม่มีใบอนุญาต/ใบอนุญาตขาดต่อ">ไม่มีใบอนุญาต/ใบอนุญาตขาดต่อ</option>';
                 licenseSelect.innerHTML += '<option value="ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย">ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย</option>';
                 licenseSelect.innerHTML += '<option value="ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย ครั้งที่ 1">ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย ครั้งที่ 1</option>';
@@ -2218,6 +2212,12 @@
             container.innerHTML = "";
             hiddenInput.value = "";
             dateGroup.style.display = "none";
+            let previousCoursesSection = document.getElementById("previousCoursesSection");
+            if (previousCoursesSection) {
+                previousCoursesSection.style.display = "none";
+                let checkboxes = previousCoursesSection.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(cb => { cb.checked = false; });
+            }
 
             let deductionGroup = document.getElementById("deductionPrivilegeGroup");
             if (deductionGroup) {
@@ -2229,16 +2229,18 @@
                 });
             }
 
-            if (!selectedType || !courseScheduleData[selectedType]) {
+            let baseType = (selectedType && selectedType.includes("นายหน้า")) ? "นายหน้าประกันวินาศภัย" : "ตัวแทนประกันวินาศภัย";
+
+            if (!selectedType || !courseScheduleData[baseType]) {
                 courseGroup.style.display = "none";
                 return;
             }
 
             courseGroup.style.display = "block";
-            let roleLabel = selectedType === "ตัวแทนประกันวินาศภัย" ? "[ตัวแทน]" : "[นายหน้า]";
+            let roleLabel = baseType === "ตัวแทนประกันวินาศภัย" ? "[ตัวแทน]" : "[นายหน้า]";
             label.textContent = `หลักสูตรที่ต้องการอบรม ${roleLabel}`;
 
-            let courses = Object.keys(courseScheduleData[selectedType]);
+            let courses = Object.keys(courseScheduleData[baseType]);
 
             courses.forEach((course) => {
                 let labelEl = document.createElement("label");
@@ -2268,6 +2270,17 @@
                             });
                         }
                     }
+
+                    let previousCoursesSection = document.getElementById("previousCoursesSection");
+                    if (previousCoursesSection) {
+                        if (this.value.includes("4 เป็นต้นไป") || this.value.includes("ครั้งที่ 4")) {
+                            previousCoursesSection.style.display = "block";
+                        } else {
+                            previousCoursesSection.style.display = "none";
+                            let checkboxes = previousCoursesSection.querySelectorAll('input[type="checkbox"]');
+                            checkboxes.forEach(cb => { cb.checked = false; });
+                        }
+                    }
                 });
 
                 labelEl.appendChild(input);
@@ -2283,7 +2296,8 @@
 
             container.innerHTML = "";
 
-            let dataList = courseScheduleData[agentType][courseType];
+            let baseType = (agentType && agentType.includes("นายหน้า")) ? "นายหน้าประกันวินาศภัย" : "ตัวแทนประกันวินาศภัย";
+            let dataList = courseScheduleData[baseType][courseType];
             if (!dataList || dataList.length === 0) {
                 dateGroup.style.display = "none";
                 return;
@@ -2310,13 +2324,17 @@
                 container.appendChild(labelEl);
             });
 
+            let oldNote = document.getElementById("trainingNoteMsg");
+            if (oldNote) oldNote.remove();
+
             if (isMultiple) {
                 // Add an asterisk note for multiple checkboxes
-                let note = document.createElement("span");
-                note.style.color = "var(--error-color)";
-                note.style.fontSize = "14px";
-                note.textContent = " * สามารถเลือกได้มากกว่า 1 หัวข้อ";
-                label.appendChild(note);
+                let note = document.createElement("div");
+                note.id = "trainingNoteMsg";
+                note.style.marginTop = "5px";
+                note.style.marginBottom = "10px";
+                note.innerHTML = "<span style='color: var(--error-color); font-size: 14px;'>* สามารถเลือกได้มากกว่า 1 หัวข้อ *</span><br><span style='color: var(--error-color); font-size: 14px; font-weight: normal;'>* ห้ามเลือกวิชาที่เคยผ่านการอบรมในรอบการสะสมชั่วโมงอบรมปัจจุบัน (5 ปี) *</span>";
+                label.insertAdjacentElement('afterend', note);
             }
         }
 
@@ -2370,6 +2388,55 @@
                 }
             }
 
+            // Custom check for idCardExpiry in Step 2 (Index 1)
+            if (currentTab === 1) {
+                let idCardExpiry = document.querySelector('input[name="idCardExpiry"]');
+                if (idCardExpiry && idCardExpiry.value.trim() !== "") {
+                    let parts = idCardExpiry.value.split('/');
+                    if (parts.length === 3) {
+                        let expDate = new Date(parts[2], parts[1] - 1, parts[0]);
+                        let today = new Date();
+                        today.setHours(0,0,0,0);
+                        if (expDate <= today) {
+                            alert("วันหมดอายุบัตรประชาชน ต้องมากกว่าวันที่ปัจจุบันเท่านั้น");
+                            idCardExpiry.classList.add("invalid");
+                            valid = false;
+                            return valid;
+                        }
+                    }
+                }
+            }
+
+            // Custom check for licenseNo in Step 4 (Index 3)
+            if (currentTab === 3) {
+                let licenseNo = document.querySelector('input[name="licenseNo"]');
+                if (licenseNo && licenseNo.value.trim() !== "") {
+                    if (licenseNo.value.trim().length !== 10) {
+                        alert("เลขที่ใบอนุญาตต้องมี 10 หลัก");
+                        licenseNo.classList.add("invalid");
+                        valid = false;
+                        return valid;
+                    }
+                }
+            }
+
+            // Custom check for training dates in Step 5 (Index 4)
+            if (currentTab === 4) {
+                let dateGroup = document.getElementById("trainingDateGroup");
+                if (dateGroup && dateGroup.style.display !== "none") {
+                    let trainingCheckboxes = dateGroup.querySelectorAll('input[name="trainingDate[]"]');
+                    if (trainingCheckboxes.length > 0) {
+                        let checked = Array.from(trainingCheckboxes).some(cb => cb.checked);
+                        if (!checked) {
+                            alert("โปรดเลือกหัวข้อรอบวันจองอบรมอย่างน้อย 1 วิชา");
+                            let container = document.getElementById("trainingDateContainer");
+                            if (container) container.classList.add("invalid");
+                            valid = false;
+                            return valid;
+                        }
+                    }
+                }
+            }
             // Normal validation
             for (let i = 0; i < inputs.length; i++) {
                 if (inputs[i].type === "radio" || inputs[i].type === "checkbox") {
@@ -3065,10 +3132,49 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            function forceBE(instance) {
+                setTimeout(function() {
+                    if (instance.currentYearElement) {
+                        let y = instance.currentYear;
+                        if (y < 2500) {
+                            y += 543;
+                        }
+                        instance.currentYearElement.value = y;
+                    }
+                }, 0);
+            }
+
             flatpickr(".datepicker", {
                 dateFormat: "d/m/Y",
                 locale: "th",
-                allowInput: true
+                allowInput: true,
+                onReady: function(selectedDates, dateStr, instance) { forceBE(instance); },
+                onOpen: function(selectedDates, dateStr, instance) { forceBE(instance); },
+                onValueUpdate: function(selectedDates, dateStr, instance) { forceBE(instance); },
+                onYearChange: function(selectedDates, dateStr, instance) { forceBE(instance); },
+                onMonthChange: function(selectedDates, dateStr, instance) { forceBE(instance); },
+                formatDate: function(date, format, locale) {
+                    let d = date.getDate().toString().padStart(2, '0');
+                    let m = (date.getMonth() + 1).toString().padStart(2, '0');
+                    let y = date.getFullYear();
+                    if (y < 2500) {
+                        y += 543;
+                    }
+                    return d + '/' + m + '/' + y;
+                },
+                parseDate: function(datestr, format) {
+                    let parts = datestr.split('/');
+                    if (parts.length === 3) {
+                        let d = parseInt(parts[0], 10);
+                        let m = parseInt(parts[1], 10) - 1;
+                        let y = parseInt(parts[2], 10);
+                        if (y > 2500) {
+                            y -= 543;
+                        }
+                        return new Date(y, m, d);
+                    }
+                    return false;
+                }
             });
         });
     </script>
