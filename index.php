@@ -1665,7 +1665,32 @@ function e($val) {
             }
             
             showTab(currentTab);
+
+            // Add listener to previous courses checkboxes
+            let prevCourseCheckboxes = document.querySelectorAll('input[name="previousCourses[]"]');
+            prevCourseCheckboxes.forEach(cb => {
+                cb.addEventListener('change', updateDisabledTrainingDates);
+            });
         });
+
+        function updateDisabledTrainingDates() {
+            let checkedPrevious = Array.from(document.querySelectorAll('input[name="previousCourses[]"]:checked')).map(cb => cb.value.trim());
+            let trainingCheckboxes = document.querySelectorAll('input[name="trainingDate[]"], input[name="trainingDate"]');
+            
+            trainingCheckboxes.forEach(cb => {
+                let shouldDisable = checkedPrevious.some(prev => cb.value.includes(prev));
+                if (shouldDisable) {
+                    cb.disabled = true;
+                    cb.checked = false;
+                    cb.parentElement.style.opacity = "0.5";
+                    cb.parentElement.style.cursor = "not-allowed";
+                } else {
+                    cb.disabled = false;
+                    cb.parentElement.style.opacity = "1";
+                    cb.parentElement.style.cursor = "pointer";
+                }
+            });
+        }
 
         function showTab(n) {
             let tabs = document.getElementsByClassName("tab");
@@ -2247,7 +2272,7 @@ function e($val) {
                     "[Pillar 1] [19 สิงหาคม 2569] : การวางแผนภาษีสำหรับตัวแทนและนายหน้าประกันภัย",
                     "[Pillar 1] [19 สิงหาคม 2569] : การประกันภัยต่อ",
                     "[Pillar 3] [26 สิงหาคม 2569] : จรรยาบรรณและศีลธรรมของตัวแทน/นายหน้าประกันภัย",
-                    "[Pillar 3] [26 สิงหาคม 2569] : พ.ร.บ. จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562) และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร",
+                    "[Pillar 3] [26 สิงหาคม 2569] : พ.ร.บ.จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562) และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร",
                     "[Pillar 3] [26 สิงหาคม 2569] : พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล",
                     "[Pillar 1] [2 กันยายน 2569] : กรมธรรม์ประกันภัยรถยนต์ไฟฟ้ารวมการคุ้มครองผู้ประสบภัยจากรถ",
                     "[Pillar 1] [2 กันยายน 2569] : เสนอขายถูกหลักประกันภัยเติบโต",
@@ -2272,7 +2297,7 @@ function e($val) {
                     "[Pillar 1] [19 สิงหาคม 2569] : การวางแผนภาษีสำหรับตัวแทนและนายหน้าประกันภัย",
                     "[Pillar 1] [19 สิงหาคม 2569] : การประกันภัยต่อ",
                     "[Pillar 3] [26 สิงหาคม 2569] : จรรยาบรรณและศีลธรรมของตัวแทน/นายหน้าประกันภัย",
-                    "[Pillar 3] [26 สิงหาคม 2569] : พ.ร.บ. จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562) และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร",
+                    "[Pillar 3] [26 สิงหาคม 2569] : พ.ร.บ.จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562) และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร",
                     "[Pillar 3] [26 สิงหาคม 2569] : หัวข้อการบรรยาย : พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล",
                     "[Pillar 1] [2 กันยายน 2569] : กรมธรรม์ประกันภัยรถยนต์ไฟฟ้ารวมการคุ้มครองผู้ประสบภัยจากรถ",
                     "[Pillar 1] [2 กันยายน 2569] : เสนอขายถูกหลักประกันภัยเติบโต",
@@ -2416,6 +2441,9 @@ function e($val) {
                 note.innerHTML = "<span style='color: var(--error-color); font-size: 14px;'>* เลือกได้มากกว่า 1 วิชา *</span><br><span style='color: var(--error-color); font-size: 14px; font-weight: normal;'>* ห้ามเลือกวิชาที่เคยผ่านการอบรมในรอบการสะสมชั่วโมงอบรมปัจจุบัน (5 ปี) *</span>";
                 label.insertAdjacentElement('afterend', note);
             }
+
+            // Immediately disable dates that are already checked in previous courses
+            updateDisabledTrainingDates();
         }
 
         function checkPDPA() {
