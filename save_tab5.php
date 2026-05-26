@@ -29,6 +29,17 @@ $agentType = p('agentType'); // "ตัวแทนประกันวิน�
 $courseType = p('courseType');
 
 $isAgent = ($agentType === 'ตัวแทนประกันวินาศภัย');
+
+// Fix for "Data too long" error: Map unified long courseType back to specific shorter strings
+if (strpos($courseType, '4 เป็นต้นไป') !== false) {
+    if ($isAgent) {
+        $courseType = 'ขอต่อใบอนุญาตตัวแทนประกันวินาศภัย 4 เป็นต้นไป';
+    } else {
+        $courseType = 'ขอต่อใบอนุญาตนายหน้าประกันวินาศภัย 4 เป็นต้นไป';
+    }
+}
+
+$isAgent = ($agentType === 'ตัวแทนประกันวินาศภัย');
 $dbCourseType = $isAgent ? 'ตัวแทน' : 'นายหน้า';
 $agentLevel = $isAgent ? $courseType : null;
 $brokerLevel = !$isAgent ? $courseType : null;
