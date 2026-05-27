@@ -33,17 +33,17 @@ if ($insuranceExperienceYears === '') {
 
 $salesArea = null;
 if (isset($_POST['salesTerritories']) && is_array($_POST['salesTerritories'])) {
-    $salesArea = implode(';', $_POST['salesTerritories']);
+    $salesArea = implode(';', array_map('trim', $_POST['salesTerritories']));
 }
 
 $otherInsuranceCompanies = null;
 if (isset($_POST['otherInsuranceCompanies']) && is_array($_POST['otherInsuranceCompanies'])) {
-    $otherInsuranceCompanies = implode(';', $_POST['otherInsuranceCompanies']);
+    $otherInsuranceCompanies = implode(';', array_map('trim', $_POST['otherInsuranceCompanies']));
 }
 
 $insuranceSpecialty = null;
 if (isset($_POST['insuranceSpecialty']) && is_array($_POST['insuranceSpecialty'])) {
-    $insuranceSpecialty = implode(';', $_POST['insuranceSpecialty']);
+    $insuranceSpecialty = implode(';', array_map('trim', $_POST['insuranceSpecialty']));
 }
 
 mysqli_report(MYSQLI_REPORT_OFF);

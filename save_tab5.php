@@ -55,7 +55,7 @@ $renewOther = null;
 
 $selectedDate = null;
 if (isset($_POST['trainingDate']) && is_array($_POST['trainingDate'])) {
-    $selectedDate = implode(';', $_POST['trainingDate']);
+    $selectedDate = implode(';', array_map('trim', $_POST['trainingDate']));
 } elseif (isset($_POST['trainingDate'])) {
     $selectedDate = p('trainingDate');
 }
@@ -97,7 +97,7 @@ if ($trainingExemption === null) {
 $pastTraining5y = null;
 $extraTrainingInterest = null; // Do not copy pastTraining5y here, as it causes Data too long errors.
 if (isset($_POST['previousCourses']) && is_array($_POST['previousCourses'])) {
-    $pastTraining5y = implode(';', $_POST['previousCourses']);
+    $pastTraining5y = implode(';', array_map('trim', $_POST['previousCourses']));
 }
 
 mysqli_report(MYSQLI_REPORT_OFF);
