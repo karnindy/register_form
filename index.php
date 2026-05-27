@@ -3214,7 +3214,7 @@ function e($val) {
                 dateFormat: "d/m/Y",
                 locale: "th",
                 allowInput: true,
-                disableMobile: "true",
+                disableMobile: true,
                 onReady: function(selectedDates, dateStr, instance) { forceBE(instance); },
                 onOpen: function(selectedDates, dateStr, instance) { forceBE(instance); },
                 onValueUpdate: function(selectedDates, dateStr, instance) { forceBE(instance); },
