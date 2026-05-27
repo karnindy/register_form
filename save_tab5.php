@@ -53,30 +53,33 @@ $renewBroker2 = null;
 $renewBroker3 = null;
 $renewOther = null;
 
-if ($courseType === 'ขอรับอนุญาตเป็นตัวแทนประกันวินาศภัย') {
-    $renewAgent1 = '18 มิถุนายน 2569';
-} elseif ($courseType === 'ขอต่อใบอนุญาตตัวแทนประกันวินาศภัย 1') {
-    $renewAgent1 = '25 มิถุนายน 2569';
-} elseif ($courseType === 'ขอต่อใบอนุญาตตัวแทนประกันวินาศภัย 2') {
-    $renewAgent2 = '2 กรกฎาคม 2569';
-} elseif ($courseType === 'ขอต่อใบอนุญาตตัวแทนประกันวินาศภัย 3') {
-    $renewAgent3 = '9 กรกฎาคม 2569';
+$selectedDate = null;
+if (isset($_POST['trainingDate']) && is_array($_POST['trainingDate'])) {
+    $selectedDate = implode(';', $_POST['trainingDate']);
+} elseif (isset($_POST['trainingDate'])) {
+    $selectedDate = p('trainingDate');
+}
+
+if ($courseType === 'ขอรับใบอนุญาตเป็นตัวแทนประกันวินาศภัย' || $courseType === 'ขอรับอนุญาตเป็นตัวแทนประกันวินาศภัย') {
+    $renewAgent1 = $selectedDate;
+} elseif ($courseType === 'ขอต่อใบอนุญาตเป็นตัวแทนประกันวินาศภัย 1' || $courseType === 'ขอต่อใบอนุญาตตัวแทนประกันวินาศภัย 1') {
+    $renewAgent1 = $selectedDate;
+} elseif ($courseType === 'ขอต่อใบอนุญาตเป็นตัวแทนประกันวินาศภัย 2' || $courseType === 'ขอต่อใบอนุญาตตัวแทนประกันวินาศภัย 2') {
+    $renewAgent2 = $selectedDate;
+} elseif ($courseType === 'ขอต่อใบอนุญาตเป็นตัวแทนประกันวินาศภัย 3' || $courseType === 'ขอต่อใบอนุญาตตัวแทนประกันวินาศภัย 3') {
+    $renewAgent3 = $selectedDate;
 } elseif ($courseType === 'ขอรับใบอนุญาตเป็นนายหน้าประกันวินาศภัย') {
-    $renewBroker1 = '17 มิถุนายน 2569';
-} elseif ($courseType === 'ขอต่อใบอนุญาตนายหน้าประกันวินาศภัย 1') {
-    $renewBroker1 = '24 มิถุนายน 2569';
-} elseif ($courseType === 'ขอต่อใบอนุญาตนายหน้าประกันวินาศภัย 2') {
-    $renewBroker2 = '1 กรกฎาคม 2569';
-} elseif ($courseType === 'ขอต่อใบอนุญาตนายหน้าประกันวินาศภัย 3') {
-    $renewBroker3 = '8 กรกฎาคม 2569';
+    $renewBroker1 = $selectedDate;
+} elseif ($courseType === 'ขอต่อใบอนุญาตเป็นนายหน้าประกันวินาศภัย 1' || $courseType === 'ขอต่อใบอนุญาตนายหน้าประกันวินาศภัย 1') {
+    $renewBroker1 = $selectedDate;
+} elseif ($courseType === 'ขอต่อใบอนุญาตเป็นนายหน้าประกันวินาศภัย 2' || $courseType === 'ขอต่อใบอนุญาตนายหน้าประกันวินาศภัย 2') {
+    $renewBroker2 = $selectedDate;
+} elseif ($courseType === 'ขอต่อใบอนุญาตเป็นนายหน้าประกันวินาศภัย 3' || $courseType === 'ขอต่อใบอนุญาตนายหน้าประกันวินาศภัย 3') {
+    $renewBroker3 = $selectedDate;
 }
 
 if (strpos($courseType, '4 เป็นต้นไป') !== false || strpos($courseType, '4') !== false) {
-    if (isset($_POST['trainingDate']) && is_array($_POST['trainingDate'])) {
-        $renewOther = implode(';', $_POST['trainingDate']);
-    } elseif (isset($_POST['trainingDate'])) {
-        $renewOther = p('trainingDate');
-    }
+    $renewOther = $selectedDate;
 }
 
 $trainingExemption = null;
@@ -92,10 +95,9 @@ if ($trainingExemption === null) {
 }
 
 $pastTraining5y = null;
-$extraTrainingInterest = null;
+$extraTrainingInterest = null; // Do not copy pastTraining5y here, as it causes Data too long errors.
 if (isset($_POST['previousCourses']) && is_array($_POST['previousCourses'])) {
     $pastTraining5y = implode(';', $_POST['previousCourses']);
-    $extraTrainingInterest = $pastTraining5y;
 }
 
 mysqli_report(MYSQLI_REPORT_OFF);

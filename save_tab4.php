@@ -36,12 +36,13 @@ if ($agentType === 'ตัวแทนประกันวินาศภัย
 $agentRegion = p('agentRegion');
 $agentBranch = p('agentBranch');
 
-$regionNorth = ($agentRegion === 'ภาค 1 (ภาคเหนือ)') ? $agentBranch : null;
-$regionNortheast = ($agentRegion === 'ภาค 2 (ภาคตะวันออกเฉียงเหนือ)') ? $agentBranch : null;
-$regionEast = ($agentRegion === 'ภาค 3 (ภาคตะวันออก)') ? $agentBranch : null;
-$regionCentralWest = ($agentRegion === 'ภาค 4 (ภาคกลางและภาคตะวันตก)') ? $agentBranch : null;
-$regionSouth = ($agentRegion === 'ภาค 5 (ภาคใต้)') ? $agentBranch : null;
-$regionBangkok = ($agentRegion === 'ภาค 6 (ภาคกรุงเทพฯ)') ? $agentBranch : null;
+// Save all regions to region_bangkok as requested
+$regionNorth = null;
+$regionNortheast = null;
+$regionEast = null;
+$regionCentralWest = null;
+$regionSouth = null;
+$regionBangkok = $agentBranch;
 
 $viriyahAgentCodeAgent = p('viriyahAgentCodeAgent');
 $viriyahAgentCodeBroker = p('viriyahAgentCodeBroker');

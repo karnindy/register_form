@@ -126,11 +126,11 @@ $sql = "INSERT INTO " . DB_TABLE_REGISTER . " (
     line_id, facebook, instagram,
     food_allergy, medical_condition,
     emergency_contact_name, emergency_contact_phone,
-    created_at, start_time, completion_time
+    created_at, start_time
 ) VALUES (
     ?, ?, ?,  ?, ?,  ?, ?, ?,  ?, ?, ?,
     ?,  ?, ?,  ?, ?, ?,  ?, ?, ?,
-    ?, ?, ?, ?,  ?, ?,  ?, ?, ?,  ?, ?,  ?, ?, ?, NOW(), NOW(), NOW()
+    ?, ?, ?, ?,  ?, ?,  ?, ?, ?,  ?, ?,  ?, ?, ?, NOW(), NOW()
 ) ON DUPLICATE KEY UPDATE
     pdpa_consent            = VALUES(pdpa_consent),
     id_card_expiry          = VALUES(id_card_expiry),
@@ -165,8 +165,7 @@ $sql = "INSERT INTO " . DB_TABLE_REGISTER . " (
     medical_condition       = VALUES(medical_condition),
     emergency_contact_name  = VALUES(emergency_contact_name),
     emergency_contact_phone = VALUES(emergency_contact_phone),
-    updated_at              = NOW(),
-    completion_time         = NOW()";
+    updated_at              = NOW()";
 
 try {
     $stmt = $db->prepare($sql);

@@ -859,7 +859,7 @@ function e($val) {
                         <div class="step-card__content">
                             <h3>ตรวจสอบข้อมูลที่ลงทะเบียน</h3>
                             <p>ท่านสามารถตรวจสอบข้อมูลที่กรอกไว้ได้ทุกเมื่อต้องการ หากพบข้อผิดพลาดกรุณาติดต่อเจ้าหน้าที่</p>
-                            <a href="#" class="btn-step-action btn-step-action--outline">
+                            <a href="#" id="checkInfoBtn" class="btn-step-action btn-step-action--outline" target="_blank">
                                 <i class="fa-solid fa-list-check"></i> ตรวจสอบข้อมูล
                             </a>
                         </div>
@@ -1437,17 +1437,17 @@ function e($val) {
 
                 <div class="grid-3">
                     <div class="form-group">
-                        <label>เลขที่ใบอนุญาต (ถ้ามี)</label>
+                        <label class="required">เลขที่ใบอนุญาต</label>
                         <input type="text" class="form-control" name="licenseNo"
-                            placeholder="กรอกเลขที่ใบอนุญาต 10 หลัก" maxlength="10" minlength="10" pattern="\d{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" value="<?php echo e($formData['licenseNo']); ?>">
+                            placeholder="กรอกเลขที่ใบอนุญาต 10 หลัก" maxlength="10" minlength="10" pattern="\d{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required value="<?php echo e($formData['licenseNo']); ?>">
                     </div>
                     <div class="form-group">
                         <label>วันที่ออกใบอนุญาต</label>
                         <input type="text" class="form-control datepicker" name="licenseIssue" placeholder="DD/MM/YYYY" value="<?php echo e($formData['licenseIssue']); ?>">
                     </div>
                     <div class="form-group">
-                        <label>วันหมดอายุใบอนุญาต</label>
-                        <input type="text" class="form-control datepicker" name="licenseExpire" placeholder="DD/MM/YYYY" value="<?php echo e($formData['licenseExpire']); ?>">
+                        <label class="required">วันหมดอายุใบอนุญาต</label>
+                        <input type="text" class="form-control datepicker" name="licenseExpire" placeholder="DD/MM/YYYY" required value="<?php echo e($formData['licenseExpire']); ?>">
                     </div>
                 </div>
             </div>
@@ -1660,6 +1660,11 @@ function e($val) {
                 let uploadBtn = document.getElementById('uploadLinkBtn');
                 if (uploadBtn && nid) {
                     uploadBtn.href = 'index-round2.php?national_id=' + encodeURIComponent(nid) + '&phone=' + encodeURIComponent(ph || '');
+                }
+                
+                let checkInfoBtn = document.getElementById('checkInfoBtn');
+                if (checkInfoBtn && nid) {
+                    checkInfoBtn.href = 'https://iptc.xn--z3cbl2brb.com/form/enquiry.corse.php?citizen_id=' + encodeURIComponent(nid);
                 }
                 return;
             }

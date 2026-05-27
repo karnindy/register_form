@@ -1436,18 +1436,18 @@
 
                 <div class="grid-3">
                     <div class="form-group">
-                        <label>เลขที่ใบอนุญาต (ถ้ามี)</label>
+                        <label class="required">เลขที่ใบอนุญาต</label>
                         <input type="text" class="form-control" name="licenseNo"
-                            placeholder="กรอกเลขที่ใบอนุญาต 10 หลัก" maxlength="10" minlength="10" pattern="\d{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                            placeholder="กรอกเลขที่ใบอนุญาต 10 หลัก" maxlength="10" minlength="10" pattern="\d{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
                     </div>
                     <div class="form-group">
                         <label>วันที่ออกใบอนุญาต</label>
                         <input type="text" class="form-control datepicker" name="licenseIssue" placeholder="DD/MM/YYYY">
                     </div>
                     <div class="form-group">
-                        <label>วันหมดอายุใบอนุญาต</label>
+                        <label class="required">วันหมดอายุใบอนุญาต</label>
                         <input type="text" class="form-control datepicker" name="licenseExpire"
-                            placeholder="DD/MM/YYYY">
+                            placeholder="DD/MM/YYYY" required>
                     </div>
                 </div>
             </div>
