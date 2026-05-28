@@ -1469,7 +1469,7 @@ function e($val) {
                         <div class="radio-group vertical" id="courseTypeContainer" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
                             <!-- Course Types will be rendered here -->
                         </div>
-                        <input type="hidden" name="courseType" id="courseTypeHidden" required>
+                        <input type="hidden" name="courseType" id="courseTypeHidden">
                     </div>
 
                     <div class="form-group" id="previousCoursesSection" style="display: none; margin-top: 20px;">
@@ -2087,7 +2087,10 @@ function e($val) {
                     radio.removeAttribute("required");
                     radio.checked = false;
                     let container = radio.closest('.radio-group');
-                    if (container) container.classList.remove('invalid');
+                    if (container) {
+                        container.classList.remove('invalid');
+                        removeErrorMsg(container);
+                    }
                 });
             }
         }
@@ -2442,8 +2445,13 @@ function e($val) {
                 if (!isMultiple) input.required = true;
                 
                 input.addEventListener('change', function() {
+                    container.classList.remove('invalid');
+                    removeErrorMsg(container);
                     let items = container.querySelectorAll('.radio-item');
-                    items.forEach(el => el.classList.remove('invalid'));
+                    items.forEach(el => {
+                        el.classList.remove('invalid');
+                        removeErrorMsg(el);
+                    });
                 });
                 
                 labelEl.appendChild(input);
@@ -2491,8 +2499,49 @@ function e($val) {
             }
         }
 
+        function showFieldError(element, msg) {
+            if (!element) return;
+            element.classList.add("invalid");
+            
+            // Find container to append the message
+            let container = element;
+            if (element.type === 'radio' || element.type === 'checkbox') {
+                let group = element.closest('.radio-group');
+                let item = element.closest('.radio-item');
+                if (group) {
+                    container = group;
+                    let items = group.querySelectorAll('.radio-item');
+                    items.forEach(el => el.classList.add('invalid'));
+                } else if (item) {
+                    container = item;
+                    item.classList.add('invalid');
+                }
+            } else if (element.classList.contains('radio-group')) {
+                container = element;
+                let items = container.querySelectorAll('.radio-item');
+                items.forEach(el => el.classList.add('invalid'));
+            }
+            
+            // Check if error already exists
+            let nextEl = container.nextElementSibling;
+            if (nextEl && nextEl.classList && nextEl.classList.contains('error-msg')) {
+                nextEl.innerText = msg;
+                return;
+            }
+            
+            let msgEl = document.createElement("div");
+            msgEl.className = "error-msg";
+            msgEl.style.color = "var(--error-color)";
+            msgEl.style.fontSize = "13px";
+            msgEl.style.marginTop = "4px";
+            msgEl.innerText = msg;
+            
+            container.parentNode.insertBefore(msgEl, container.nextSibling);
+        }
+
         function validateForm() {
             let valid = true;
+            let firstInvalid = null;
             let tabs = document.getElementsByClassName("tab");
             let inputs = tabs[currentTab].querySelectorAll("input[required], select[required], textarea[required]");
 
@@ -2511,9 +2560,9 @@ function e($val) {
                 }
 
                 if (!isChecked || !isAccepted) {
-                    alert("กรุณายอมรับนโยบายความเป็นส่วนตัวเพื่อดำเนินการต่อ");
+                    showFieldError(pdpaRadios[0], "กรุณายอมรับนโยบายความเป็นส่วนตัวเพื่อดำเนินการต่อ");
                     valid = false;
-                    return valid;
+                    if (!firstInvalid) firstInvalid = pdpaRadios[0];
                 }
             }
 
@@ -2523,14 +2572,39 @@ function e($val) {
                 if (idCardExpiry && idCardExpiry.value.trim() !== "") {
                     let parts = idCardExpiry.value.split('/');
                     if (parts.length === 3) {
-                        let expDate = new Date(parts[2], parts[1] - 1, parts[0]);
+                        let year = parseInt(parts[2]);
+                        if (year > 2500) year -= 543;
+                        let expDate = new Date(year, parts[1] - 1, parts[0]);
                         let today = new Date();
                         today.setHours(0,0,0,0);
                         if (expDate <= today) {
-                            alert("วันหมดอายุบัตรประชาชน ต้องมากกว่าวันที่ปัจจุบันเท่านั้น");
-                            idCardExpiry.classList.add("invalid");
+                            showFieldError(idCardExpiry, "วันหมดอายุบัตรประชาชน ต้องมากกว่าวันที่ปัจจุบันเท่านั้น");
                             valid = false;
-                            return valid;
+                            if (!firstInvalid) firstInvalid = idCardExpiry;
+                        }
+                    }
+                }
+            }
+
+            // Custom check for birthDate in Step 2 (Index 1)
+            if (currentTab === 1) {
+                let birthDateInput = document.querySelector('input[name="birthDate"]');
+                if (birthDateInput && birthDateInput.value.trim() !== "") {
+                    let parts = birthDateInput.value.split('/');
+                    if (parts.length === 3) {
+                        let year = parseInt(parts[2]);
+                        if (year > 2500) year -= 543;
+                        let bday = new Date(year, parts[1] - 1, parts[0]);
+                        let today = new Date();
+                        let age = today.getFullYear() - bday.getFullYear();
+                        let m = today.getMonth() - bday.getMonth();
+                        if (m < 0 || (m === 0 && today.getDate() < bday.getDate())) {
+                            age--;
+                        }
+                        if (age < 20) {
+                            showFieldError(birthDateInput, "วัน/เดือน/ปี เกิด ต้องมากกว่า 20 นับจากวันที่ปัจจุบันเท่านั้น");
+                            valid = false;
+                            if (!firstInvalid) firstInvalid = birthDateInput;
                         }
                     }
                 }
@@ -2541,10 +2615,26 @@ function e($val) {
                 let licenseNo = document.querySelector('input[name="licenseNo"]');
                 if (licenseNo && licenseNo.value.trim() !== "") {
                     if (licenseNo.value.trim().length !== 10) {
-                        alert("เลขที่ใบอนุญาตต้องมี 10 หลัก");
-                        licenseNo.classList.add("invalid");
+                        showFieldError(licenseNo, "เลขที่ใบอนุญาตต้องมี 10 หลัก");
                         valid = false;
-                        return valid;
+                        if (!firstInvalid) firstInvalid = licenseNo;
+                    }
+                }
+                
+                let licenseExpire = document.querySelector('input[name="licenseExpire"]');
+                if (licenseExpire && licenseExpire.value.trim() !== "") {
+                    let parts = licenseExpire.value.split('/');
+                    if (parts.length === 3) {
+                        let year = parseInt(parts[2]);
+                        if (year > 2500) year -= 543;
+                        let expDate = new Date(year, parts[1] - 1, parts[0]);
+                        let today = new Date();
+                        today.setHours(0,0,0,0);
+                        if (expDate <= today) {
+                            showFieldError(licenseExpire, "วันหมดอายุใบอนุญาต ต้องมากกว่าวันที่ปัจจุบันเท่านั้น");
+                            valid = false;
+                            if (!firstInvalid) firstInvalid = licenseExpire;
+                        }
                     }
                 }
             }
@@ -2559,9 +2649,9 @@ function e($val) {
                         if (!checked) {
                             let items = dateGroup.querySelectorAll('.radio-item');
                             items.forEach(item => item.classList.add('invalid'));
-                            dateGroup.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            showFieldError(dateGroup, "กรุณาเลือกวันที่ต้องการอบรม");
                             valid = false;
-                            return valid;
+                            if (!firstInvalid) firstInvalid = dateGroup;
                         }
                     }
                 }
@@ -2573,9 +2663,9 @@ function e($val) {
                     let telRaw = inputs[i].value.replace(/\D/g, '');
                     if (telRaw !== "" || inputs[i].required) {
                         if (telRaw.length !== 10 || telRaw.charAt(0) !== '0') {
-                            alert("หมายเลขโทรศัพท์ต้องมี 10 หลักและขึ้นต้นด้วย 0 เท่านั้น");
-                            inputs[i].classList.add("invalid");
+                            showFieldError(inputs[i], "หมายเลขโทรศัพท์ต้องมี 10 หลักและขึ้นต้นด้วย 0 เท่านั้น");
                             valid = false;
+                            if (!firstInvalid) firstInvalid = inputs[i];
                         } else {
                             inputs[i].classList.remove("invalid");
                         }
@@ -2590,19 +2680,35 @@ function e($val) {
                         }
                     }
                     if (!checked) {
-                        let container = inputs[i].closest('.radio-group') || inputs[i].closest('.radio-item');
-                        if (container) container.classList.add("invalid");
+                        showFieldError(inputs[i], "กรุณาระบุข้อมูลนี้");
                         valid = false;
+                        if (!firstInvalid) firstInvalid = inputs[i];
                     } else {
                         let container = inputs[i].closest('.radio-group') || inputs[i].closest('.radio-item');
                         if (container) container.classList.remove("invalid");
                     }
                 } else if (inputs[i].value.trim() === "") {
-                    inputs[i].classList.add("invalid");
+                    showFieldError(inputs[i], "กรุณากรอกข้อมูลนี้");
                     valid = false;
+                    if (!firstInvalid) firstInvalid = inputs[i];
                 } else {
                     inputs[i].classList.remove("invalid");
                 }
+            }
+
+            if (!valid && firstInvalid) {
+                // Focus and scroll to the first invalid element
+                let focusTarget = firstInvalid;
+                if (firstInvalid.id === 'trainingDateGroup' || firstInvalid.classList.contains('radio-group')) {
+                    // It's a div, maybe focus the first input inside it
+                    let firstInput = firstInvalid.querySelector('input');
+                    if (firstInput) focusTarget = firstInput;
+                }
+                
+                if (typeof focusTarget.focus === 'function') {
+                    focusTarget.focus({preventScroll: true});
+                }
+                focusTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
 
             // Mark step as finished
@@ -2612,14 +2718,36 @@ function e($val) {
             return valid;
         }
 
+        function removeErrorMsg(el) {
+            let container = el;
+            if (el.type === 'radio' || el.type === 'checkbox') {
+                let group = el.closest('.radio-group');
+                let item = el.closest('.radio-item');
+                if (group) container = group;
+                else if (item) container = item;
+            } else if (el.classList && el.classList.contains('radio-group')) {
+                container = el;
+            }
+            if (container) {
+                let nextEl = container.nextElementSibling;
+                if (nextEl && nextEl.classList && nextEl.classList.contains('error-msg')) {
+                    nextEl.remove();
+                } else {
+                    let formGroup = el.closest('.form-group');
+                    if (formGroup) {
+                        let err = formGroup.querySelector('.error-msg');
+                        if (err) err.remove();
+                    }
+                }
+            }
+        }
+
         // === Auto-clear invalid (red border) when user fills data ===
         function attachClearInvalid() {
             var els = document.querySelectorAll('input, select, textarea');
             for (var i = 0; i < els.length; i++) {
-                // Remove any previous listener to avoid duplicates
                 els[i].removeEventListener('input', clearInvalidHandler);
                 els[i].removeEventListener('change', clearInvalidHandler);
-                // Attach fresh
                 els[i].addEventListener('input', clearInvalidHandler);
                 els[i].addEventListener('change', clearInvalidHandler);
             }
@@ -2629,6 +2757,22 @@ function e($val) {
             if (el && el.className && el.className.indexOf('invalid') !== -1) {
                 el.className = el.className.replace(/\binvalid\b/g, '').trim();
             }
+            if (el) removeErrorMsg(el);
+            // For radio/checkbox, also clear the parent container if needed
+            if (el && (el.type === 'radio' || el.type === 'checkbox')) {
+                let container = el.closest('.radio-group') || el.closest('.radio-item');
+                if (container && container.classList.contains('invalid')) {
+                    container.classList.remove('invalid');
+                }
+                let group = el.closest('.radio-group');
+                if (group) {
+                    let items = group.querySelectorAll('.radio-item');
+                    items.forEach(item => item.classList.remove('invalid'));
+                } else if (container) {
+                    container.classList.remove('invalid');
+                }
+                removeErrorMsg(el);
+            }
         }
         // Attach on page load
         attachClearInvalid();
@@ -2637,16 +2781,7 @@ function e($val) {
             setTimeout(attachClearInvalid, 100);
         });
 
-        // Polling fallback: auto-clear invalid from fields that have values
-        window.setInterval(function () {
-            var all = document.querySelectorAll('.invalid');
-            for (var i = 0; i < all.length; i++) {
-                var el = all[i];
-                if (el && el.value !== undefined && el.value !== null && String(el.value).trim() !== '') {
-                    el.className = el.className.replace(/\binvalid\b/g, '').trim();
-                }
-            }
-        }, 300);
+
 
         function updateStepIndicator(n) {
             let dots = document.getElementsByClassName("step-dot");
@@ -2717,6 +2852,7 @@ function e($val) {
                     el.removeAttribute('required');
                     el.value = '';
                     el.classList.remove('invalid');
+                    removeErrorMsg(el);
                 }
                 // Also clear non-required shipping fields
                 ['shipMoo', 'shipVillage', 'shipSoi', 'shipRoad'].forEach(id => {
@@ -2980,6 +3116,7 @@ function e($val) {
             input.value = value;
             document.getElementById(getFieldId(type, prefix) + '_list').classList.remove('show');
             input.classList.remove('invalid');
+            removeErrorMsg(input);
 
             // Cascade: clear child fields and set zip code if applicable
             var zipField = prefix ? 'shipZipcode' : 'zipcode';
@@ -2998,6 +3135,7 @@ function e($val) {
                     zipInput.value = postcode;
                 }
                 zipInput.classList.remove('invalid');
+                removeErrorMsg(zipInput);
             }
         }
 
@@ -3118,11 +3256,13 @@ function e($val) {
                     input.value = val;
                     listEl.classList.remove('show');
                     input.classList.remove('invalid');
+                    removeErrorMsg(input);
                     
                     var regionInput = document.getElementById('agentRegion');
                     if (regionInput && branchToRegion[val]) {
                         regionInput.value = branchToRegion[val];
                         regionInput.classList.remove('invalid');
+                        removeErrorMsg(regionInput);
                     }
                 };
                 listEl.appendChild(div);
@@ -3155,11 +3295,13 @@ function e($val) {
                         input.value = val;
                         listEl.classList.remove('show');
                         input.classList.remove('invalid');
+                        removeErrorMsg(input);
                         
                         var regionInput = document.getElementById('agentRegion');
                         if (regionInput && branchToRegion[val]) {
                             regionInput.value = branchToRegion[val];
                             regionInput.classList.remove('invalid');
+                            removeErrorMsg(regionInput);
                         }
                     }
                     activeIdx = -1;
@@ -3194,11 +3336,131 @@ function e($val) {
                     if (branchToRegion[val]) {
                         regionInput.value = branchToRegion[val];
                         regionInput.classList.remove('invalid');
+                        removeErrorMsg(regionInput);
                     } else {
                         regionInput.value = '';
                     }
                 }
             });
+        });
+
+        // ===== Blur Event Validations =====
+        document.addEventListener('DOMContentLoaded', function() {
+            // ID Card validation
+            let idCardInput = document.querySelector('input[name="idCard"]');
+            if (idCardInput) {
+                idCardInput.addEventListener('blur', function() {
+                    let id = this.value.replace(/\D/g, '');
+                    if (id.length > 0 && id.length !== 13) {
+                        showFieldError(this, "เลขบัตรประชาชนต้องมี 13 หลัก");
+                        return;
+                    }
+                    if (id.length === 13) {
+                        let sum = 0;
+                        for (let i = 0; i < 12; i++) {
+                            sum += parseInt(id.charAt(i)) * (13 - i);
+                        }
+                        if ((11 - (sum % 11)) % 10 !== parseInt(id.charAt(12))) {
+                            showFieldError(this, "เลขบัตรประชาชนไม่ถูกต้องตามรูปแบบราชการ");
+                        }
+                    }
+                });
+            }
+
+            // Phone validation
+            let phoneInputs = document.querySelectorAll('input[type="tel"]');
+            phoneInputs.forEach(function(input) {
+                input.addEventListener('blur', function() {
+                    let telRaw = this.value.replace(/\D/g, '');
+                    if (telRaw.length > 0) {
+                        if (telRaw.length !== 10 || telRaw.charAt(0) !== '0') {
+                            showFieldError(this, "หมายเลขโทรศัพท์ต้องมี 10 หลักและขึ้นต้นด้วย 0 เท่านั้น");
+                        }
+                    }
+                });
+            });
+
+            // ID Card Expiry validation
+            let idCardExpiryInput = document.querySelector('input[name="idCardExpiry"]');
+            if (idCardExpiryInput) {
+                let validateIdCardExpiry = function() {
+                    if (this.value.trim() !== "") {
+                        let parts = this.value.split('/');
+                        if (parts.length === 3) {
+                            let year = parseInt(parts[2]);
+                            if (year > 2500) year -= 543;
+                            let expDate = new Date(year, parts[1] - 1, parts[0]);
+                            let today = new Date();
+                            today.setHours(0,0,0,0);
+                            if (expDate <= today) {
+                                showFieldError(this, "วันหมดอายุบัตรประชาชน ต้องมากกว่าวันที่ปัจจุบันเท่านั้น");
+                            }
+                        }
+                    }
+                };
+                idCardExpiryInput.addEventListener('blur', validateIdCardExpiry);
+                idCardExpiryInput.addEventListener('change', validateIdCardExpiry);
+            }
+
+            // Birth Date validation
+            let birthDateInput = document.querySelector('input[name="birthDate"]');
+            if (birthDateInput) {
+                let validateBirthDate = function() {
+                    if (this.value.trim() !== "") {
+                        let parts = this.value.split('/');
+                        if (parts.length === 3) {
+                            let year = parseInt(parts[2]);
+                            if (year > 2500) year -= 543;
+                            let bday = new Date(year, parts[1] - 1, parts[0]);
+                            let today = new Date();
+                            let age = today.getFullYear() - bday.getFullYear();
+                            let m = today.getMonth() - bday.getMonth();
+                            if (m < 0 || (m === 0 && today.getDate() < bday.getDate())) {
+                                age--;
+                            }
+                            if (age < 20) {
+                                showFieldError(this, "วัน/เดือน/ปี เกิด ต้องมากกว่า 20 นับจากวันที่ปัจจุบันเท่านั้น");
+                            }
+                        }
+                    }
+                };
+                birthDateInput.addEventListener('blur', validateBirthDate);
+                birthDateInput.addEventListener('change', validateBirthDate);
+            }
+
+            // License No validation
+            let licenseNoInput = document.querySelector('input[name="licenseNo"]');
+            if (licenseNoInput) {
+                licenseNoInput.addEventListener('blur', function() {
+                    if (this.value.trim() !== "") {
+                        if (this.value.trim().length !== 10) {
+                            showFieldError(this, "เลขที่ใบอนุญาตต้องมี 10 หลัก");
+                        }
+                    }
+                });
+            }
+
+            // License Expire validation
+            let licenseExpireInput = document.querySelector('input[name="licenseExpire"]');
+            if (licenseExpireInput) {
+                let validateLicenseExpire = function() {
+                    if (this.value.trim() !== "") {
+                        let parts = this.value.split('/');
+                        if (parts.length === 3) {
+                            let year = parseInt(parts[2]);
+                            if (year > 2500) year -= 543;
+                            let expDate = new Date(year, parts[1] - 1, parts[0]);
+                            let today = new Date();
+                            today.setHours(0,0,0,0);
+                            if (expDate <= today) {
+                                showFieldError(this, "วันหมดอายุใบอนุญาต ต้องมากกว่าวันที่ปัจจุบันเท่านั้น");
+                            }
+                        }
+                    }
+                };
+                licenseExpireInput.addEventListener('blur', validateLicenseExpire);
+                licenseExpireInput.addEventListener('change', validateLicenseExpire);
+            }
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
