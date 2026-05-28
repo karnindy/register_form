@@ -7,6 +7,18 @@
 
 include 'appconfig.php';
 
+// Check if system is closed
+if (defined('SYSTEM_CLOSED_START') && defined('SYSTEM_CLOSED_END') && SYSTEM_CLOSED_START !== '' && SYSTEM_CLOSED_END !== '') {
+    date_default_timezone_set('Asia/Bangkok');
+    $now = new DateTime();
+    $start = new DateTime(SYSTEM_CLOSED_START);
+    $end = new DateTime(SYSTEM_CLOSED_END);
+    if ($now >= $start && $now <= $end) {
+        header("Location: closed.php");
+        exit();
+    }
+}
+
 // ========================
 // Validate Thai ID (13 digits + checksum)
 // ========================
