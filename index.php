@@ -1133,7 +1133,7 @@ function e($val) {
                     </div>
                     <div class="form-group">
                         <label class="required">อีเมล (E-mail)</label>
-                        <input type="email" class="form-control" name="email" placeholder="example@email.com" required value="<?php echo e($formData['email']); ?>">
+                        <input type="email" class="form-control" name="email" placeholder="example@email.com" required value="<?php echo e($formData['email']); ?>" oninput="this.value = this.value.replace(/[^a-zA-Z0-9@._-]/g, '')">
                     </div>
                 </div>
 
@@ -1647,7 +1647,8 @@ function e($val) {
 
     <script>
         let currentTab = 0;
-        let savedNationalId = ''; // เก็บ national_id หลัง Tab 2 save สำเร็จ
+        let savedNationalId = ''; // จำ national_id หลัง Tab 2 save เสร็จ
+        let savedId = '';
 
         document.addEventListener("DOMContentLoaded", function() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -1827,6 +1828,7 @@ function e($val) {
 
                 if (json.ok) {
                     savedNationalId = json.national_id;
+                    savedId = json.id;
                     return true;
                 } else {
                     showSaveError(json.error || 'บันทึกข้อมูลส่วนตัวไม่สำเร็จ');
@@ -1849,6 +1851,7 @@ function e($val) {
             try {
                 let data = new FormData();
                 data.append('national_id', savedNationalId);
+                data.append('id', savedId);
 
                 const fields = [
                     'houseNo','moo','village','soi','road',
@@ -1891,6 +1894,7 @@ function e($val) {
             try {
                 let data = new FormData();
                 data.append('national_id', savedNationalId);
+                data.append('id', savedId);
 
                 let agentType = document.getElementById("actualAgentType");
                 if (agentType && agentType.value) data.append('agentType', agentType.value);
@@ -1935,6 +1939,7 @@ function e($val) {
             try {
                 let data = new FormData();
                 data.append('national_id', savedNationalId);
+                data.append('id', savedId);
 
                 let agentType = document.getElementById("actualAgentType");
                 if (agentType && agentType.value) data.append('agentType', agentType.value);
@@ -1985,6 +1990,7 @@ function e($val) {
             try {
                 let data = new FormData();
                 data.append('national_id', savedNationalId);
+                data.append('id', savedId);
 
                 let occupation = document.querySelector('[name="occupation"]');
                 if (occupation) data.append('occupation', occupation.value);
@@ -2803,6 +2809,7 @@ function e($val) {
             try {
                 let data = new FormData();
                 data.append('national_id', savedNationalId);
+                data.append('id', savedId);
 
                 let res = await fetch('save_final.php', { method: 'POST', body: data });
                 let json = await res.json();

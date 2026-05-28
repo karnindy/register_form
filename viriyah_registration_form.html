@@ -952,7 +952,7 @@
                     </div>
                     <div class="form-group">
                         <label class="required">อีเมล (E-mail)</label>
-                        <input type="email" class="form-control" name="email" placeholder="example@email.com" required>
+                        <input type="email" class="form-control" name="email" placeholder="example@email.com" required oninput="this.value = this.value.replace(/[^a-zA-Z0-9@._-]/g, '')">
                     </div>
                 </div>
 

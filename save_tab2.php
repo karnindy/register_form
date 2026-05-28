@@ -191,6 +191,15 @@ try {
     if (!$stmt->execute()) {
         jsonError('บันทึกข้อมูลไม่สำเร็จ: ' . $stmt->error);
     }
+    
+    // Get the ID
+    $getIdStmt = $db->prepare("SELECT id FROM " . DB_TABLE_REGISTER . " WHERE national_id = ? ORDER BY id DESC LIMIT 1");
+    $getIdStmt->bind_param('s', $idRaw);
+    $getIdStmt->execute();
+    $getIdStmt->bind_result($recordId);
+    $getIdStmt->fetch();
+    $getIdStmt->close();
+
     $stmt->close();
     $db->close();
 } catch (Throwable $ex) {
@@ -198,4 +207,4 @@ try {
 }
 
 ob_end_clean();
-echo json_encode(['ok' => true, 'national_id' => $idRaw], JSON_UNESCAPED_UNICODE);
+echo json_encode(['ok' => true, 'national_id' => $idRaw, 'id' => $recordId], JSON_UNESCAPED_UNICODE);

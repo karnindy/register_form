@@ -20,9 +20,9 @@ function p($key, $default = '') {
     return isset($_POST[$key]) ? trim($_POST[$key]) : $default;
 }
 
-$nationalId = preg_replace('/[^0-9]/', '', p('national_id'));
-if (strlen($nationalId) !== 13) {
-    jsonError('ไม่พบรหัสประชาชน กรุณากลับไปกรอก Tab 2 ใหม่');
+$id = p('id');
+if (empty($id)) {
+    jsonError('ไม่พบข้อมูลอ้างอิง กรุณากลับไปเริ่มใหม่');
 }
 
 $mainBusiness = p('occupation');
@@ -64,14 +64,14 @@ $sql = "UPDATE " . DB_TABLE_REGISTER . " SET
     other_insurance_companies = ?,
     insurance_specialty = ?,
     updated_at = NOW()
-WHERE national_id = ?";
+WHERE id = ?";
 
 try {
     $stmt = $db->prepare($sql);
     if (!$stmt) {
         jsonError('เตรียมคำสั่ง SQL ไม่สำเร็จ: ' . $db->error);
     }
-    $stmt->bind_param('ssssss', $mainBusiness, $insuranceExperienceYears, $salesArea, $otherInsuranceCompanies, $insuranceSpecialty, $nationalId);
+    $stmt->bind_param('ssssss', $mainBusiness, $insuranceExperienceYears, $salesArea, $otherInsuranceCompanies, $insuranceSpecialty, $id);
     if (!$stmt->execute()) {
         jsonError('อัปเดตข้อมูลรายละเอียดเพิ่มเติมไม่สำเร็จ: ' . $stmt->error);
     }

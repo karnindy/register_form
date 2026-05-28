@@ -20,9 +20,9 @@ function p($key, $default = '') {
     return isset($_POST[$key]) ? trim($_POST[$key]) : $default;
 }
 
-$nationalId = preg_replace('/[^0-9]/', '', p('national_id'));
-if (strlen($nationalId) !== 13) {
-    jsonError('ไม่พบรหัสประชาชน');
+$id = p('id');
+if (empty($id)) {
+    jsonError('ไม่พบข้อมูลอ้างอิง กรุณากลับไปเริ่มใหม่');
 }
 
 mysqli_report(MYSQLI_REPORT_OFF);
@@ -40,14 +40,14 @@ $sql = "UPDATE " . DB_TABLE_REGISTER . " SET
     confirmed = 'ยืนยันการสมัคร',
     updated_at = NOW(),
     completion_time = NOW()
-WHERE national_id = ?";
+WHERE id = ?";
 
 try {
     $stmt = $db->prepare($sql);
     if (!$stmt) {
         jsonError('เตรียมคำสั่ง SQL ไม่สำเร็จ: ' . $db->error);
     }
-    $stmt->bind_param('s', $nationalId);
+    $stmt->bind_param('s', $id);
     if (!$stmt->execute()) {
         jsonError('อัปเดตสถานะยืนยันไม่สำเร็จ: ' . $stmt->error);
     }

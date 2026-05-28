@@ -20,9 +20,9 @@ function p($key, $default = '') {
     return isset($_POST[$key]) ? trim($_POST[$key]) : $default;
 }
 
-$nationalId = preg_replace('/[^0-9]/', '', p('national_id'));
-if (strlen($nationalId) !== 13) {
-    jsonError('ไม่พบรหัสประชาชน กรุณากลับไปกรอก Tab 2 ใหม่');
+$id = p('id');
+if (empty($id)) {
+    jsonError('ไม่พบข้อมูลอ้างอิง กรุณากลับไปเริ่มใหม่');
 }
 
 $addrHouseNo     = p('houseNo');
@@ -86,7 +86,7 @@ $sql = "UPDATE " . DB_TABLE_REGISTER . " SET
     contact_subdistrict   = ?,
     contact_postcode      = ?,
     updated_at            = NOW()
-WHERE national_id = ?";
+WHERE id = ?";
 
 try {
     $stmt = $db->prepare($sql);
@@ -100,7 +100,7 @@ try {
         $contactAddress,
         $contactHouseNo, $contactMoo, $contactVillage, $contactSoi, $contactRoad,
         $contactProvince, $contactDistrict, $contactSubDistrict, $contactPostcode,
-        $nationalId
+        $id
     );
     if (!$stmt->execute()) {
         jsonError('อัปเดตที่อยู่ไม่สำเร็จ: ' . $stmt->error);
