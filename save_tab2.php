@@ -50,7 +50,7 @@ if (!empty($idCardExpiry)) {
     $parts = explode('/', $idCardExpiry);
     if (count($parts) === 3) {
         $year = (int)$parts[2];
-        if ($year > 2500) $year -= 543;
+        if ($year > 2400) $year -= 543;
         $dbIdCardExpiry = $year . '-' . $parts[1] . '-' . $parts[0];
         if (strtotime($dbIdCardExpiry) <= strtotime(date('Y-m-d'))) {
             jsonError('วันหมดอายุบัตรประชาชน ต้องมากกว่าวันที่ปัจจุบันเท่านั้น');
@@ -80,7 +80,7 @@ if (!empty($birthDate)) {
     $parts = explode('/', $birthDate);
     if (count($parts) === 3) {
         $year = (int)$parts[2];
-        if ($year > 2500) $year -= 543;
+        if ($year > 2400) $year -= 543;
         $dbBirthDate = $year . '-' . $parts[1] . '-' . $parts[0];
         
         $bday = new DateTime($dbBirthDate);

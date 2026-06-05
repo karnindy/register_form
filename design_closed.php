@@ -15,12 +15,11 @@ $new_body = '<body>
             <i class="fa-solid fa-clock" style="font-size: 50px; color: var(--secondary-color);"></i>
         </div>
         
-        <h2 style="color: var(--primary-color); font-size: 30px; margin-bottom: 15px; font-weight: 600;">ระบบปิดรับลงทะเบียนชั่วคราว</h2>
+        <h2 style="color: var(--primary-color); font-size: 30px; margin-bottom: 15px; font-weight: 600;">ปิดรับแจ้งความประสงค์อบรมแล้ว</h2>
         
         <p style="font-size: 16px; color: var(--text-muted); line-height: 1.7; margin-bottom: 35px;">
-            ขณะนี้อยู่นอกช่วงเวลาการเปิดรับลงทะเบียนเข้าอบรม<br>
-            ระบบจะเปิดให้ทำรายการอีกครั้งตามวันและเวลาที่กำหนดไว้<br>
-            ขออภัยในความไม่สะดวกมา ณ ที่นี้
+            กรุณาติดต่อสาขาที่ท่านสังกัด<br>
+            เพื่อรวบรวมรายชื่อในการแจ้งความประสงค์ครั้งถัดไป<br>
         </p>
         
         <div style="background-color: var(--bg-color); padding: 25px; border-radius: 10px; border: 1px solid var(--border-color); text-align: left; display: inline-block; width: 100%; box-sizing: border-box; position: relative;">

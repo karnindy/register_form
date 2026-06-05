@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $parts = explode('/', $formData['idCardExpiry']);
         if (count($parts) === 3) {
             $year = (int)$parts[2];
-            if ($year > 2500) $year -= 543;
+            if ($year > 2400) $year -= 543;
             $dbIdCardExpiry = $year . '-' . $parts[1] . '-' . $parts[0];
         }
     }
@@ -123,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $parts = explode('/', $formData['birthDate']);
         if (count($parts) === 3) {
             $year = (int)$parts[2];
-            if ($year > 2500) $year -= 543;
+            if ($year > 2400) $year -= 543;
             $dbBirthDate = $year . '-' . $parts[1] . '-' . $parts[0];
             
             $bday = new DateTime($dbBirthDate);
@@ -139,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $parts = explode('/', $formData['licenseIssue']);
         if (count($parts) === 3) {
             $year = (int)$parts[2];
-            if ($year > 2500) $year -= 543;
+            if ($year > 2400) $year -= 543;
             $dbLicenseIssue = $year . '-' . $parts[1] . '-' . $parts[0];
         }
     }
@@ -149,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $parts = explode('/', $formData['licenseExpire']);
         if (count($parts) === 3) {
             $year = (int)$parts[2];
-            if ($year > 2500) $year -= 543;
+            if ($year > 2400) $year -= 543;
             $dbLicenseExpire = $year . '-' . $parts[1] . '-' . $parts[0];
         }
     }
@@ -2585,7 +2585,7 @@ function e($val) {
                     let parts = idCardExpiry.value.split('/');
                     if (parts.length === 3) {
                         let year = parseInt(parts[2]);
-                        if (year > 2500) year -= 543;
+                        if (year > 2400) year -= 543;
                         let expDate = new Date(year, parts[1] - 1, parts[0]);
                         let today = new Date();
                         today.setHours(0,0,0,0);
@@ -2605,7 +2605,7 @@ function e($val) {
                     let parts = birthDateInput.value.split('/');
                     if (parts.length === 3) {
                         let year = parseInt(parts[2]);
-                        if (year > 2500) year -= 543;
+                        if (year > 2400) year -= 543;
                         let bday = new Date(year, parts[1] - 1, parts[0]);
                         let today = new Date();
                         let age = today.getFullYear() - bday.getFullYear();
@@ -2638,7 +2638,7 @@ function e($val) {
                     let parts = licenseExpire.value.split('/');
                     if (parts.length === 3) {
                         let year = parseInt(parts[2]);
-                        if (year > 2500) year -= 543;
+                        if (year > 2400) year -= 543;
                         let expDate = new Date(year, parts[1] - 1, parts[0]);
                         let today = new Date();
                         today.setHours(0,0,0,0);
@@ -3400,7 +3400,7 @@ function e($val) {
                         let parts = this.value.split('/');
                         if (parts.length === 3) {
                             let year = parseInt(parts[2]);
-                            if (year > 2500) year -= 543;
+                            if (year > 2400) year -= 543;
                             let expDate = new Date(year, parts[1] - 1, parts[0]);
                             let today = new Date();
                             today.setHours(0,0,0,0);
@@ -3422,7 +3422,7 @@ function e($val) {
                         let parts = this.value.split('/');
                         if (parts.length === 3) {
                             let year = parseInt(parts[2]);
-                            if (year > 2500) year -= 543;
+                            if (year > 2400) year -= 543;
                             let bday = new Date(year, parts[1] - 1, parts[0]);
                             let today = new Date();
                             let age = today.getFullYear() - bday.getFullYear();
@@ -3460,7 +3460,7 @@ function e($val) {
                         let parts = this.value.split('/');
                         if (parts.length === 3) {
                             let year = parseInt(parts[2]);
-                            if (year > 2500) year -= 543;
+                            if (year > 2400) year -= 543;
                             let expDate = new Date(year, parts[1] - 1, parts[0]);
                             let today = new Date();
                             today.setHours(0,0,0,0);
@@ -3483,7 +3483,7 @@ function e($val) {
                 setTimeout(function() {
                     if (instance.currentYearElement) {
                         let y = instance.currentYear;
-                        if (y < 2500) {
+                        if (y < 2400) {
                             y += 543;
                         }
                         instance.currentYearElement.value = y;
@@ -3491,7 +3491,7 @@ function e($val) {
                 }, 0);
             }
 
-            flatpickr(".datepicker", {
+            let baseConfig = {
                 dateFormat: "d/m/Y",
                 locale: "th",
                 allowInput: true,
@@ -3505,7 +3505,7 @@ function e($val) {
                     let d = date.getDate().toString().padStart(2, '0');
                     let m = (date.getMonth() + 1).toString().padStart(2, '0');
                     let y = date.getFullYear();
-                    if (y < 2500) {
+                    if (y < 2400) {
                         y += 543;
                     }
                     return d + '/' + m + '/' + y;
@@ -3516,13 +3516,28 @@ function e($val) {
                         let d = parseInt(parts[0], 10);
                         let m = parseInt(parts[1], 10) - 1;
                         let y = parseInt(parts[2], 10);
-                        if (y > 2500) {
+                        if (y > 2400) {
                             y -= 543;
                         }
                         return new Date(y, m, d);
                     }
                     return false;
                 }
+            };
+
+            document.querySelectorAll(".datepicker").forEach(function(el) {
+                let config = Object.assign({}, baseConfig);
+                if (el.name === "birthDate") {
+                    config.onOpen = function(selectedDates, dateStr, instance) {
+                        if (selectedDates.length === 0) {
+                            let d = new Date();
+                            d.setFullYear(d.getFullYear() - 20);
+                            instance.jumpToDate(d);
+                        }
+                        forceBE(instance);
+                    };
+                }
+                flatpickr(el, config);
             });
         }
         if (document.readyState === 'loading') {
