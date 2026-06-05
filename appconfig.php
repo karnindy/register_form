@@ -1,7 +1,7 @@
 <?php
 define('DB_HOST', 'localhost');
-define('DB_USER', 'thaiairp_iptc');
-define('DB_PASS', 'Pass@456981@XKTT');
+define('DB_USER', 'root');
+define('DB_PASS', 'P@ssw0rd1234');
 define('DB_NAME', 'thaiairp_iptc');
 
 define('APP_ENV', 'prd'); // Set to 'prd' for production, 'uat' for testing

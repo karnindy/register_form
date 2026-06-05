@@ -1382,8 +1382,8 @@ function e($val) {
                     <input type="hidden" name="agentType" id="actualAgentType" value="">
                     <div class="radio-group">
                         <label class="radio-item"><input type="radio" name="agentTypeMain" value="ตัวแทนประกันวินาศภัย"
-                                required onchange="toggleAgentAffiliation()"> ตัวแทนประกันวินาศภัย</label>
-                        <label class="radio-item"><input type="radio" name="agentTypeMain" value="นายหน้าประกันวินาศภัย" onchange="toggleAgentAffiliation()">
+                                disabled onchange="toggleAgentAffiliation()"> ตัวแทนประกันวินาศภัย</label>
+                        <label class="radio-item"><input type="radio" name="agentTypeMain" value="นายหน้าประกันวินาศภัย" required checked onchange="toggleAgentAffiliation()">
                             นายหน้าประกันวินาศภัย</label>
                     </div>
                     <div id="brokerTypeSection" style="display: none; margin-top: 10px; margin-left: 20px; border-left: 2px solid var(--primary-color); padding-left: 15px;">
@@ -1454,17 +1454,17 @@ function e($val) {
 
                 <div class="grid-3">
                     <div class="form-group">
-                        <label class="required">เลขที่ใบอนุญาต</label>
+                        <label>เลขที่ใบอนุญาต</label>
                         <input type="text" class="form-control" name="licenseNo"
-                            placeholder="กรอกเลขที่ใบอนุญาต 10 หลัก" maxlength="10" minlength="10" pattern="\d{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required value="<?php echo e($formData['licenseNo']); ?>">
+                            placeholder="กรอกเลขที่ใบอนุญาต 10 หลัก" maxlength="10" minlength="10" pattern="\d{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" value="<?php echo e($formData['licenseNo']); ?>">
                     </div>
                     <div class="form-group">
                         <label>วันที่ออกใบอนุญาต</label>
                         <input type="text" class="form-control datepicker" name="licenseIssue" placeholder="DD/MM/YYYY" value="<?php echo e($formData['licenseIssue']); ?>">
                     </div>
                     <div class="form-group">
-                        <label class="required">วันหมดอายุใบอนุญาต</label>
-                        <input type="text" class="form-control datepicker" name="licenseExpire" placeholder="DD/MM/YYYY" required value="<?php echo e($formData['licenseExpire']); ?>">
+                        <label>วันหมดอายุใบอนุญาต</label>
+                        <input type="text" class="form-control datepicker" name="licenseExpire" placeholder="DD/MM/YYYY" value="<?php echo e($formData['licenseExpire']); ?>">
                     </div>
                 </div>
             </div>
@@ -1687,6 +1687,7 @@ function e($val) {
                 return;
             }
             
+            toggleAgentAffiliation();
             showTab(currentTab);
 
             // Add listener to previous courses checkboxes
