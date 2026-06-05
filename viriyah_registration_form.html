@@ -1,0 +1,3500 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบฟอร์มลงทะเบียนอบรม - วิริยะประกันภัย</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        :root {
+            /* Viriyah CI Colors */
+            --primary-color: #005A9C;
+            /* Deep Blue */
+            --primary-light: #1A73E8;
+            --secondary-color: #E4A025;
+            /* Gold/Yellow */
+            --secondary-hover: #C98A1B;
+            --bg-color: #F4F7F6;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --border-color: #DDDDDD;
+            --white: #FFFFFF;
+            --error-color: #D32F2F;
+            --success-color: #388E3C;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #003B6F 100%);
+            color: var(--white);
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-bottom: 5px solid var(--secondary-color);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-weight: 300;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: -30px auto 50px;
+            background: var(--white);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Step Indicator */
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--border-color);
+            z-index: 1;
+            transform: translateY(-50%);
+        }
+
+        .step-dot {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background-color: var(--white);
+            border: 3px solid var(--border-color);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            z-index: 2;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .step-dot.active {
+            border-color: var(--primary-color);
+            background-color: var(--primary-color);
+            color: var(--white);
+            box-shadow: 0 0 0 4px rgba(0, 90, 156, 0.2);
+        }
+
+        .step-dot.finish {
+            border-color: var(--secondary-color);
+            background-color: var(--secondary-color);
+            color: var(--white);
+        }
+
+        /* Form Sections */
+        .tab {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .tab-title {
+            color: var(--primary-color);
+            font-size: 22px;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .required::after {
+            content: ' *';
+            color: var(--error-color);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 15px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 90, 156, 0.1);
+        }
+
+        .form-control.invalid {
+            border-color: var(--error-color);
+            background-color: #FFEBEE;
+        }
+
+        /* เมื่อ focus ที่ช่อง invalid → เปลี่ยนเป็นสีน้ำเงินทันที */
+        .form-control.invalid:focus {
+            border-color: var(--primary-color);
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(0, 90, 156, 0.1);
+        }
+
+        /* เมื่อกรอกข้อมูลแล้ว (browser ตั้งเป็น :valid) → ลบสีแดงอัตโนมัติ */
+        .form-control.invalid:valid {
+            border-color: var(--border-color);
+            background-color: #fff;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        /* Radio & Checkbox Styles */
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            background-color: var(--white);
+        }
+
+        .radio-item:hover {
+            background-color: #F8F9FA;
+            border-color: #bbbbbb;
+        }
+
+        .radio-item.invalid {
+            border-color: var(--error-color);
+            background-color: #FFEBEE;
+        }
+
+        .radio-item:has(input:checked) {
+            border-color: var(--primary-color);
+            background-color: rgba(0, 90, 156, 0.04);
+            box-shadow: 0 0 0 1px var(--primary-color);
+        }
+
+        .radio-item input[type="radio"],
+        .radio-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary-color);
+            cursor: pointer;
+            margin: 0;
+        }
+
+        /* Policy Box */
+        .policy-box {
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* Navigation Buttons */
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-prev {
+            background-color: #E9ECEF;
+            color: var(--text-main);
+        }
+
+        .btn-prev:hover {
+            background-color: #DDE2E5;
+        }
+
+        .btn-next,
+        .btn-submit {
+            background-color: var(--primary-color);
+            color: var(--white);
+            margin-left: auto;
+        }
+
+        .btn-next:hover,
+        .btn-submit:hover {
+            background-color: var(--primary-light);
+            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.3);
+        }
+
+        /* Address Card */
+        .address-card {
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            margin-bottom: 10px;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .address-card:hover {
+            box-shadow: 0 4px 16px rgba(0, 90, 156, 0.10);
+        }
+
+        .address-card-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #003B6F 100%);
+            color: var(--white);
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .address-card-header i {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .address-card-body {
+            padding: 25px 20px 10px;
+            background-color: #FAFBFC;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                max-height: 800px;
+                transform: translateY(0);
+            }
+        }
+
+        .address-card.reveal {
+            animation: slideDown 0.4s ease forwards;
+        }
+
+        /* Autocomplete */
+        .autocomplete-wrapper {
+            position: relative;
+        }
+
+        .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 220px;
+            overflow-y: auto;
+            background: var(--white);
+            border: 1px solid var(--primary-color);
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            box-shadow: 0 6px 16px rgba(0, 90, 156, 0.15);
+            z-index: 100;
+            display: none;
+        }
+
+        .autocomplete-list.show {
+            display: block;
+            animation: fadeInDown 0.2s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .autocomplete-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.15s;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-item:hover,
+        .autocomplete-item.active {
+            background-color: rgba(0, 90, 156, 0.08);
+            color: var(--primary-color);
+        }
+
+        .autocomplete-item mark {
+            background-color: rgba(228, 160, 37, 0.25);
+            color: inherit;
+            padding: 0;
+            border-radius: 2px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                margin: 20px;
+                padding: 20px;
+            }
+
+            .grid-2,
+            .grid-3 {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .address-card-body {
+                padding: 15px 12px 5px;
+            }
+        }
+
+        /* Modal base */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            z-index: 9999;
+        }
+
+        .modal-backdrop.show {
+            display: flex;
+        }
+
+        .modal-card {
+            width: min(920px, 100%);
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 18px 55px rgba(15, 23, 42, 0.35);
+            overflow: hidden;
+            border: 1px solid rgba(229, 231, 235, 0.9);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 16px;
+            background: #003c8f;
+            color: #fff;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 900;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .modal-sub {
+            font-size: 13px;
+            opacity: 0.95;
+            margin-top: 4px;
+            font-weight: 700;
+        }
+
+        .modal-x {
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .modal-x:hover {
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        .modal-body {
+            padding: 14px 16px 16px;
+            background: #fff7db;
+        }
+
+        .modal-footer {
+            padding: 12px 16px 16px;
+            background: #fff;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .modal-close {
+            border: none;
+            border-radius: 999px;
+            padding: 10px 16px;
+            background: #fbbf24;
+            color: #1f2933;
+            font-weight: 900;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .modal-close:hover {
+            background: #f59e0b;
+        }
+
+        .video-thumb {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 1px solid #e5e7eb;
+            background: #111827;
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.18);
+            transform: translateY(0);
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+
+        .video-thumb:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 28px rgba(15, 23, 42, 0.24);
+        }
+
+        .video-thumb img {
+            width: 100%;
+            height: auto;
+            display: block;
+            opacity: 0.92;
+        }
+
+        .video-thumb .play-badge {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .video-thumb .play-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(2px);
+        }
+
+        .video-thumb .play-tri {
+            width: 0;
+            height: 0;
+            border-top: 12px solid transparent;
+            border-bottom: 12px solid transparent;
+            border-left: 18px solid rgba(255, 255, 255, 0.92);
+            margin-left: 4px;
+        }
+
+        .video-thumb .tag {
+            position: absolute;
+            left: 10px;
+            bottom: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #111827;
+            font-size: 12px;
+            font-weight: 900;
+            padding: 6px 10px;
+            border-radius: 999px;
+        }
+
+        .video-modal-card {
+            width: min(1100px, 100%);
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 18px 55px rgba(15, 23, 42, 0.45);
+            overflow: hidden;
+            border: 1px solid rgba(229, 231, 235, 0.9);
+        }
+
+        .video-modal-body {
+            padding: 12px 12px 16px;
+            background: #0b1220;
+        }
+
+        .video-box {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .video-box video {
+            width: 100%;
+            height: 100%;
+            display: block;
+            background: #000;
+        }
+
+        .video-hint {
+            font-size: 12px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.85);
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .sample-link {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            border: 1px solid #93c5fd;
+            background: #eff6ff;
+            color: #0b3aa6;
+            font-size: 12px;
+            font-weight: 900;
+            text-decoration: none;
+            vertical-align: middle;
+            line-height: 1.4;
+        }
+
+        .sample-link:hover {
+            background: #dbeafe;
+        }
+
+        .sample-link:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+
+        .sample-modal-body {
+            padding: 12px 12px 16px;
+            background: #0b1220;
+        }
+
+        .sample-img-wrap {
+            width: auto;
+            max-width: 50%;
+            background: transparent;
+            margin: 0 auto;
+        }
+
+        .sample-img-wrap img {
+            width: 100%;
+        }
+
+        .subitem img {
+            transition: transform 0.2s ease;
+        }
+
+        .subitem img:hover {
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <h1><i class="fa-solid fa-shield-halved"></i> ลงทะเบียนอบรมวิริยะประกันภัย</h1>
+        <p>ฟอร์มลงทะเบียนตัวแทนและนายหน้า (ระบบออนไลน์)</p>
+    </header>
+
+    <div class="container">
+        <div class="step-indicator">
+            <div class="step-dot">1</div>
+            <div class="step-dot">2</div>
+            <div class="step-dot">3</div>
+            <div class="step-dot">4</div>
+            <div class="step-dot">5</div>
+            <div class="step-dot">6</div>
+            <div class="step-dot">7</div>
+            <div class="step-dot">8</div>
+        </div>
+
+        <form id="regForm" onsubmit="event.preventDefault(); submitForm();" enctype="multipart/form-data">
+
+            <!-- Step 1: นโยบายความเป็นส่วนตัว -->
+            <div class="tab">
+                <h2 class="tab-title"><i class="fa-solid fa-file-contract"></i> 1. นโยบายความเป็นส่วนตัว (PDPA)</h2>
+
+                <div class="form-group">
+                    <label>คำประกาศความเป็นส่วนตัว (Privacy Notice)</label>
+                    <div class="policy-box">
+                        <p><strong>เรียน ผู้เข้าอบรมทุกท่าน</strong></p>
+                        <br>
+                        <p>ศูนย์ฝึกอบรมและพัฒนานักประกันภัย บมจ.วิริยะประกันภัย
+                            ใคร่ขอให้ท่านตรวจสอบประวัติการอบรมของท่าน และดำเนินการลงทะเบียนเพื่อเข้ารับการอบรมในปี 2569
+                            โดยขอให้กรอกประวัติการอบรมที่ละเอียด ถูกต้อง และข้อมูลอื่น ๆ
+                            ซึ่งอาจรวมถึงข้อมูลส่วนบุคคลบางประเภทที่มีความอ่อนไหว (Sensitive Personal Data)
+                            อย่างไรก็ตาม ศูนย์ฝึกอบรมฯ ขอให้ท่านมั่นใจว่า ข้อมูลทั้งหมดจะถูกจัดเก็บ
+                            ใช้ด้วยความระมัดระวัง และคำนึงถึงความปลอดภัยสูงสุด ภายใต้นโยบายคุ้มครองข้อมูลส่วนบุคคล
+                            (PDPA)
+                            และจะไม่เปิดเผยต่อบุคคลภายนอกโดยไม่ได้รับความยินยอมจากท่าน</p><br>
+                        <p>การลงทะเบียนครั้งนี้ ขอให้ท่านกรอกข้อมูลด้วยความถูกต้อง
+                            การให้ข้อมูลที่คลาดเคลื่อนหรือไม่ถูกต้องจะส่งผลให้ศูนย์ฝึกอบรมฯ ส่งข้อมูลให้ สำนักงาน คปภ.
+                            ไม่ถูกต้อง
+                            ทำให้ไม่สามารถนับชั่วโมงอบรมสะสมให้ท่านได้ ทำให้ท่านเสียเวลา และค่าใช้จ่ายในการเดินทาง</p>
+                        <br>
+                        <p>ท่านที่ดำเนินการตามขั้นตอนที่ครบถ้วนตามที่แจ้งด้านล่าง
+                            จะได้รับการจัดสรรที่นั่งสำหรับการอบรมตามลำดับของการให้ข้อมูล การจัดลำดับเป็นไปตาม วัน/เวลา
+                            ของการบันทึกในระบบ</p><br>
+                        <br>
+                        <p><strong>*** ท่านที่ดำเนินการเรียบร้อยภายในเวลาที่กำหนดเท่านั้น
+                                จึงจะได้รับการจัดสรรที่นั่งอบรมให้ในปี 2569 ***</strong></p>
+                        <br>
+                        <p>หากท่านมีข้อสงสัยหรือต้องการสอบถามเพิ่มเติม กรุณาติดต่อ ผ่าน Line Official Account :
+                            @viriyahiptc หรือ <a href="https://lin.ee/4k6FJ6g" target="_blank"
+                                style="color: var(--primary-color); text-decoration: underline;">https://lin.ee/4k6FJ6g</a>
+                        </p><br>
+                        <br>
+                        <p>ศูนย์ฝึกอบรมฯ ยินดีให้คำแนะนำและอำนวยความสะดวกแก่ท่านในทุกขั้นตอน
+                            และขอขอบพระคุณเป็นอย่างสูงในความร่วมมือและความไว้วางใจที่มีต่อ
+                            ศูนย์ฝึกอบรมและพัฒนานักประกันภัย บมจ.วิริยะประกันภัย โดยเสมอมา</p><br>
+                        <br>
+                        <p>ขอแสดงความนับถือ</p><br>
+                        <p>ศูนย์ฝึกอบรมและพัฒนานักประกันภัยบมจ.วิริยะประกันภัย</p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="required">รับทราบ</label>
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input type="radio" name="pdpaConsent" value="accept" required onchange="checkPDPA()">
+                            ข้าพเจ้าได้อ่านและยอมรับนโยบายคุ้มครองข้อมูลส่วนบุคคล
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: ข้อมูลส่วนบุคคล -->
+            <div class="tab">
+                <h2 class="tab-title"><i class="fa-solid fa-user"></i> 2. ข้อมูลส่วนบุคคล</h2>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="required">เลขประจำตัวประชาชน (13 หลัก)</label>
+                        <input type="text" class="form-control" name="idCard" placeholder="x-xxxx-xxxxx-xx-x"
+                            maxlength="17" required oninput="formatIdCard(this)">
+                    </div>
+                    <div class="form-group">
+                        <label class="required">วันหมดอายุบัตรประชาชน</label>
+                        <input type="text" class="form-control datepicker" name="idCardExpiry" placeholder="DD/MM/YYYY"
+                            required>
+                        <small style="color: var(--text-muted); display: block; margin-top: 5px;">* บัตรประชาชนตลอดชีพ
+                            ให้ใส่เป็นวันที่ 31 ธันวาคม 2099</small>
+                    </div>
+                </div>
+
+                <hr style="border: 1px solid var(--border-color); margin: 30px 0;">
+                <h3 style="color: var(--primary-color); margin-bottom: 20px; font-size: 18px;"><i
+                        class="fa-solid fa-address-card"></i> ข้อมูลชื่อ-นามสกุล (ปัจจุบัน)</h3>
+
+                <div class="form-group">
+                    <label class="required">คำนำหน้าชื่อ (ปัจจุบัน)</label>
+                    <select class="form-control" name="titleName" required onchange="toggleTitleNameOther()">
+                        <option value="">- เลือกคำนำหน้า -</option>
+                        <option value="นาย">นาย</option>
+                        <option value="นาง">นาง</option>
+                        <option value="นางสาว">นางสาว</option>
+                        <option value="อื่นๆ">อื่นๆ</option>
+                    </select>
+                    <div id="titleNameOtherContainer" style="display:none; margin-top: 10px;">
+                        <label class="required" style="font-size: 14px;">คำนำหน้าตามบัตรประชาชน (ระบุเอง)</label>
+                        <input type="text" class="form-control" name="titleNameOther" id="titleNameOther"
+                            placeholder="ใส่คำตอบ">
+                    </div>
+                </div>
+
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label class="required">ชื่อ (ภาษาไทย) (ปัจจุบัน)</label>
+                        <input type="text" class="form-control" name="firstNameTh" placeholder="สมชาย" required>
+                    </div>
+                    <div class="form-group">
+                        <label>ชื่อกลาง (ภาษาไทย) (ปัจจุบัน)</label>
+                        <input type="text" class="form-control" name="middleNameTh" placeholder="ถ้ามี">
+                    </div>
+                    <div class="form-group">
+                        <label class="required">นามสกุล (ภาษาไทย) (ปัจจุบัน)</label>
+                        <input type="text" class="form-control" name="lastNameTh" placeholder="ใจดี" required>
+                    </div>
+                </div>
+
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label>ชื่อ (ภาษาอังกฤษ) (ปัจจุบัน)</label>
+                        <input type="text" class="form-control" name="firstNameEn" placeholder="Somchai">
+                    </div>
+                    <div class="form-group">
+                        <label>ชื่อกลาง (ภาษาอังกฤษ) (ปัจจุบัน)</label>
+                        <input type="text" class="form-control" name="middleNameEn" placeholder="Optional">
+                    </div>
+                    <div class="form-group">
+                        <label>นามสกุล (ภาษาอังกฤษ) (ปัจจุบัน)</label>
+                        <input type="text" class="form-control" name="lastNameEn" placeholder="Jaidee">
+                    </div>
+                </div>
+
+                <hr style="border: 1px solid var(--border-color); margin: 30px 0;">
+
+                <div class="form-group">
+                    <label class="required">ท่านเคยเปลี่ยนชื่อหรือนามสกุลหรือไม่?</label>
+                    <div class="radio-group">
+                        <label class="radio-item"><input type="radio" name="hasChangedName" value="no" checked
+                                onchange="togglePreviousName()"> ไม่เคยเปลี่ยน</label>
+                        <label class="radio-item"><input type="radio" name="hasChangedName" value="yes"
+                                onchange="togglePreviousName()"> เคยเปลี่ยน</label>
+                    </div>
+                </div>
+
+                <div id="previousNameSection"
+                    style="display: none; background-color: #F8F9FA; padding: 20px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 20px;">
+                    <h3 style="color: var(--primary-color); margin-bottom: 20px; font-size: 18px;"><i
+                            class="fa-solid fa-clock-rotate-left"></i> ข้อมูลชื่อ-นามสกุล (เดิม)</h3>
+
+                    <div class="form-group">
+                        <label class="required">คำนำหน้าชื่อ (เดิม)</label>
+                        <select class="form-control" name="titleNamePrev" id="titleNamePrev"
+                            onchange="toggleTitleNameOtherPrev()">
+                            <option value="">- เลือกคำนำหน้า -</option>
+                            <option value="นาย">นาย</option>
+                            <option value="นาง">นาง</option>
+                            <option value="นางสาว">นางสาว</option>
+                            <option value="อื่นๆ">อื่นๆ</option>
+                        </select>
+                        <div id="titleNameOtherContainerPrev" style="display:none; margin-top: 10px;">
+                            <label class="required" style="font-size: 14px;">คำนำหน้าตามบัตรประชาชน (เดิม)
+                                (ระบุเอง)</label>
+                            <input type="text" class="form-control" name="titleNameOtherPrev" id="titleNameOtherPrev"
+                                placeholder="ใส่คำตอบ">
+                        </div>
+                    </div>
+
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label class="required">ชื่อ (ภาษาไทย) (เดิม)</label>
+                            <input type="text" class="form-control" name="firstNameThPrev" id="firstNameThPrev"
+                                placeholder="ชื่อเดิม">
+                        </div>
+                        <div class="form-group">
+                            <label>ชื่อกลาง (ภาษาไทย) (เดิม)</label>
+                            <input type="text" class="form-control" name="middleNameThPrev" placeholder="ถ้ามี">
+                        </div>
+                        <div class="form-group">
+                            <label class="required">นามสกุล (ภาษาไทย) (เดิม)</label>
+                            <input type="text" class="form-control" name="lastNameThPrev" id="lastNameThPrev"
+                                placeholder="นามสกุลเดิม">
+                        </div>
+                    </div>
+
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label class="required">ชื่อ (ภาษาอังกฤษ) (เดิม)</label>
+                            <input type="text" class="form-control" name="firstNameEnPrev" id="firstNameEnPrev"
+                                placeholder="Previous First Name">
+                        </div>
+                        <div class="form-group">
+                            <label>ชื่อกลาง (ภาษาอังกฤษ) (เดิม)</label>
+                            <input type="text" class="form-control" name="middleNameEnPrev" placeholder="Optional">
+                        </div>
+                        <div class="form-group">
+                            <label class="required">นามสกุล (ภาษาอังกฤษ) (เดิม)</label>
+                            <input type="text" class="form-control" name="lastNameEnPrev" id="lastNameEnPrev"
+                                placeholder="Previous Last Name">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="required">วัน/เดือน/ปี เกิด</label>
+                        <input type="text" class="form-control datepicker" name="birthDate" placeholder="DD/MM/YYYY"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label>ศาสนา</label>
+                        <select class="form-control" name="religion">
+                            <option value="">- เลือกศาสนา -</option>
+                            <option value="พุทธ">พุทธ</option>
+                            <option value="คริสต์">คริสต์</option>
+                            <option value="อิสลาม">อิสลาม</option>
+                            <option value="อื่นๆ" selected>อื่นๆ</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>เพศ</label>
+                        <select class="form-control" name="gender">
+                            <option value="">- เลือกเพศ -</option>
+                            <option value="ชาย">ชาย</option>
+                            <option value="หญิง">หญิง</option>
+                            <option value="ไม่ระบุ">ไม่ระบุ</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>กรุ๊ปเลือด</label>
+                        <select class="form-control" name="bloodGroup">
+                            <option value="">- เลือกกรุ๊ปเลือด -</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="O">O</option>
+                            <option value="AB">AB</option>
+                        </select>
+                        <small style="color: var(--text-muted); display: block; margin-top: 5px;">*
+                            ใช้กรณีเกิดเหตุฉุกเฉินระหว่างการอบรม</small>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="required">หมายเลขโทรศัพท์มือถือที่รับ OTP</label>
+                        <input type="tel" class="form-control" name="phone" placeholder="0xx-xxx-xxxx" maxlength="12"
+                            required oninput="formatPhone(this)">
+                    </div>
+                    <div class="form-group">
+                        <label class="required">อีเมล (E-mail)</label>
+                        <input type="email" class="form-control" name="email" placeholder="example@email.com" required oninput="this.value = this.value.replace(/[^a-zA-Z0-9@._-]/g, '')">
+                    </div>
+                </div>
+
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label><i class="fa-brands fa-line" style="color: #06C755;"></i> Line ID</label>
+                        <input type="text" class="form-control" name="lineId" placeholder="Line ID">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-brands fa-facebook" style="color: #1877F2;"></i> Facebook</label>
+                        <input type="text" class="form-control" name="facebook" placeholder="ชื่อบัญชี Facebook">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-brands fa-instagram" style="color: #E4405F;"></i> Instagram</label>
+                        <input type="text" class="form-control" name="instagram" placeholder="ชื่อบัญชี Instagram">
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>คุณเคยมีประวัติแพ้อาหารหรือไม่ (โปรดระบุ)</label>
+                        <input type="text" class="form-control" name="foodAllergy"
+                            placeholder="เช่น แพ้อาหารทะเล, ถั่ว หรือ ไม่มี">
+                    </div>
+                    <div class="form-group">
+                        <label>โรคประจำตัว (โปรดระบุ)</label>
+                        <input type="text" class="form-control" name="chronicDisease"
+                            placeholder="เช่น เบาหวาน, ความดัน หรือ ไม่มี">
+                    </div>
+                </div>
+
+                <hr style="border: 1px solid var(--border-color); margin: 30px 0;">
+                <h3 style="color: var(--primary-color); margin-bottom: 20px; font-size: 18px;"><i
+                        class="fa-solid fa-phone-volume"></i> ผู้ติดต่อกรณีฉุกเฉิน</h3>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="required">บุคคลที่สามารถติดต่อได้ในกรณีฉุกเฉิน</label>
+                        <input type="text" class="form-control" name="emergencyContactName"
+                            placeholder="โปรดระบุชื่อ-นามสกุล" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="required">หมายเลขที่สามารถติดต่อได้ในกรณีฉุกเฉิน</label>
+                        <input type="tel" class="form-control" name="emergencyContactPhone"
+                            placeholder="โปรดระบุหมายเลขโทรศัพท์" maxlength="12" required oninput="formatPhone(this)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: อัปโหลดรูปภาพผู้อบรม -->
+            <div class="tab">
+                <h2 class="tab-title"><i class="fa-solid fa-camera"></i> 3. อัปโหลดรูปภาพผู้อบรม</h2>
+
+                <div
+                    style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:14px 16px; margin-bottom:20px; color:#1e40af; font-size:14px;">
+                    <i class="fa-solid fa-circle-info" style="margin-right:6px;"></i>
+                    <strong>บันทึกรูปภาพผู้อบรมลงทะเบียนทันที</strong> —
+                    รูปภาพจะถูกผูกกับข้อมูลผู้อบรมโดยอัตโนมัติจากเลขบัตรประชาชนและเบอร์โทรตัวท่านกรอกไว้ในขั้นตอนที่ 2
+                </div>
+
+                <div class="grid-2" style="margin-bottom:20px;">
+                    <div class="form-group">
+                        <label>เลขประจำตัวประชาชน</label>
+                        <input type="text" class="form-control" id="uploadIdCardDisplay" readonly
+                            style="background:#f8fafc; color:#64748b; cursor:not-allowed;"
+                            placeholder="จะดึงโดยอัตโนมัติจากขั้นตอนที่ 2">
+                    </div>
+                    <div class="form-group">
+                        <label>หมายเลขโทรศัพท์มือถือ</label>
+                        <input type="text" class="form-control" id="uploadPhoneDisplay" readonly
+                            style="background:#f8fafc; color:#64748b; cursor:not-allowed;"
+                            placeholder="จะดึงโดยอัตโนมัติจากขั้นตอนที่ 2">
+                    </div>
+                </div>
+
+                <div class="grid-1" style="display: flex; flex-direction: column; gap: 16px;">
+                    <div class="form-group">
+                        <label class="required" for="uploadImage1"
+                            style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                            <span>ไฟล์ภาพที่ 1 (ภาพถ่ายหน้าตรง ไม่สวมหมวก แว่นกันแดด และหน้ากาก)</span>
+                            <a href="#" class="sample-link" data-sample="sample1.png"
+                                data-title="ตัวอย่างภาพที่ถูกต้อง: ไฟล์ภาพที่ 1">กดเพื่อดูตัวอย่างภาพที่ถูกต้อง</a>
+                        </label>
+                        <input type="file" id="uploadImage1" name="uploadImage1" accept="image/*" class="form-control"
+                            required>
+                        <div class="form-hint" style="font-size: 12px; color: #64748b; margin-top: 4px;">รองรับ
+                            JPG/PNG/GIF ขนาดไม่เกิน 6 MB</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="required" for="uploadImage2"
+                            style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                            <span>ไฟล์ภาพที่ 2 (ภาพถ่ายคู่กับบัตรประชาชนที่ยังไม่หมดอายุก่อนวันอบรม)</span>
+                            <a href="#" class="sample-link" data-sample="sample2.png"
+                                data-title="ตัวอย่างภาพที่ถูกต้อง: ไฟล์ภาพที่ 2">กดเพื่อดูตัวอย่างภาพที่ถูกต้อง</a>
+                        </label>
+                        <input type="file" id="uploadImage2" name="uploadImage2" accept="image/*" class="form-control"
+                            required>
+                        <div class="form-hint" style="font-size: 12px; color: #64748b; margin-top: 4px;">รองรับ
+                            JPG/PNG/GIF ขนาดไม่เกิน 6 MB</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="required" for="uploadImage3"
+                            style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                            <span>ไฟล์ภาพที่ 3 (ภาพถ่ายบัตรประชาชนที่ยังไม่หมดอายุก่อนวันอบรม)</span>
+                            <a href="#" class="sample-link" data-sample="sample3.png"
+                                data-title="ตัวอย่างภาพที่ถูกต้อง: ไฟล์ภาพที่ 3">กดเพื่อดูตัวอย่างภาพที่ถูกต้อง</a>
+                        </label>
+                        <input type="file" id="uploadImage3" name="uploadImage3" accept="image/*" class="form-control"
+                            required>
+                        <div class="form-hint" style="font-size: 12px; color: #64748b; margin-top: 4px;">รองรับ
+                            JPG/PNG/GIF ขนาดไม่เกิน 6 MB</div>
+                    </div>
+                </div>
+
+                <div id="uploadStatusMsg"
+                    style="display:none; margin-top:16px; padding:12px 14px; border-radius:10px; font-weight:600; font-size:14px;">
+                </div>
+                <input type="hidden" name="uploadRecordId" id="uploadRecordId">
+            </div>
+
+            <!-- Step 4: อัปโหลดเอกสารหลักฐาน -->
+            <div class="tab">
+                <h2 class="tab-title"><i class="fa-solid fa-cloud-arrow-up"></i> 4. อัปโหลดเอกสารหลักฐาน</h2>
+
+                <div class="subgrid"
+                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+                    <div class="subitem"
+                        style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; text-align: center;">
+                        <div class="subitem-label" style="font-weight: 700; margin-bottom: 12px; color: #1e293b;">Video
+                            แนะนำการลงทะเบียน</div>
+                        <div class="subitem-value" style="display: flex; justify-content: center;">
+                            <div id="videoThumb" class="video-thumb" role="button" tabindex="0"
+                                aria-label="เปิดวิดีโอแนะนำการลงทะเบียน"
+                                style="position: relative; border-radius: 8px; overflow: hidden; cursor: pointer; border: 1px solid #cbd5e1; display: inline-block; max-width: 240px;">
+                                <img src="video-thumb.jpg" alt="Video แนะนำการลงทะเบียน"
+                                    style="width: 100%; display: block; height: auto;">
+                                <div class="play-badge"
+                                    style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3);">
+                                    <div class="play-circle"
+                                        style="width: 48px; height: 48px; border-radius: 50%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; border: 2px solid #fff;">
+                                        <div class="play-tri"
+                                            style="width: 0; height: 0; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 14px solid #fff; margin-left: 4px;">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tag"
+                                    style="position: absolute; bottom: 8px; left: 8px; background: rgba(255,255,255,0.9); color: #0f172a; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 12px;">
+                                    กดเพื่อดูวิดีโอ</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subitem"
+                        style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <div class="subitem-label" style="font-weight: 700; margin-bottom: 12px; color: #1e293b;">
+                            ขั้นตอนการลงทะเบียน</div>
+                        <div class="subitem-value" style="display: flex; justify-content: center;">
+                            <img id="infographicThumb" src="infographic2569.png"
+                                style="border-radius: 8px; cursor: zoom-in; max-width: 240px; border: 1px solid #cbd5e1; display: block; height: auto;"
+                                alt="ขั้นตอนการลงทะเบียน" title="กดเพื่อขยายภาพ">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-1" style="display: flex; flex-direction: column; gap: 16px;">
+                    <div class="form-group">
+                        <label class="required" for="image1"
+                            style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                            <span>ไฟล์ภาพที่ 1 (ภาพถ่ายหน้าตรง ไม่สวมหมวก แว่นกันแดด และหน้ากาก)</span>
+                            <a href="#" class="sample-link" data-sample="sample1.png"
+                                data-title="ตัวอย่างภาพที่ถูกต้อง: ไฟล์ภาพที่ 1">กดเพื่อดูตัวอย่างภาพที่ถูกต้อง</a>
+                        </label>
+                        <input type="file" id="image1" name="image1" accept="image/*" class="form-control" required>
+                        <div class="form-hint" style="font-size: 12px; color: #64748b; margin-top: 4px;">รองรับ
+                            JPG/PNG/GIF ขนาดไม่เกิน 6 MB</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="required" for="image2"
+                            style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                            <span>ไฟล์ภาพที่ 2 (ภาพถ่ายคู่กับบัตรประชาชนที่ยังไม่หมดอายุก่อนวันอบรม)</span>
+                            <a href="#" class="sample-link" data-sample="sample2.png"
+                                data-title="ตัวอย่างภาพที่ถูกต้อง: ไฟล์ภาพที่ 2">กดเพื่อดูตัวอย่างภาพที่ถูกต้อง</a>
+                        </label>
+                        <input type="file" id="image2" name="image2" accept="image/*" class="form-control" required>
+                        <div class="form-hint" style="font-size: 12px; color: #64748b; margin-top: 4px;">รองรับ
+                            JPG/PNG/GIF ขนาดไม่เกิน 6 MB</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="required" for="image3"
+                            style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                            <span>ไฟล์ภาพที่ 3 (ภาพถ่ายบัตรประชาชนที่ยังไม่หมดอายุก่อนวันอบรม)</span>
+                            <a href="#" class="sample-link" data-sample="sample3.png"
+                                data-title="ตัวอย่างภาพที่ถูกต้อง: ไฟล์ภาพที่ 3">กดเพื่อดูตัวอย่างภาพที่ถูกต้อง</a>
+                        </label>
+                        <input type="file" id="image3" name="image3" accept="image/*" class="form-control" required>
+                        <div class="form-hint" style="font-size: 12px; color: #64748b; margin-top: 4px;">รองรับ
+                            JPG/PNG/GIF ขนาดไม่เกิน 6 MB</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: ข้อมูลที่อยู่ -->
+            <div class="tab">
+                <h2 class="tab-title"><i class="fa-solid fa-map-location-dot"></i> 5. ข้อมูลสถานที่ติดต่อ</h2>
+
+                <!-- ที่อยู่ตามบัตรประชาชน -->
+                <div class="address-card">
+                    <div class="address-card-header">
+                        <i class="fa-solid fa-house-chimney"></i>
+                        <span>ที่อยู่ตามบัตรประชาชน</span>
+                    </div>
+                    <div class="address-card-body">
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label class="required">บ้านเลขที่</label>
+                                <input type="text" class="form-control" name="houseNo" id="houseNo"
+                                    placeholder="เช่น 123/45" required>
+                            </div>
+                            <div class="form-group">
+                                <label>หมู่</label>
+                                <input type="text" class="form-control" name="moo" id="moo" placeholder="เช่น 5">
+                            </div>
+                            <div class="form-group">
+                                <label>หมู่บ้าน/อาคาร</label>
+                                <input type="text" class="form-control" name="village" id="village"
+                                    placeholder="เช่น หมู่บ้านสุขสันต์">
+                            </div>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>ซอย</label>
+                                <input type="text" class="form-control" name="soi" id="soi" placeholder="เช่น ซอย 10">
+                            </div>
+                            <div class="form-group">
+                                <label>ถนน</label>
+                                <input type="text" class="form-control" name="road" id="road"
+                                    placeholder="เช่น สุขุมวิท">
+                            </div>
+                        </div>
+
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label class="required">จังหวัด</label>
+                                <div class="autocomplete-wrapper">
+                                    <input type="text" class="form-control" name="province" id="province" required
+                                        placeholder="พิมพ์ชื่อจังหวัด" autocomplete="off"
+                                        oninput="acSearch(this,'province')" onfocus="acSearch(this,'province')"
+                                        onclick="acSearch(this,'province')">
+                                    <div class="autocomplete-list" id="province_list"></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="required">เขต/อำเภอ</label>
+                                <div class="autocomplete-wrapper">
+                                    <input type="text" class="form-control" name="district" id="district" required
+                                        placeholder="พิมพ์ชื่อเขต/อำเภอ" autocomplete="off"
+                                        oninput="acSearch(this,'district')" onfocus="acSearch(this,'district')"
+                                        onclick="acSearch(this,'district')">
+                                    <div class="autocomplete-list" id="district_list"></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="required">แขวง/ตำบล</label>
+                                <div class="autocomplete-wrapper">
+                                    <input type="text" class="form-control" name="subDistrict" id="subDistrict" required
+                                        placeholder="พิมพ์ชื่อแขวง/ตำบล" autocomplete="off"
+                                        oninput="acSearch(this,'subDistrict')" onfocus="acSearch(this,'subDistrict')"
+                                        onclick="acSearch(this,'subDistrict')">
+                                    <div class="autocomplete-list" id="subDistrict_list"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="required">รหัสไปรษณีย์</label>
+                                <input type="text" class="form-control" name="zipcode" id="zipcode" maxlength="5"
+                                    placeholder="เช่น 10110" required
+                                    oninput="this.value = this.value.replace(/\D/g, '')">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ที่อยู่จัดส่งเอกสาร -->
+                <div class="form-group" style="margin-top: 25px;">
+                    <label>ที่อยู่สำหรับจัดส่งเอกสาร</label>
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input type="radio" name="shippingAddress" value="same" checked
+                                onchange="toggleShippingAddress()">
+                            ใช้ที่อยู่เดียวกันกับทะเบียนบ้าน
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="shippingAddress" value="different"
+                                onchange="toggleShippingAddress()">
+                            ระบุที่อยู่ใหม่
+                        </label>
+                    </div>
+                </div>
+
+                <div id="shippingAddressSection" class="address-card" style="display: none; margin-top: 15px;">
+                    <div class="address-card-header"
+                        style="background: linear-gradient(135deg, #E4A025 0%, #C98A1B 100%);">
+                        <i class="fa-solid fa-truck-fast"></i>
+                        <span>ที่อยู่จัดส่งเอกสาร</span>
+                    </div>
+                    <div class="address-card-body">
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label class="required">บ้านเลขที่</label>
+                                <input type="text" class="form-control" name="shipHouseNo" id="shipHouseNo"
+                                    placeholder="เช่น 123/45">
+                            </div>
+                            <div class="form-group">
+                                <label>หมู่</label>
+                                <input type="text" class="form-control" name="shipMoo" id="shipMoo"
+                                    placeholder="เช่น 5">
+                            </div>
+                            <div class="form-group">
+                                <label>หมู่บ้าน/อาคาร</label>
+                                <input type="text" class="form-control" name="shipVillage" id="shipVillage"
+                                    placeholder="เช่น หมู่บ้านสุขสันต์">
+                            </div>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>ซอย</label>
+                                <input type="text" class="form-control" name="shipSoi" id="shipSoi"
+                                    placeholder="เช่น ซอย 10">
+                            </div>
+                            <div class="form-group">
+                                <label>ถนน</label>
+                                <input type="text" class="form-control" name="shipRoad" id="shipRoad"
+                                    placeholder="เช่น สุขุมวิท">
+                            </div>
+                        </div>
+
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label class="required">จังหวัด</label>
+                                <div class="autocomplete-wrapper">
+                                    <input type="text" class="form-control" name="shipProvince" id="shipProvince"
+                                        placeholder="พิมพ์ชื่อจังหวัด" autocomplete="off"
+                                        oninput="acSearch(this,'province','ship')"
+                                        onfocus="acSearch(this,'province','ship')"
+                                        onclick="acSearch(this,'province','ship')">
+                                    <div class="autocomplete-list" id="shipProvince_list"></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="required">เขต/อำเภอ</label>
+                                <div class="autocomplete-wrapper">
+                                    <input type="text" class="form-control" name="shipDistrict" id="shipDistrict"
+                                        placeholder="พิมพ์ชื่อเขต/อำเภอ" autocomplete="off"
+                                        oninput="acSearch(this,'district','ship')"
+                                        onfocus="acSearch(this,'district','ship')"
+                                        onclick="acSearch(this,'district','ship')">
+                                    <div class="autocomplete-list" id="shipDistrict_list"></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="required">แขวง/ตำบล</label>
+                                <div class="autocomplete-wrapper">
+                                    <input type="text" class="form-control" name="shipSubDistrict" id="shipSubDistrict"
+                                        placeholder="พิมพ์ชื่อแขวง/ตำบล" autocomplete="off"
+                                        oninput="acSearch(this,'subDistrict','ship')"
+                                        onfocus="acSearch(this,'subDistrict','ship')"
+                                        onclick="acSearch(this,'subDistrict','ship')">
+                                    <div class="autocomplete-list" id="shipSubDistrict_list"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="required">รหัสไปรษณีย์</label>
+                                <input type="text" class="form-control" name="shipZipcode" id="shipZipcode"
+                                    maxlength="5" placeholder="เช่น 10110"
+                                    oninput="this.value = this.value.replace(/\D/g, '')">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 6: ข้อมูลใบอนุญาต -->
+            <div class="tab">
+                <h2 class="tab-title"><i class="fa-solid fa-id-card"></i> 6. ข้อมูลใบอนุญาตตัวแทน/นายหน้า</h2>
+
+                <div class="form-group">
+                    <label class="required">ประเภทใบอนุญาต</label>
+                    <input type="hidden" name="agentType" id="actualAgentType" value="">
+                    <div class="radio-group">
+                        <label class="radio-item"><input type="radio" name="agentTypeMain" value="ตัวแทนประกันวินาศภัย"
+                                required onchange="toggleAgentAffiliation()"> ตัวแทนประกันวินาศภัย</label>
+                        <label class="radio-item"><input type="radio" name="agentTypeMain" value="นายหน้าประกันวินาศภัย" onchange="toggleAgentAffiliation()">
+                            นายหน้าประกันวินาศภัย</label>
+                    </div>
+                    <div id="brokerTypeSection" style="display: none; margin-top: 10px; margin-left: 20px; border-left: 2px solid var(--primary-color); padding-left: 15px;">
+                        <label style="font-size: 14px; margin-bottom: 8px; display: block;" class="required">ประเภทนายหน้า</label>
+                        <div class="radio-group">
+                            <label class="radio-item"><input type="radio" name="brokerType" value="นายหน้าบุคคล" onchange="toggleAgentAffiliation()">
+                                นายหน้าบุคคล</label>
+                            <label class="radio-item"><input type="radio" name="brokerType" value="นายหน้านิติบุคคล" onchange="toggleAgentAffiliation()">
+                                นายหน้านิติบุคคล</label>
+                        </div>
+                    </div>
+                </div>
+
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="required">สังกัดภาค</label>
+                            <div class="autocomplete-wrapper">
+                                <input type="text" class="form-control" name="agentRegion" id="agentRegion"
+                                    placeholder="ระบบจะเติมให้อัตโนมัติ" autocomplete="off" readonly
+                                    style="background-color: #E9ECEF; cursor: not-allowed;" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="required">สาขา</label>
+                            <div class="autocomplete-wrapper">
+                                <input type="text" class="form-control" name="agentBranch" id="agentBranch"
+                                    placeholder="พิมพ์เพื่อค้นหาสาขา" autocomplete="off"
+                                    oninput="agentAcSearch('agentBranch')" onfocus="agentAcSearch('agentBranch')"
+                                    onclick="agentAcSearch('agentBranch')" required>
+                                <div class="autocomplete-list" id="agentBranch_list"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="required">รหัสตัวแทน ที่มีสัญญากับ บมจ.วิริยะประกันภัย</label>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-top: -5px; margin-bottom: 8px;">
+                            ถ้าไม่ทราบ สอบถามสาขา หรือตัวแทน/นายหน้าที่ท่านสังกัด , ถ้าเป็นขอรับใบอนุญาต และยังไม่มีรหัส
+                            ให้กรอก 00000</p>
+                        <input type="text" class="form-control" id="viriyahAgentCodeAgent" name="viriyahAgentCode"
+                            placeholder="เลข 5 หลัก" maxlength="5" pattern="\d{5}"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
+                    </div>
+
+                <div id="brokerAffiliationSection"
+                    style="display: none; background-color: #F8F9FA; padding: 20px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 20px;">
+                    <h3 style="color: var(--primary-color); margin-bottom: 20px; font-size: 16px;"><i
+                            class="fa-solid fa-building"></i> ข้อมูลสังกัดบริษัทโบรกเกอร์</h3>
+                    <div class="form-group">
+                        <label>บริษัทนายหน้าที่สังกัด (ถ้ามีกรุณาระบุชื่อ)</label>
+                        <input type="text" class="form-control" name="brokerAffiliation" id="brokerAffiliation"
+                            placeholder="ถ้ามีกรุณาระบุชื่อ">
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label>สาขาของบริษัทนายหน้าที่สังกัด (ถ้ามี)</label>
+                        <input type="text" class="form-control" name="branchRecommender" placeholder="ใส่คำตอบ">
+                    </div>
+
+                </div>
+
+                <!-- <div class="form-group">
+                    <label class="required">สถานะใบอนุญาตตาม e-Licensing</label>
+                    <select class="form-control" name="licenseStatus" required>
+                        <option value="">- เลือกสถานะใบอนุญาต -</option>
+                        <option value="ไม่มีใบอนุญาต/ใบอนุญาตขาดต่อ">ไม่มีใบอนุญาต/ใบอนุญาตขาดต่อ</option>
+                        <option value="ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 1">ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย
+                            ครั้งที่ 1</option>
+                        <option value="ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 2">ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย
+                            ครั้งที่ 2</option>
+                        <option value="ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 3">ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย
+                            ครั้งที่ 3</option>
+                        <option value="ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย">ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย</option>
+                        <option value="ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย ครั้งที่ 1">ใบอนุญาตเป็น นายหน้า
+                            ประกันวินาศภัย ครั้งที่ 1</option>
+                        <option value="ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย ครั้งที่ 2">ใบอนุญาตเป็น นายหน้า
+                            ประกันวินาศภัย ครั้งที่ 2</option>
+                        <option value="ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย ครั้งที่ 3">ใบอนุญาตเป็น นายหน้า
+                            ประกันวินาศภัย ครั้งที่ 3</option>
+                        <option value="ขอต่ออายุใบอนุญาตเป็น ตัวแทนหรือนายหน้า ประกันวินาศภัย ครั้งที่ 4 เป็นต้นไป">
+                            ขอต่ออายุใบอนุญาตเป็น ตัวแทนหรือนายหน้า ประกันวินาศภัย ครั้งที่ 4 เป็นต้นไป</option>
+                    </select>
+                </div> -->
+
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label class="required">เลขที่ใบอนุญาต</label>
+                        <input type="text" class="form-control" name="licenseNo"
+                            placeholder="กรอกเลขที่ใบอนุญาต 10 หลัก" maxlength="10" minlength="10" pattern="\d{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
+                    </div>
+                    <div class="form-group">
+                        <label>วันที่ออกใบอนุญาต</label>
+                        <input type="text" class="form-control datepicker" name="licenseIssue" placeholder="DD/MM/YYYY">
+                    </div>
+                    <div class="form-group">
+                        <label class="required">วันหมดอายุใบอนุญาต</label>
+                        <input type="text" class="form-control datepicker" name="licenseExpire"
+                            placeholder="DD/MM/YYYY" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 7: ข้อมูลการอบรม -->
+            <div class="tab">
+                <h2 class="tab-title"><i class="fa-solid fa-chalkboard-user"></i> 7. ข้อมูลการอบรม</h2>
+
+                <div id="dynamicCourseSelection">
+                    <div class="form-group" id="courseTypeGroup" style="display: none; margin-bottom: 30px;">
+                        <label class="required" id="courseTypeLabel"
+                            style="font-size: 18px; color: var(--primary-color);">หลักสูตรที่ต้องการอบรม</label>
+                        <div class="radio-group vertical" id="courseTypeContainer"
+                            style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                            <!-- Course Types will be rendered here -->
+                        </div>
+                        <input type="hidden" name="courseType" id="courseTypeHidden">
+                    </div>
+
+                    <div class="form-group" id="trainingDateGroup" style="display: none; margin-bottom: 30px;">
+                        <label class="required" id="trainingDateLabel"
+                            style="font-size: 18px; color: var(--primary-color);">เลือกรอบวันที่ต้องการเข้าอบรม</label>
+                        <div class="radio-group vertical" id="trainingDateContainer"
+                            style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                            <!-- Training Dates/Topics will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+
+                <hr style="border: 1px solid var(--border-color); margin: 30px 0;">
+                <div class="form-group" id="deductionPrivilegeGroup" style="display: none;">
+                    <label>สิทธิ์ลดหย่อนชั่วโมงอบรม</label>
+                    <div class="radio-group">
+                        <label class="radio-item"><input type="checkbox" name="deductionPrivilege" value="MasterDegree"
+                                id="masterDegreeCheckbox" onchange="toggleMasterDegreeRadios()">
+                            สำเร็จการศึกษาตั้งแต่ระดับปริญญาโทขึ้นไป
+                            จากสถาบันอุดมศึกษาหรือสถาบันการศึกษาในต่างประเทศที่สำนักงานคณะกรรมการข้าราชการพลเรือนรับรอง</label>
+                        <div id="masterDegreeRadios" style="display: none; margin-top: 15px; margin-left: 25px;">
+                            <label class="required"
+                                style="font-size: 16px; margin-bottom: 5px; display: block; color: var(--text-color);">กรุณาระบุสถานะการยื่นเอกสาร</label>
+                            <span style="font-size: 14px; color: #d9534f; display: block; margin-bottom: 10px;">*
+                                หากท่านเคยยื่นเอกสารและบันทึกในระบบของสำนักงาน คปภ. แล้วไม่ต้องยื่นซ้ำ</span>
+                            <div class="radio-group vertical" style="display: flex; flex-direction: column; gap: 10px;">
+                                <label class="radio-item"><input type="radio" name="masterDegreeStatus"
+                                        value="เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว">
+                                    เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว</label>
+                                <label class="radio-item"><input type="radio" name="masterDegreeStatus"
+                                        value="ไม่เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว">
+                                    ไม่เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" id="previousCoursesSection" style="display: none; margin-top: 20px;">
+                    <label>หากท่านถือใบอนุญาตเป็นตัวแทนหรือนายหน้าประกันวินาศภัยที่ต่ออายุครั้งที่ 4 เป็นต้นไป
+                        โปรดระบุวิชาที่ท่านเคยเข้าอบรมใน 5 ปีที่ผ่านมา <br>
+                        <span style="color: var(--error-color); font-size: 14px;">* สำคัญ * :
+                            เพื่อท่านจะต้องไม่อบรมวิชาที่เคยเข้าอบรมซ้ำอีก ตามข้อกำหนดของ คปภ.</span></label>
+                    <div class="radio-group"
+                        style="padding: 15px; border: 1px solid var(--border-color); border-radius: 6px; background-color: #F8F9FA;">
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="ไม่เคยผ่านการอบรมมาก่อน"> ไม่เคยผ่านการอบรมมาก่อน</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="การกำกับดูแลบริษัทประกันภัยตามระดับความเสี่ยง">
+                            การกำกับดูแลบริษัทประกันภัยตามระดับความเสี่ยง</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="การบริหารการลงทุนของบริษัทประกันภัย"> การบริหารการลงทุนของบริษัทประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="มหันตภัยกับการประกันภัย"> มหันตภัยกับการประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="การประกันภัยความรับผิดตามกฏหมาย"> การประกันภัยความรับผิดตามกฏหมาย</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="เสนอขายถูกหลักประกันภัยเติบโต"> เสนอขายถูกหลักประกันภัยเติบโต</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="ธุรกิจประกันภัยไทยกับการเปิดเสรีประชาคมเศรษฐกิจอาเซียน">
+                            ธุรกิจประกันภัยไทยกับการเปิดเสรีประชาคมเศรษฐกิจอาเซียน</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="การจ่ายค่าสินไหมทดแทนประกันวินาศภัย"> การจ่ายค่าสินไหมทดแทนประกันวินาศภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="การวางแผนเพื่อวัยเกษียณ"> การวางแผนเพื่อวัยเกษียณ</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="การวางแผนภาษีสำหรับตัวแทนและนายหน้าประกันภัย">
+                            การวางแผนภาษีสำหรับตัวแทนและนายหน้าประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="การประกันความเสี่ยงภัยทรัพย์สิน"> การประกันความเสี่ยงภัยทรัพย์สิน</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="การวางแผนธุรกิจสำหรับตัวแทนและนายหน้าประกันภัย">
+                            การวางแผนธุรกิจสำหรับตัวแทนและนายหน้าประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="การรับประกันภัยรถผ่านแดน"> การรับประกันภัยรถผ่านแดน</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="นวัตกรรมผลิตภัณฑ์ประกันวินาศภัย"> นวัตกรรมผลิตภัณฑ์ประกันวินาศภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses" value="การประกันภัยต่อ">
+                            การประกันภัยต่อ</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="มาตรฐานคุณภาพบริการขนส่งด้วยรถบรรทุกและการประกันภัยรถผ่านแดน">
+                            มาตรฐานคุณภาพบริการขนส่งด้วยรถบรรทุกและการประกันภัยรถผ่านแดน</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="การจัดการสินไหมทดแทน Non-Motor"> การจัดการสินไหมทดแทน Non-Motor</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="การพัฒนาผลิตภัณฑ์ประกันภัยประเภทรองรับกฎหมาย">
+                            การพัฒนาผลิตภัณฑ์ประกันภัยประเภทรองรับกฎหมาย</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="การพิจารณารับประกันภัยรถยนต์"> การพิจารณารับประกันภัยรถยนต์</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="กฏหมายและวิธีปฏิบัติที่เกี่ยวข้องกับธุรกิจประกันภัย">
+                            กฏหมายและวิธีปฏิบัติที่เกี่ยวข้องกับธุรกิจประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="ความเสี่ยงต่อความรับผิดในฐานะตัวแทน/นายหน้าประกันภัย">
+                            ความเสี่ยงต่อความรับผิดในฐานะตัวแทน/นายหน้าประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="หลักกฏหมายและวิธีการปฏิบัติในการประกันภัยสินค้าทางทะเล">
+                            หลักกฏหมายและวิธีการปฏิบัติในการประกันภัยสินค้าทางทะเล</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="จรรยาบรรณและศีลธรรมของตัวแทน/นายหน้าประกันภัย">
+                            จรรยาบรรณและศีลธรรมของตัวแทน/นายหน้าประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="กฏหมายว่าด้วยการป้องกันและปราบปรามการฟอกเงินและต่อต้านการสนับสนุนทางการเงินแก่การก่อการร้าย">
+                            กฏหมายว่าด้วยการป้องกันและปราบปรามการฟอกเงินและต่อต้านการสนับสนุนทางการเงินแก่การก่อการร้าย</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="พ.ร.บ.การทวงถามหนี้"> พ.ร.บ.การทวงถามหนี้</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="พระราชบัญญัติประกอบรัฐธรรมนูญว่าด้วยการป้องกันและปราบปรามการทุจริต(ฉบับที่3) พ.ศ.2558">
+                            พระราชบัญญัติประกอบรัฐธรรมนูญว่าด้วยการป้องกันและปราบปรามการทุจริต(ฉบับที่3)
+                            พ.ศ.2558</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="พ.ร.บ.จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562) และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร">
+                            พ.ร.บ. จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562)
+                            และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="กฎหมายเบื้องต้นที่จำเป็นสำหรับชีวิตประจำวัน">
+                            กฎหมายเบื้องต้นที่จำเป็นสำหรับชีวิตประจำวัน</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="การบริหารจัดการความเสี่ยงของบริษัทประกันวินาศภัยในส่วนที่เกี่ยวข้องกับการฉ้อฉล พ.ศ.2561">
+                            การบริหารจัดการความเสี่ยงของบริษัทประกันวินาศภัยในส่วนที่เกี่ยวข้องกับการฉ้อฉล
+                            พ.ศ.2561</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล">
+                            พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="ประมวลกฎหมายแพ่งและพาณิชย์ว่าด้วยละเมิด">
+                            ประมวลกฎหมายแพ่งและพาณิชย์ว่าด้วยละเมิด</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="40 ถาม-ตอบหลักกฎหมายแรงงานที่ควรรู้"> 40 ถาม-ตอบหลักกฎหมายแรงงานที่ควรรู้</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="การพัฒนาสภาวะผู้นำของคนกลางประกันภัย">
+                            การพัฒนาสภาวะผู้นำของคนกลางประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="รู้จักประกันภัยสุขภาพ"> รู้จักประกันภัยสุขภาพ</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses" value="การตลาดยุคใหม่">
+                            การตลาดยุคใหม่</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="กรมธรรม์ประกันภัยรถยนต์ไฟฟ้า รวมการคุ้มครองผู้ประสบภัยจากรถ">
+                            กรมธรรม์ประกันภัยรถยนต์ไฟฟ้า รวมการคุ้มครองผู้ประสบภัยจากรถ</label>
+                        <label class="radio-item"><input type="checkbox" name="previousCourses"
+                                value="กฎหมายและหลักการประกันภัยคุ้มครองผู้ประสบภัยจากรถ (พ.ร.บ.)">
+                            กฎหมายและหลักการประกันภัยคุ้มครองผู้ประสบภัยจากรถ (พ.ร.บ.)</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 8: รายละเอียดเพิ่มเติม -->
+            <div class="tab">
+                <h2 class="tab-title"><i class="fa-solid fa-list-check"></i> 8. รายละเอียดเพิ่มเติม</h2>
+
+                <div class="form-group">
+                    <label>ธุรกิจอื่นที่ท่านทำ</label>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-top: -5px; margin-bottom: 8px;">
+                        กรุณาระบุ</p>
+                    <input type="text" class="form-control" name="occupation" placeholder="ใส่คำตอบ">
+                </div>
+
+                <div class="form-group">
+                    <label>ประสบการณ์ในธุรกิจประกันภัย</label>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-top: -5px; margin-bottom: 8px;">จำนวนปี
+                        เช่น 3</p>
+                    <input type="number" class="form-control" name="insuranceExperienceYears"
+                        id="insuranceExperienceYears" placeholder="ค่าต้องเป็นตัวเลข" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label>เขตพื้นที่การขาย</label>
+                    <div class="radio-group" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        <label class="radio-item"><input type="checkbox" name="salesTerritories[]" value="ภาคกลาง">
+                            ภาคกลาง</label>
+                        <label class="radio-item"><input type="checkbox" name="salesTerritories[]" value="ภาคเหนือ">
+                            ภาคเหนือ</label>
+                        <label class="radio-item"><input type="checkbox" name="salesTerritories[]"
+                                value="ภาคตะวันออกเฉียงเหนือ"> ภาคตะวันออกเฉียงเหนือ</label>
+                        <label class="radio-item"><input type="checkbox" name="salesTerritories[]" value="ภาคตะวันออก">
+                            ภาคตะวันออก</label>
+                        <label class="radio-item"><input type="checkbox" name="salesTerritories[]" value="ภาคตะวันตก">
+                            ภาคตะวันตก</label>
+                        <label class="radio-item"><input type="checkbox" name="salesTerritories[]" value="ภาคใต้">
+                            ภาคใต้</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>บริษัทประกันภัยอื่นที่ท่านส่งงานในปัจจุบัน</label>
+                    <div class="radio-group"
+                        style="max-height: 400px; overflow-y: auto; padding: 15px; border: 1px solid var(--border-color); border-radius: 6px; background-color: #F8F9FA;">
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. กรุงเทพประกันภัย"> บมจ. กรุงเทพประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. กรุงเทพประกันสุขภาพ"> บมจ. กรุงเทพประกันสุขภาพ</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsura            let codeAgent = document.getElementById("viriyahAgentCodeAgent");
+
+            if (isAgent || isBroker) {
+                agentSection.style.display = "block";
+                for (let id of agentReqFields) {
+                    let el = document.getElementById(id);
+                    if (el) el.setAttribute("required", "required");
+                }
+                if (codeAgent) {
+                    codeAgent.setAttribute("name", "viriyahAgentCode");
+                    codeAgent.setAttribute("required", "required");
+                }
+            } else {
+                agentSection.style.display = "none";
+                for (let id of agentReqFields) {
+                    let el = document.getElementById(id);
+                    if (el) {
+                        el.removeAttribute("required");
+                        el.value = "";
+                        el.classList.remove("invalid");
+                    }
+                }
+                if (codeAgent) {
+                    codeAgent.removeAttribute("name");
+                    codeAgent.removeAttribute("required");
+                    codeAgent.value = "";
+                    codeAgent.classList.remove("invalid");
+                }
+            }
+
+            if (isBroker) {
+                brokerSection.style.display = "block";
+            } else {
+                brokerSection.style.display = "none";
+            }                      <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. ทูนประกันภัย"> บมจ. ทูนประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. เทเวศประกันภัย"> บมจ. เทเวศประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. ไทยประกันสุขภาพ"> บมจ. ไทยประกันสุขภาพ</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. ไทยพัฒนาประกันภัย"> บมจ. ไทยพัฒนาประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. ไทยไพบูลย์ประกันภัย"> บมจ. ไทยไพบูลย์ประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. ไทยรับประกันภัยต่อ"> บมจ. ไทยรับประกันภัยต่อ</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. ไทยเศรษฐกิจประกันภัย"> บมจ. ไทยเศรษฐกิจประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. ธนชาตประกันภัย"> บมจ. ธนชาตประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. นวกิจประกันภัย"> บมจ. นวกิจประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. นิวอินเดียแอสชัวรันซ์"> บมจ. นิวอินเดียแอสชัวรันซ์</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. บางกอกสหประกันภัย"> บมจ. บางกอกสหประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. ประกันภัยไทยวิวัฒน์"> บมจ. ประกันภัยไทยวิวัฒน์</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. แปซิฟิค ครอส ประกันสุขภาพ"> บมจ. แปซิฟิค ครอส ประกันสุขภาพ</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. ฟอลคอนประกันภัย"> บมจ. ฟอลคอนประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. มิตซุย สุมิโตโม อินชัวรันซ์"> บมจ. มิตซุย สุมิโตโม อินชัวรันซ์</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. มิตรแท้ประกันภัย"> บมจ. มิตรแท้ประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. เมืองไทยประกันภัย"> บมจ. เมืองไทยประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. รู้ใจประกันภัย"> บมจ. รู้ใจประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. สตาร์ อินเตอร์เนชั่นแนล อินชัวรันซ์"> บมจ. สตาร์ อินเตอร์เนชั่นแนล
+                            อินชัวรันซ์</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. สยามสไมล์ประกันภัย"> บมจ. สยามสไมล์ประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. สหนิรภัยประกันภัย"> บมจ. สหนิรภัยประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. สหมงคลประกันภัย"> บมจ. สหมงคลประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. อลิอันซ์ อยุธยา ประกันภัย"> บมจ. อลิอันซ์ อยุธยา ประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. อินชัวร์เวิร์ส"> บมจ. อินชัวร์เวิร์ส</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. เอ็มเอสไอจี ประกันภัย"> บมจ. เอ็มเอสไอจี ประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. เอไอจี ประกันภัย"> บมจ. เอไอจี ประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. แอกซ่าประกันภัย"> บมจ. แอกซ่าประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. แอลเอ็มจี ประกันภัย"> บมจ. แอลเอ็มจี ประกันภัย</label>
+                        <label class="radio-item"><input type="checkbox" name="otherInsuranceCompanies[]"
+                                value="บมจ. ไอโออิ กรุงเทพ ประกันภัย"> บมจ. ไอโออิ กรุงเทพ ประกันภัย</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="btn-container">
+                <button type="button" class="btn btn-prev" id="prevBtn" onclick="nextPrev(-1)"><i
+                        class="fa-solid fa-arrow-left"></i> ย้อนกลับ</button>
+                <button type="button" class="btn btn-next" id="nextBtn" onclick="nextPrev(1)">ถัดไป <i
+                        class="fa-solid fa-arrow-right"></i></button>
+            </div>
+
+        </form>
+    </div>
+
+    <script>
+        let currentTab = 0;
+        showTab(currentTab);
+        // initAddressDropdowns(); removed
+
+        document.addEventListener("DOMContentLoaded", function() {
+            // Add listener to previous courses checkboxes
+            let prevCourseCheckboxes = document.querySelectorAll('input[name="previousCourses[]"], input[name="previousCourses"]');
+            prevCourseCheckboxes.forEach(cb => {
+                cb.addEventListener('change', updateDisabledTrainingDates);
+            });
+        });
+
+        function updateDisabledTrainingDates() {
+            let checkedPrevious = Array.from(document.querySelectorAll('input[name="previousCourses[]"]:checked, input[name="previousCourses"]:checked')).map(cb => cb.value.trim());
+            let trainingCheckboxes = document.querySelectorAll('input[name="trainingDate[]"], input[name="trainingDate"]');
+            
+            trainingCheckboxes.forEach(cb => {
+                let shouldDisable = checkedPrevious.some(prev => cb.value.includes(prev));
+                if (shouldDisable) {
+                    cb.disabled = true;
+                    cb.checked = false;
+                    cb.parentElement.style.opacity = "0.5";
+                    cb.parentElement.style.cursor = "not-allowed";
+                } else {
+                    cb.disabled = false;
+                    cb.parentElement.style.opacity = "1";
+                    cb.parentElement.style.cursor = "pointer";
+                }
+            });
+        }
+
+        function showTab(n) {
+            let tabs = document.getElementsByClassName("tab");
+            tabs[n].style.display = "block";
+
+            // Buttons logic
+            if (n == 0) {
+                document.getElementById("prevBtn").style.display = "none";
+            } else {
+                document.getElementById("prevBtn").style.display = "flex";
+            }
+
+            if (n == (tabs.length - 1)) {
+                document.getElementById("nextBtn").innerHTML = '<i class="fa-solid fa-paper-plane"></i> ส่งข้อมูลการสมัคร';
+                document.getElementById("nextBtn").className = "btn btn-submit";
+            } else {
+                document.getElementById("nextBtn").innerHTML = 'ถัดไป <i class="fa-solid fa-arrow-right"></i>';
+                document.getElementById("nextBtn").className = "btn btn-next";
+            }
+
+            if (n === 0) {
+                checkPDPA();
+            } else {
+                document.getElementById("nextBtn").disabled = false;
+                document.getElementById("nextBtn").style.opacity = "1";
+                document.getElementById("nextBtn").style.cursor = "pointer";
+            }
+
+            updateStepIndicator(n);
+        }
+
+        function nextPrev(n) {
+            let tabs = document.getElementsByClassName("tab");
+
+            // Exit function if any field in the current tab is invalid
+            if (n == 1 && !validateForm()) return false;
+
+            // Special case: leaving Tab 3 (index 2) going forward — AJAX upload first
+            if (n == 1 && currentTab === 2 && !uploadDoneForThisSession) {
+                doUploadImages(function () {
+                    tabs[currentTab].style.display = "none";
+                    currentTab = currentTab + 1;
+                    if (currentTab >= tabs.length) { submitForm(); return; }
+                    showTab(currentTab);
+                });
+                return false;
+            }
+
+            // Hide current tab
+            tabs[currentTab].style.display = "none";
+
+            // Increase or decrease current tab
+            currentTab = currentTab + n;
+
+            // When entering Tab 3 (index 2): auto-fill the display fields from Tab 2
+            if (currentTab === 2) {
+                var idVal = document.querySelector('input[name="idCard"]') ? document.querySelector('input[name="idCard"]').value : '';
+                var phoneVal = document.querySelector('input[name="phone"]') ? document.querySelector('input[name="phone"]').value : '';
+                var dispId = document.getElementById('uploadIdCardDisplay');
+                var dispPhone = document.getElementById('uploadPhoneDisplay');
+                if (dispId) dispId.value = idVal;
+                if (dispPhone) dispPhone.value = phoneVal;
+                var statusMsg = document.getElementById('uploadStatusMsg');
+                if (statusMsg) { statusMsg.style.display = 'none'; statusMsg.textContent = ''; }
+            }
+
+            // If reached the end of the form
+            if (currentTab >= tabs.length) {
+                submitForm();
+                return false;
+            }
+
+            showTab(currentTab);
+        }
+
+        // ===== AJAX Upload to form_submissions (Tab 3) =====
+        var uploadDoneForThisSession = false;
+
+        function doUploadImages(onSuccess) {
+            var idVal = document.querySelector('input[name="idCard"]') ? document.querySelector('input[name="idCard"]').value.replace(/-/g, '') : '';
+            var phoneVal = document.querySelector('input[name="phone"]') ? document.querySelector('input[name="phone"]').value.replace(/-/g, '') : '';
+            var img1 = document.getElementById('uploadImage1');
+            var img2 = document.getElementById('uploadImage2');
+            var img3 = document.getElementById('uploadImage3');
+            var statusMsg = document.getElementById('uploadStatusMsg');
+
+            if (!img1 || !img1.files[0] || !img2 || !img2.files[0] || !img3 || !img3.files[0]) {
+                if (statusMsg) {
+                    statusMsg.style.display = 'block';
+                    statusMsg.style.background = '#fee2e2';
+                    statusMsg.style.color = '#b91c1c';
+                    statusMsg.style.border = '1px solid #fecaca';
+                    statusMsg.textContent = '⚠️ กรุณาเลือกไฟล์ภาพให้ครบทั้ง 3 ไฟล์';
+                }
+                return;
+            }
+
+            if (statusMsg) {
+                statusMsg.style.display = 'block';
+                statusMsg.style.background = '#eff6ff';
+                statusMsg.style.color = '#1e40af';
+                statusMsg.style.border = '1px solid #bfdbfe';
+                statusMsg.textContent = '⏳ กำลังอัปโหลดรูปภาพ กรุณารอสักครู่...';
+            }
+
+            var fd = new FormData();
+            fd.append('id_code', idVal);
+            fd.append('phone', phoneVal);
+            fd.append('image1', img1.files[0]);
+            fd.append('image2', img2.files[0]);
+            fd.append('image3', img3.files[0]);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'upload_images.php', true);
+            xhr.onload = function () {
+                try {
+                    var resp = JSON.parse(xhr.responseText);
+                    if (resp.success) {
+                        if (statusMsg) {
+                            statusMsg.style.background = '#dcfce7';
+                            statusMsg.style.color = '#065f46';
+                            statusMsg.style.border = '2px solid #22c55e';
+                            statusMsg.textContent = '✅ บันทึกรูปภาพเรียบร้อยแล้ว! กำลังดำเนินการต่อ...';
+                        }
+                        var recId = document.getElementById('uploadRecordId');
+                        if (recId && resp.record_id) recId.value = resp.record_id;
+                        uploadDoneForThisSession = true;
+                        setTimeout(function () { onSuccess(); }, 800);
+                    } else {
+                        if (statusMsg) {
+                            statusMsg.style.background = '#fee2e2';
+                            statusMsg.style.color = '#b91c1c';
+                            statusMsg.style.border = '1px solid #fecaca';
+                            statusMsg.textContent = '⚠️ ' + (resp.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่');
+                        }
+                    }
+                } catch (e) {
+                    if (statusMsg) {
+                        statusMsg.style.background = '#fee2e2';
+                        statusMsg.style.color = '#b91c1c';
+                        statusMsg.style.border = '1px solid #fecaca';
+                        statusMsg.textContent = '⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่';
+                    }
+                }
+            };
+            xhr.onerror = function () {
+                if (statusMsg) {
+                    statusMsg.style.background = '#fee2e2';
+                    statusMsg.style.color = '#b91c1c';
+                    statusMsg.style.border = '1px solid #fecaca';
+                    statusMsg.textContent = '⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่';
+                }
+
+            };
+            xhr.send(fd);
+        }
+
+        function toggleMasterDegreeRadios() {
+            let checkbox = document.getElementById("masterDegreeCheckbox");
+            let radiosDiv = document.getElementById("masterDegreeRadios");
+            if (!checkbox || !radiosDiv) return;
+
+            let radios = radiosDiv.querySelectorAll('input[type="radio"]');
+
+            if (checkbox.checked) {
+                radiosDiv.style.display = "block";
+                radios.forEach(radio => radio.setAttribute("required", "required"));
+            } else {
+                radiosDiv.style.display = "none";
+                radios.forEach(radio => {
+                    radio.removeAttribute("required");
+                    radio.checked = false;
+                });
+            }
+        }
+
+        function toggleTitleNameOther() {
+            let selectBox = document.getElementsByName("titleName")[0];
+            let otherContainer = document.getElementById("titleNameOtherContainer");
+            let otherInput = document.getElementById("titleNameOther");
+
+            if (selectBox.value === "อื่นๆ") {
+                otherContainer.style.display = "block";
+                otherInput.setAttribute("required", "required");
+            } else {
+                otherContainer.style.display = "none";
+                otherInput.removeAttribute("required");
+                otherInput.value = "";
+                otherInput.classList.remove("invalid");
+            }
+        }
+        function toggleTitleNameOtherPrev() {
+            let selectBox = document.getElementById("titleNamePrev");
+            let otherContainer = document.getElementById("titleNameOtherContainerPrev");
+            let otherInput = document.getElementById("titleNameOtherPrev");
+
+            if (selectBox.value === "อื่นๆ") {
+                otherContainer.style.display = "block";
+                otherInput.setAttribute("required", "required");
+            } else {
+                otherContainer.style.display = "none";
+                otherInput.removeAttribute("required");
+                otherInput.value = "";
+                otherInput.classList.remove("invalid");
+            }
+        }
+
+        function togglePreviousName() {
+            let radios = document.getElementsByName("hasChangedName");
+            let prevSection = document.getElementById("previousNameSection");
+            let reqFields = ["titleNamePrev", "firstNameThPrev", "lastNameThPrev", "firstNameEnPrev", "lastNameEnPrev"];
+            let showPrev = false;
+
+            for (let i = 0; i < radios.length; i++) {
+                if (radios[i].checked && radios[i].value === "yes") {
+                    showPrev = true;
+                    break;
+                }
+            }
+
+            if (showPrev) {
+                prevSection.style.display = "block";
+                for (let id of reqFields) {
+                    document.getElementById(id).setAttribute("required", "required");
+                }
+            } else {
+                prevSection.style.display = "none";
+                for (let id of reqFields) {
+                    let el = document.getElementById(id);
+                    el.removeAttribute("required");
+                    el.value = "";
+                    el.classList.remove("invalid");
+                }
+                let otherTitlePrevInput = document.getElementById("titleNameOtherPrev");
+                otherTitlePrevInput.removeAttribute("required");
+                otherTitlePrevInput.value = "";
+                otherTitlePrevInput.classList.remove("invalid");
+                document.getElementById("titleNameOtherContainerPrev").style.display = "none";
+            }
+        }
+
+        function toggleAgentAffiliation() {
+
+            let mainRadios = document.getElementsByName("agentTypeMain");
+            let subRadios = document.getElementsByName("brokerType");
+            let actualAgentTypeInput = document.getElementById("actualAgentType");
+            let brokerTypeSection = document.getElementById("brokerTypeSection");
+            let brokerSection = document.getElementById("brokerAffiliationSection");
+
+            let isAgent = false;
+            let isBroker = false;
+            let isCorporateBroker = false;
+            let selectedType = "";
+
+            for (let i = 0; i < mainRadios.length; i++) {
+                if (mainRadios[i].checked) {
+                    selectedType = mainRadios[i].value;
+                    if (selectedType === "ตัวแทนประกันวินาศภัย") {
+                        isAgent = true;
+                    } else if (selectedType === "นายหน้าประกันวินาศภัย") {
+                        isBroker = true;
+                    }
+                    break;
+                }
+            }
+
+            if (isBroker) {
+                brokerTypeSection.style.display = "block";
+                for (let el of subRadios) el.setAttribute("required", "required");
+                for (let i = 0; i < subRadios.length; i++) {
+                    if (subRadios[i].checked) {
+                        selectedType = subRadios[i].value;
+                        if (selectedType === "นายหน้านิติบุคคล") {
+                            isCorporateBroker = true;
+                        }
+                        break;
+                    }
+                }
+            } else {
+                brokerTypeSection.style.display = "none";
+                for (let el of subRadios) {
+                    el.removeAttribute("required");
+                    el.checked = false;
+                }
+            }
+
+            if (actualAgentTypeInput) {
+                actualAgentTypeInput.value = selectedType;
+            }
+
+
+            if (isCorporateBroker) {
+                brokerSection.style.display = "block";
+            } else {
+                brokerSection.style.display = "none";
+                let brokerAffiliation = document.getElementById("brokerAffiliation");
+                if (brokerAffiliation) {
+                    brokerAffiliation.value = "";
+                }
+            }
+
+            updateCourseTypeOptions(selectedType);
+        }
+
+        function updateLicenseStatusOptions(selectedType) {
+            let licenseSelect = document.getElementsByName("licenseStatus")[0];
+            if (!licenseSelect) return;
+
+            // If the user already selected something, try to keep it if it's still valid
+            let currentValue = licenseSelect.value;
+
+            licenseSelect.innerHTML = '<option value="">- เลือกสถานะใบอนุญาต -</option>';
+
+            if (selectedType === "ตัวแทนประกันวินาศภัย") {
+                licenseSelect.innerHTML += '<option value="ไม่มีใบอนุญาต/ใบอนุญาตขาดต่อ">ไม่มีใบอนุญาต/ใบอนุญาตขาดต่อ</option>';
+                licenseSelect.innerHTML += '<option value="ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 1">ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 1</option>';
+                licenseSelect.innerHTML += '<option value="ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 2">ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 2</option>';
+                licenseSelect.innerHTML += '<option value="ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 3">ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 3</option>';
+                licenseSelect.innerHTML += '<option value="ขอต่ออายุใบอนุญาตเป็น ตัวแทนหรือนายหน้า ประกันวินาศภัย ครั้งที่ 4 เป็นต้นไป">ขอต่ออายุใบอนุญาตเป็น ตัวแทนหรือนายหน้า ประกันวินาศภัย ครั้งที่ 4 เป็นต้นไป</option>';
+            } else if (selectedType && selectedType.includes("นายหน้า")) {
+                licenseSelect.innerHTML += '<option value="ไม่มีใบอนุญาต/ใบอนุญาตขาดต่อ">ไม่มีใบอนุญาต/ใบอนุญาตขาดต่อ</option>';
+                licenseSelect.innerHTML += '<option value="ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย">ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย</option>';
+                licenseSelect.innerHTML += '<option value="ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย ครั้งที่ 1">ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย ครั้งที่ 1</option>';
+                licenseSelect.innerHTML += '<option value="ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย ครั้งที่ 2">ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย ครั้งที่ 2</option>';
+                licenseSelect.innerHTML += '<option value="ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย ครั้งที่ 3">ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย ครั้งที่ 3</option>';
+                licenseSelect.innerHTML += '<option value="ขอต่ออายุใบอนุญาตเป็น ตัวแทนหรือนายหน้า ประกันวินาศภัย ครั้งที่ 4 เป็นต้นไป">ขอต่ออายุใบอนุญาตเป็น ตัวแทนหรือนายหน้า ประกันวินาศภัย ครั้งที่ 4 เป็นต้นไป</option>';
+            } else {
+                licenseSelect.innerHTML += '<option value="ไม่มีใบอนุญาต/ใบอนุญาตขาดต่อ">ไม่มีใบอนุญาต/ใบอนุญาตขาดต่อ</option>';
+                licenseSelect.innerHTML += '<option value="ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 1">ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 1</option>';
+                licenseSelect.innerHTML += '<option value="ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 2">ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 2</option>';
+                licenseSelect.innerHTML += '<option value="ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 3">ใบอนุญาตเป็น ตัวแทน ประกันวินาศภัย ครั้งที่ 3</option>';
+                licenseSelect.innerHTML += '<option value="ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย">ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย</option>';
+                licenseSelect.innerHTML += '<option value="ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย ครั้งที่ 1">ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย ครั้งที่ 1</option>';
+                licenseSelect.innerHTML += '<option value="ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย ครั้งที่ 2">ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย ครั้งที่ 2</option>';
+                licenseSelect.innerHTML += '<option value="ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย ครั้งที่ 3">ใบอนุญาตเป็น นายหน้า ประกันวินาศภัย ครั้งที่ 3</option>';
+                licenseSelect.innerHTML += '<option value="ขอต่ออายุใบอนุญาตเป็น ตัวแทนหรือนายหน้า ประกันวินาศภัย ครั้งที่ 4 เป็นต้นไป">ขอต่ออายุใบอนุญาตเป็น ตัวแทนหรือนายหน้า ประกันวินาศภัย ครั้งที่ 4 เป็นต้นไป</option>';
+            }
+
+            // Restore selection if it still exists in the new options
+            if (currentValue) {
+                let optionExists = Array.from(licenseSelect.options).some(opt => opt.value === currentValue);
+                if (optionExists) {
+                    licenseSelect.value = currentValue;
+                }
+            }
+        }
+
+        const courseScheduleData = {
+            "ตัวแทนประกันวินาศภัย": {
+                "ขอรับอนุญาตเป็นตัวแทนประกันวินาศภัย": ["18 มิถุนายน 2569"],
+                "ขอต่อใบอนุญาตตัวแทนประกันวินาศภัย 1": ["25 มิถุนายน 2569"],
+                "ขอต่อใบอนุญาตตัวแทนประกันวินาศภัย 2": ["2 กรกฎาคม 2569"],
+                "ขอต่อใบอนุญาตตัวแทนประกันวินาศภัย 3": ["9 กรกฎาคม 2569"],
+                "ขอต่อใบอนุญาตตัวแทน/นายหน้าประกันวินาศภัย 4 เป็นต้นไป": [
+                    "[Pillar 1] [22 เมษายน 2569] : การกำกับดูแลบริษัทประกันภัยตามระดับความเสี่ยง",
+                    "[Pillar 1] [22 เมษายน 2569] : การจัดการสินไหมทดแทน Non-Motor",
+                    "[Pillar 1] [22 เมษายน 2569] : การประกันความเสี่ยงภัยทรัพย์สิน",
+                    "[Pillar 1] [6 พฤษภาคม 2569] : การวางแผนเพื่อวัยเกษียณ",
+                    "[Pillar 1] [6 พฤษภาคม 2569] : การวางแผนภาษีสำหรับตัวแทนและนายหน้าประกันภัย",
+                    "[Pillar 1] [6 พฤษภาคม 2569] : การประกันภัยต่อ",
+                    "[Pillar 3] [13 พฤษภาคม 2569] : จรรยาบรรณและศีลธรรมของตัวแทน/นายหน้าประกันภัย",
+                    "[Pillar 3] [13 พฤษภาคม 2569] : พ.ร.บ.จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562) และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร",
+                    "[Pillar 3] [13 พฤษภาคม 2569] : หัวข้อการบรรยาย : พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล",
+                    "[Pillar 1] [20 พฤษภาคม 2569] : เสนอขายถูกหลักประกันภัยเติบโต",
+                    "[Pillar 3] [20 พฤษภาคม 2569] : กฏหมายว่าด้วยการป้องกันและปราบปรามการฟอกเงินและต่อต้านการสนับสนุนทางการเงินแก่การก่อการร้าย",
+                    "[Pillar 1] [20 พฤษภาคม 2569] : กรมธรรม์ประกันภัยรถยนต์ไฟฟ้ารวมการคุ้มครองผู้ประสบภัยจากรถ",
+                    "[Pillar 3] [20 พฤษภาคม 2569] : พ.ร.บ.การทวงถามหนี้",
+                    "[Pillar 3] [10 มิถุนายน 2569] : ความเสี่ยงต่อความรับผิดในฐานะตัวแทน/นายหน้าประกันภัย",
+                    "[Pillar 2] [10 มิถุนายน 2569] : การตลาดยุคใหม่",
+                    "[Pillar 1] [10 มิถุนายน 2569] : รู้จักประกันภัยสุขภาพ",
+                    "[Pillar 1] [10 มิถุนายน 2569] : การพิจารณารับประกันภัยรถยนต์",
+                    "[Pillar 1] [5 สิงหาคม 2569] : การประกันความเสี่ยงภัยทรัพย์สิน",
+                    "[Pillar 1] [5 สิงหาคม 2569] : การกำกับดูแลบริษัทประกันภัยตามระดับความเสี่ยง",
+                    "[Pillar 1] [5 สิงหาคม 2569] : การจัดการสินไหมทดแทน Non-Motor",
+                    "[Pillar 1] [19 สิงหาคม 2569] : การวางแผนเพื่อวัยเกษียณ",
+                    "[Pillar 1] [19 สิงหาคม 2569] : การวางแผนภาษีสำหรับตัวแทนและนายหน้าประกันภัย",
+                    "[Pillar 1] [19 สิงหาคม 2569] : การประกันภัยต่อ",
+                    "[Pillar 3] [26 สิงหาคม 2569] : จรรยาบรรณและศีลธรรมของตัวแทน/นายหน้าประกันภัย",
+                    "[Pillar 3] [26 สิงหาคม 2569] : พ.ร.บ.จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562) และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร",
+                    "[Pillar 3] [26 สิงหาคม 2569] : หัวข้อการบรรยาย : พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล",
+                    "[Pillar 1] [2 กันยายน 2569] : กรมธรรม์ประกันภัยรถยนต์ไฟฟ้ารวมการคุ้มครองผู้ประสบภัยจากรถ",
+                    "[Pillar 1] [2 กันยายน 2569] : เสนอขายถูกหลักประกันภัยเติบโต",
+                    "[Pillar 3] [2 กันยายน 2569] : กฏหมายว่าด้วยการป้องกันและปราบปรามการฟอกเงินและต่อต้านการสนับสนุนทางการเงินแก่การก่อการร้าย",
+                    "[Pillar 3] [2 กันยายน 2569] : พ.ร.บ.การทวงถามหนี้",
+                    "[Pillar 2] [9 กันยายน 2569] : การตลาดยุคใหม่",
+                    "[Pillar 1] [9 กันยายน 2569] : การพิจารณารับประกันภัยรถยนต์",
+                    "[Pillar 1] [9 กันยายน 2569] : รู้จักประกันภัยสุขภาพ",
+                    "[Pillar 3] [9 กันยายน 2569] : ความเสี่ยงต่อความรับผิดในฐานะตัวแทน/นายหน้าประกันภัย"
+                ]
+            },
+            "นายหน้าประกันวินาศภัย": {
+                "ขอรับใบอนุญาตเป็นนายหน้าประกันวินาศภัย": ["17 มิถุนายน 2569"],
+                "ขอต่อใบอนุญาตนายหน้าประกันวินาศภัย 1": ["24 มิถุนายน 2569"],
+                "ขอต่อใบอนุญาตนายหน้าประกันวินาศภัย 2": ["1 กรกฎาคม 2569"],
+                "ขอต่อใบอนุญาตนายหน้าประกันวินาศภัย 3": ["8 กรกฎาคม 2569"],
+                "ขอต่อใบอนุญาตตัวแทน/นายหน้าประกันวินาศภัย 4 เป็นต้นไป": [
+                    "[Pillar 1] [22 เมษายน 2569] : การกำกับดูแลบริษัทประกันภัยตามระดับความเสี่ยง",
+                    "[Pillar 1] [22 เมษายน 2569] : การจัดการสินไหมทดแทน Non-Motor",
+                    "[Pillar 1] [22 เมษายน 2569] : การประกันความเสี่ยงภัยทรัพย์สิน",
+                    "[Pillar 1] [6 พฤษภาคม 2569] : การวางแผนเพื่อวัยเกษียณ",
+                    "[Pillar 1] [6 พฤษภาคม 2569] : การวางแผนภาษีสำหรับตัวแทนและนายหน้าประกันภัย",
+                    "[Pillar 1] [6 พฤษภาคม 2569] : การประกันภัยต่อ",
+                    "[Pillar 3] [13 พฤษภาคม 2569] : จรรยาบรรณและศีลธรรมของตัวแทน/นายหน้าประกันภัย",
+                    "[Pillar 3] [13 พฤษภาคม 2569] : พ.ร.บ.จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562) และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร",
+                    "[Pillar 3] [13 พฤษภาคม 2569] : หัวข้อการบรรยาย : พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล",
+                    "[Pillar 1] [20 พฤษภาคม 2569] : เสนอขายถูกหลักประกันภัยเติบโต",
+                    "[Pillar 3] [20 พฤษภาคม 2569] : กฏหมายว่าด้วยการป้องกันและปราบปรามการฟอกเงินและต่อต้านการสนับสนุนทางการเงินแก่การก่อการร้าย",
+                    "[Pillar 1] [20 พฤษภาคม 2569] : กรมธรรม์ประกันภัยรถยนต์ไฟฟ้ารวมการคุ้มครองผู้ประสบภัยจากรถ",
+                    "[Pillar 3] [20 พฤษภาคม 2569] : พ.ร.บ.การทวงถามหนี้",
+                    "[Pillar 3] [10 มิถุนายน 2569] : ความเสี่ยงต่อความรับผิดในฐานะตัวแทน/นายหน้าประกันภัย",
+                    "[Pillar 2] [10 มิถุนายน 2569] : การตลาดยุคใหม่",
+                    "[Pillar 1] [10 มิถุนายน 2569] : รู้จักประกันภัยสุขภาพ",
+                    "[Pillar 1] [10 มิถุนายน 2569] : การพิจารณารับประกันภัยรถยนต์",
+                    "[Pillar 1] [5 สิงหาคม 2569] : การประกันความเสี่ยงภัยทรัพย์สิน",
+                    "[Pillar 1] [5 สิงหาคม 2569] : การกำกับดูแลบริษัทประกันภัยตามระดับความเสี่ยง",
+                    "[Pillar 1] [5 สิงหาคม 2569] : การจัดการสินไหมทดแทน Non-Motor",
+                    "[Pillar 1] [19 สิงหาคม 2569] : การวางแผนเพื่อวัยเกษียณ",
+                    "[Pillar 1] [19 สิงหาคม 2569] : การวางแผนภาษีสำหรับตัวแทนและนายหน้าประกันภัย",
+                    "[Pillar 1] [19 สิงหาคม 2569] : การประกันภัยต่อ",
+                    "[Pillar 3] [26 สิงหาคม 2569] : จรรยาบรรณและศีลธรรมของตัวแทน/นายหน้าประกันภัย",
+                    "[Pillar 3] [26 สิงหาคม 2569] : พ.ร.บ.จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562) และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร",
+                    "[Pillar 3] [26 สิงหาคม 2569] : หัวข้อการบรรยาย : พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล",
+                    "[Pillar 1] [2 กันยายน 2569] : กรมธรรม์ประกันภัยรถยนต์ไฟฟ้ารวมการคุ้มครองผู้ประสบภัยจากรถ",
+                    "[Pillar 1] [2 กันยายน 2569] : เสนอขายถูกหลักประกันภัยเติบโต",
+                    "[Pillar 3] [2 กันยายน 2569] : กฏหมายว่าด้วยการป้องกันและปราบปรามการฟอกเงินและต่อต้านการสนับสนุนทางการเงินแก่การก่อการร้าย",
+                    "[Pillar 3] [2 กันยายน 2569] : พ.ร.บ.การทวงถามหนี้",
+                    "[Pillar 2] [9 กันยายน 2569] : การตลาดยุคใหม่",
+                    "[Pillar 1] [9 กันยายน 2569] : การพิจารณารับประกันภัยรถยนต์",
+                    "[Pillar 1] [9 กันยายน 2569] : รู้จักประกันภัยสุขภาพ",
+                    "[Pillar 3] [9 กันยายน 2569] : ความเสี่ยงต่อความรับผิดในฐานะตัวแทน/นายหน้าประกันภัย"
+                ]
+            }
+        };
+
+        function updateCourseTypeOptions(selectedType) {
+            let courseGroup = document.getElementById("courseTypeGroup");
+            let dateGroup = document.getElementById("trainingDateGroup");
+            let container = document.getElementById("courseTypeContainer");
+            let label = document.getElementById("courseTypeLabel");
+            let hiddenInput = document.getElementById("courseTypeHidden");
+
+            // Reset
+            container.innerHTML = "";
+            hiddenInput.value = "";
+            dateGroup.style.display = "none";
+            let previousCoursesSection = document.getElementById("previousCoursesSection");
+            if (previousCoursesSection) {
+                previousCoursesSection.style.display = "none";
+                let checkboxes = previousCoursesSection.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(cb => { cb.checked = false; });
+            }
+
+            let deductionGroup = document.getElementById("deductionPrivilegeGroup");
+            if (deductionGroup) {
+                deductionGroup.style.display = "none";
+                let checkboxes = deductionGroup.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(cb => {
+                    cb.checked = false;
+                    cb.dispatchEvent(new Event('change'));
+                });
+            }
+
+            let baseType = (selectedType && selectedType.includes("นายหน้า")) ? "นายหน้าประกันวินาศภัย" : "ตัวแทนประกันวินาศภัย";
+
+            if (!selectedType || !courseScheduleData[baseType]) {
+                courseGroup.style.display = "none";
+                return;
+            }
+
+            courseGroup.style.display = "block";
+            let roleLabel = baseType === "ตัวแทนประกันวินาศภัย" ? "[ตัวแทน]" : "[นายหน้า]";
+            label.textContent = `หลักสูตรที่ต้องการอบรม ${roleLabel}`;
+
+            let courses = Object.keys(courseScheduleData[baseType]);
+
+            courses.forEach((course) => {
+                let labelEl = document.createElement("label");
+                labelEl.className = "radio-item custom-radio";
+
+                let input = document.createElement("input");
+                input.type = "radio";
+                input.name = "courseTypeUI";
+                input.value = course;
+                input.required = true;
+
+                input.addEventListener("change", function () {
+                    hiddenInput.value = this.value;
+                    renderTrainingDates(selectedType, this.value);
+
+                    let deductionGroup = document.getElementById("deductionPrivilegeGroup");
+                    if (deductionGroup) {
+                        if (this.value.includes("ขอต่อใบอนุญาตตัวแทน/นายหน้าประกันวินาศภัย 4 เป็นต้นไป")) {
+                            deductionGroup.style.display = "block";
+                        } else {
+                            deductionGroup.style.display = "none";
+                            // Uncheck all when hidden
+                            let checkboxes = deductionGroup.querySelectorAll('input[type="checkbox"]');
+                            checkboxes.forEach(cb => {
+                                cb.checked = false;
+                                cb.dispatchEvent(new Event('change'));
+                            });
+                        }
+                    }
+
+                    let previousCoursesSection = document.getElementById("previousCoursesSection");
+                    if (previousCoursesSection) {
+                        if (this.value.includes("4 เป็นต้นไป") || this.value.includes("ครั้งที่ 4")) {
+                            previousCoursesSection.style.display = "block";
+                        } else {
+                            previousCoursesSection.style.display = "none";
+                            let checkboxes = previousCoursesSection.querySelectorAll('input[type="checkbox"]');
+                            checkboxes.forEach(cb => { cb.checked = false; });
+                        }
+                    }
+                });
+
+                labelEl.appendChild(input);
+                labelEl.appendChild(document.createTextNode(" " + course));
+                container.appendChild(labelEl);
+            });
+        }
+
+        function renderTrainingDates(agentType, courseType) {
+            let dateGroup = document.getElementById("trainingDateGroup");
+            let container = document.getElementById("trainingDateContainer");
+            let label = document.getElementById("trainingDateLabel");
+
+            container.innerHTML = "";
+
+            let baseType = (agentType && agentType.includes("นายหน้า")) ? "นายหน้าประกันวินาศภัย" : "ตัวแทนประกันวินาศภัย";
+            let dataList = courseScheduleData[baseType][courseType];
+            if (!dataList || dataList.length === 0) {
+                dateGroup.style.display = "none";
+                return;
+            }
+
+            dateGroup.style.display = "block";
+            label.textContent = courseType; // Match screenshot: the label is the course type
+
+            let isMultiple = courseType.includes("ครั้งที่ 4") || courseType.includes("4 เป็นต้นไป") || courseType.endsWith(" 4");
+            let inputType = isMultiple ? "checkbox" : "radio";
+
+            dataList.forEach((item) => {
+                let labelEl = document.createElement("label");
+                labelEl.className = "radio-item custom-radio";
+
+                let input = document.createElement("input");
+                input.type = inputType;
+                input.name = isMultiple ? "trainingDate[]" : "trainingDate";
+                input.value = item;
+                if (!isMultiple) input.required = true;
+
+                input.addEventListener('change', function() {
+                    container.classList.remove('invalid');
+                    removeErrorMsg(container);
+                    let items = container.querySelectorAll('.radio-item');
+                    items.forEach(el => {
+                        el.classList.remove('invalid');
+                        removeErrorMsg(el);
+                    });
+                });
+
+                labelEl.appendChild(input);
+                labelEl.appendChild(document.createTextNode(" " + item));
+                container.appendChild(labelEl);
+            });
+
+            let oldNote = document.getElementById("trainingNoteMsg");
+            if (oldNote) oldNote.remove();
+
+            if (isMultiple) {
+                // Add an asterisk note for multiple checkboxes
+                let note = document.createElement("div");
+                note.id = "trainingNoteMsg";
+                note.style.marginTop = "5px";
+                note.style.marginBottom = "10px";
+                note.innerHTML = "<span style='color: var(--error-color); font-size: 14px;'>* สามารถเลือกได้มากกว่า 1 หัวข้อ *</span><br><span style='color: var(--error-color); font-size: 14px; font-weight: normal;'>* ห้ามเลือกวิชาที่เคยผ่านการอบรมในรอบการสะสมชั่วโมงอบรมปัจจุบัน (5 ปี) *</span>";
+                label.insertAdjacentElement('afterend', note);
+            }
+
+            // Immediately disable dates that are already checked in previous courses
+            updateDisabledTrainingDates();
+        }
+
+        function checkPDPA() {
+            let pdpaRadios = document.getElementsByName('pdpaConsent');
+            let nextBtn = document.getElementById("nextBtn");
+            let isAccepted = false;
+
+            for (let i = 0; i < pdpaRadios.length; i++) {
+                if (pdpaRadios[i].checked && pdpaRadios[i].value === 'accept') {
+                    isAccepted = true;
+                }
+            }
+
+            if (currentTab === 0) {
+                if (!isAccepted) {
+                    nextBtn.disabled = true;
+                    nextBtn.style.opacity = "0.5";
+                    nextBtn.style.cursor = "not-allowed";
+                } else {
+                    nextBtn.disabled = false;
+                    nextBtn.style.opacity = "1";
+                    nextBtn.style.cursor = "pointer";
+                }
+            }
+        }
+
+        function showFieldError(element, msg) {
+            if (!element) return;
+            element.classList.add("invalid");
+            
+            // Find container to append the message
+            let container = element;
+            if (element.type === 'radio' || element.type === 'checkbox') {
+                let group = element.closest('.radio-group');
+                let item = element.closest('.radio-item');
+                if (group) {
+                    container = group;
+                    let items = group.querySelectorAll('.radio-item');
+                    items.forEach(el => el.classList.add('invalid'));
+                } else if (item) {
+                    container = item;
+                    item.classList.add('invalid');
+                }
+            } else if (element.classList.contains('radio-group')) {
+                container = element;
+                let items = container.querySelectorAll('.radio-item');
+                items.forEach(el => el.classList.add('invalid'));
+            }
+            
+            // Check if error already exists
+            let nextEl = container.nextElementSibling;
+            if (nextEl && nextEl.classList && nextEl.classList.contains('error-msg')) {
+                nextEl.innerText = msg;
+                return;
+            }
+            
+            let msgEl = document.createElement("div");
+            msgEl.className = "error-msg";
+            msgEl.style.color = "var(--error-color)";
+            msgEl.style.fontSize = "13px";
+            msgEl.style.marginTop = "4px";
+            msgEl.innerText = msg;
+            
+            container.parentNode.insertBefore(msgEl, container.nextSibling);
+        }
+
+        function validateForm() {
+            let valid = true;
+            let firstInvalid = null;
+            let tabs = document.getElementsByClassName("tab");
+            let inputs = tabs[currentTab].querySelectorAll("input[required], select[required], textarea[required]");
+
+            // Special check for PDPA radio buttons in Step 1
+            if (currentTab === 0) {
+                let pdpaRadios = document.getElementsByName('pdpaConsent');
+                let isChecked = false;
+                let isAccepted = false;
+                for (let i = 0; i < pdpaRadios.length; i++) {
+                    if (pdpaRadios[i].checked) {
+                        isChecked = true;
+                        if (pdpaRadios[i].value === 'accept') {
+                            isAccepted = true;
+                        }
+                    }
+                }
+
+                if (!isChecked || !isAccepted) {
+                    showFieldError(pdpaRadios[0], "กรุณายอมรับนโยบายความเป็นส่วนตัวเพื่อดำเนินการต่อ");
+                    valid = false;
+                    if (!firstInvalid) firstInvalid = pdpaRadios[0];
+                }
+            }
+
+            // Custom check for idCardExpiry in Step 2 (Index 1)
+            if (currentTab === 1) {
+                let idCardExpiry = document.querySelector('input[name="idCardExpiry"]');
+                if (idCardExpiry && idCardExpiry.value.trim() !== "") {
+                    let parts = idCardExpiry.value.split('/');
+                    if (parts.length === 3) {
+                        let year = parseInt(parts[2]);
+                        if (year > 2400) year -= 543;
+                        let expDate = new Date(year, parts[1] - 1, parts[0]);
+                        let today = new Date();
+                        today.setHours(0,0,0,0);
+                        if (expDate <= today) {
+                            showFieldError(idCardExpiry, "วันหมดอายุบัตรประชาชน ต้องมากกว่าวันที่ปัจจุบันเท่านั้น");
+                            valid = false;
+                            if (!firstInvalid) firstInvalid = idCardExpiry;
+                        }
+                    }
+                }
+            }
+
+            // Custom check for birthDate in Step 2 (Index 1)
+            if (currentTab === 1) {
+                let birthDateInput = document.querySelector('input[name="birthDate"]');
+                if (birthDateInput && birthDateInput.value.trim() !== "") {
+                    let parts = birthDateInput.value.split('/');
+                    if (parts.length === 3) {
+                        let year = parseInt(parts[2]);
+                        if (year > 2400) year -= 543;
+                        let bday = new Date(year, parts[1] - 1, parts[0]);
+                        let today = new Date();
+                        let age = today.getFullYear() - bday.getFullYear();
+                        let m = today.getMonth() - bday.getMonth();
+                        if (m < 0 || (m === 0 && today.getDate() < bday.getDate())) {
+                            age--;
+                        }
+                        if (age < 20) {
+                            showFieldError(birthDateInput, "วัน/เดือน/ปี เกิด ต้องมากกว่า 20 นับจากวันที่ปัจจุบันเท่านั้น");
+                            valid = false;
+                            if (!firstInvalid) firstInvalid = birthDateInput;
+                        }
+                    }
+                }
+            }
+
+            // Custom check for licenseNo in Step 4 (Index 3)
+            if (currentTab === 3) {
+                let licenseNo = document.querySelector('input[name="licenseNo"]');
+                if (licenseNo && licenseNo.value.trim() !== "") {
+                    if (licenseNo.value.trim().length !== 10) {
+                        showFieldError(licenseNo, "เลขที่ใบอนุญาตต้องมี 10 หลัก");
+                        valid = false;
+                        if (!firstInvalid) firstInvalid = licenseNo;
+                    }
+                }
+                
+                let licenseExpire = document.querySelector('input[name="licenseExpire"]');
+                if (licenseExpire && licenseExpire.value.trim() !== "") {
+                    let parts = licenseExpire.value.split('/');
+                    if (parts.length === 3) {
+                        let year = parseInt(parts[2]);
+                        if (year > 2400) year -= 543;
+                        let expDate = new Date(year, parts[1] - 1, parts[0]);
+                        let today = new Date();
+                        today.setHours(0,0,0,0);
+                        if (expDate <= today) {
+                            showFieldError(licenseExpire, "วันหมดอายุใบอนุญาต ต้องมากกว่าวันที่ปัจจุบันเท่านั้น");
+                            valid = false;
+                            if (!firstInvalid) firstInvalid = licenseExpire;
+                        }
+                    }
+                }
+            }
+
+            // Custom check for training dates in Step 5 (Index 4)
+            if (currentTab === 4) {
+                let dateGroup = document.getElementById("trainingDateGroup");
+                if (dateGroup && dateGroup.style.display !== "none") {
+                    let trainingCheckboxes = dateGroup.querySelectorAll('input[name="trainingDate[]"]');
+                    if (trainingCheckboxes.length > 0) {
+                        let checked = Array.from(trainingCheckboxes).some(cb => cb.checked);
+                        if (!checked) {
+                            let items = dateGroup.querySelectorAll('.radio-item');
+                            items.forEach(item => item.classList.add('invalid'));
+                            showFieldError(dateGroup, "กรุณาเลือกวันที่ต้องการอบรม");
+                            valid = false;
+                            if (!firstInvalid) firstInvalid = dateGroup;
+                        }
+                    }
+                }
+            }
+            // Normal validation
+            for (let i = 0; i < inputs.length; i++) {
+                if (inputs[i].type === "radio" || inputs[i].type === "checkbox") {
+                    let group = document.getElementsByName(inputs[i].name);
+                    let checked = false;
+                    for (let j = 0; j < group.length; j++) {
+                        if (group[j].checked) {
+                            checked = true;
+                            break;
+                        }
+                    }
+                    if (!checked) {
+                        showFieldError(inputs[i], "กรุณาระบุข้อมูลนี้");
+                        valid = false;
+                        if (!firstInvalid) firstInvalid = inputs[i];
+                    } else {
+                        let container = inputs[i].closest('.radio-group') || inputs[i].closest('.radio-item');
+                        if (container) container.classList.remove("invalid");
+                    }
+                } else if (inputs[i].value.trim() === "" || !inputs[i].checkValidity()) {
+                    showFieldError(inputs[i], "กรุณากรอกข้อมูลนี้");
+                    valid = false;
+                    if (!firstInvalid) firstInvalid = inputs[i];
+                } else {
+                    inputs[i].classList.remove("invalid");
+                }
+            }
+
+            if (!valid && firstInvalid) {
+                // Focus and scroll to the first invalid element
+                let focusTarget = firstInvalid;
+                if (firstInvalid.id === 'trainingDateGroup' || firstInvalid.classList.contains('radio-group')) {
+                    // It's a div, maybe focus the first input inside it
+                    let firstInput = firstInvalid.querySelector('input');
+                    if (firstInput) focusTarget = firstInput;
+                }
+                
+                if (typeof focusTarget.focus === 'function') {
+                    focusTarget.focus({preventScroll: true});
+                }
+                focusTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            // Mark step as finished
+            if (valid) {
+                document.getElementsByClassName("step-dot")[currentTab].className += " finish";
+            }
+            return valid;
+        }
+
+        function removeErrorMsg(el) {
+            let container = el;
+            if (el.type === 'radio' || el.type === 'checkbox') {
+                let group = el.closest('.radio-group');
+                let item = el.closest('.radio-item');
+                if (group) container = group;
+                else if (item) container = item;
+            } else if (el.classList && el.classList.contains('radio-group')) {
+                container = el;
+            }
+            if (container) {
+                let nextEl = container.nextElementSibling;
+                if (nextEl && nextEl.classList && nextEl.classList.contains('error-msg')) {
+                    nextEl.remove();
+                } else {
+                    let formGroup = el.closest('.form-group');
+                    if (formGroup) {
+                        let err = formGroup.querySelector('.error-msg');
+                        if (err) err.remove();
+                    }
+                }
+            }
+        }
+
+        // === Auto-clear invalid (red border) when user fills data ===
+        function attachClearInvalid() {
+            var els = document.querySelectorAll('input, select, textarea');
+            for (var i = 0; i < els.length; i++) {
+                els[i].removeEventListener('input', clearInvalidHandler);
+                els[i].removeEventListener('change', clearInvalidHandler);
+                els[i].addEventListener('input', clearInvalidHandler);
+                els[i].addEventListener('change', clearInvalidHandler);
+            }
+        }
+        function clearInvalidHandler(e) {
+            var el = e.target || e.srcElement || this;
+            if (el && el.className && el.className.indexOf('invalid') !== -1) {
+                el.className = el.className.replace(/\binvalid\b/g, '').trim();
+            }
+            if (el) removeErrorMsg(el);
+            // For radio/checkbox, also clear the parent container if needed
+            if (el && (el.type === 'radio' || el.type === 'checkbox')) {
+                let container = el.closest('.radio-group') || el.closest('.radio-item');
+                if (container && container.classList.contains('invalid')) {
+                    container.classList.remove('invalid');
+                }
+                let group = el.closest('.radio-group');
+                if (group) {
+                    let items = group.querySelectorAll('.radio-item');
+                    items.forEach(item => item.classList.remove('invalid'));
+                } else if (container) {
+                    container.classList.remove('invalid');
+                }
+                removeErrorMsg(el);
+            }
+        }
+        attachClearInvalid();
+        document.addEventListener('click', function () {
+            setTimeout(attachClearInvalid, 100);
+        });
+
+
+
+        function updateStepIndicator(n) {
+            let dots = document.getElementsByClassName("step-dot");
+            for (let i = 0; i < dots.length; i++) {
+                dots[i].className = dots[i].className.replace(" active", "");
+            }
+            dots[n].className += " active";
+        }
+
+        function formatIdCard(input) {
+            let value = input.value.replace(/\D/g, '');
+            let formatted = '';
+
+            if (value.length > 0) formatted += value.substring(0, 1);
+            if (value.length > 1) formatted += '-' + value.substring(1, 5);
+            if (value.length > 5) formatted += '-' + value.substring(5, 10);
+            if (value.length > 10) formatted += '-' + value.substring(10, 12);
+            if (value.length > 12) formatted += '-' + value.substring(12, 13);
+
+            input.value = formatted;
+        }
+
+        function formatPhone(input) {
+            let value = input.value.replace(/\D/g, '');
+            let formatted = '';
+
+            if (value.length > 0) formatted += value.substring(0, 3);
+            if (value.length > 3) formatted += '-' + value.substring(3, 6);
+            if (value.length > 6) formatted += '-' + value.substring(6, 10);
+
+            input.value = formatted;
+        }
+
+        function formatDateText(input) {
+            let v = input.value.replace(/\D/g, '');
+            if (v.length > 8) v = v.substring(0, 8);
+            let out = '';
+            if (v.length > 0) out += v.substring(0, 2);
+            if (v.length > 2) out += '/' + v.substring(2, 4);
+            if (v.length > 4) out += '/' + v.substring(4, 8);
+            input.value = out;
+        }
+
+        function toggleShippingAddress() {
+            const radios = document.getElementsByName('shippingAddress');
+            const section = document.getElementById('shippingAddressSection');
+            const shipFields = ['shipHouseNo', 'shipSubDistrict', 'shipDistrict', 'shipProvince', 'shipZipcode'];
+            let showShipping = false;
+
+            for (let i = 0; i < radios.length; i++) {
+                if (radios[i].checked && radios[i].value === 'different') {
+                    showShipping = true;
+                    break;
+                }
+            }
+
+            if (showShipping) {
+                section.style.display = 'block';
+                section.classList.add('reveal');
+                for (let id of shipFields) {
+                    document.getElementById(id).setAttribute('required', 'required');
+                }
+            } else {
+                section.style.display = 'none';
+                section.classList.remove('reveal');
+                for (let id of shipFields) {
+                    let el = document.getElementById(id);
+                    el.removeAttribute('required');
+                    el.value = '';
+                    el.classList.remove('invalid');
+                    removeErrorMsg(el);
+                }
+                // Also clear non-required shipping fields
+                ['shipMoo', 'shipVillage', 'shipSoi', 'shipRoad'].forEach(id => {
+                    document.getElementById(id).value = '';
+                });
+            }
+        }
+
+        function submitForm() {
+            // Validation on final step
+            if (!validateForm()) return;
+
+            // Collect Form Data (Simulation)
+            const formData = new FormData(document.getElementById('regForm'));
+            let dataObj = {};
+            formData.forEach((value, key) => { dataObj[key] = value });
+
+            // Remove hyphens from idCard for database storage
+            if (dataObj['idCard']) {
+                dataObj['idCard'] = dataObj['idCard'].replace(/-/g, '');
+            }
+
+            // Remove hyphens from phone for database storage
+            if (dataObj['phone']) {
+                dataObj['phone'] = dataObj['phone'].replace(/-/g, '');
+            }
+
+            console.log("Form Submitted:", dataObj);
+
+            // Show Success UI
+            document.querySelector('.container').innerHTML = `
+                <div style="text-align: center; padding: 40px 20px;">
+                    <i class="fa-solid fa-circle-check" style="font-size: 80px; color: var(--success-color); margin-bottom: 20px;"></i>
+                    <h2 style="color: var(--primary-color); margin-bottom: 15px;">ลงทะเบียนสำเร็จ!</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 30px;">ระบบได้รับข้อมูลการลงทะเบียนอบรมของคุณเรียบร้อยแล้ว<br>เจ้าหน้าที่จะติดต่อกลับผ่านอีเมลหรือหมายเลขโทรศัพท์ที่คุณระบุไว้</p>
+                    <button class="btn btn-next" style="margin: 0 auto;" onclick="location.reload()">กลับสู่หน้าหลัก</button>
+                </div>
+            `;
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // ===== Relational Address Data System =====
+        let rawProvinces = [];
+        let rawDistricts = [];
+        let rawSubDistricts = [];
+
+        async function loadAddressData() {
+            try {
+                const [provRes, distRes, subRes] = await Promise.all([
+                    fetch('provinces.json'),
+                    fetch('districts.json'),
+                    fetch('sub_districts.json')
+                ]);
+                const provData = await provRes.json();
+                const distData = await distRes.json();
+                const subData = await subRes.json();
+
+                rawProvinces = provData.provinces || [];
+                rawDistricts = distData.districts || [];
+                rawSubDistricts = subData.sub_districts || [];
+            } catch (err) {
+                console.error("Error loading address data:", err);
+            }
+        }
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', loadAddressData);
+
+        // ===== Address Autocomplete System =====
+        function getFieldId(field, prefix) {
+            if (!prefix) return field; // province, district, subDistrict
+            // ship prefix: shipProvince, shipDistrict, shipSubDistrict
+            return prefix + field.charAt(0).toUpperCase() + field.slice(1);
+        }
+
+        function acSearch(input, type, prefix) {
+            var listId = getFieldId(type, prefix) + '_list';
+            var listEl = document.getElementById(listId);
+            var query = input.value.trim().toLowerCase();
+            var items = [];
+
+            if (type === 'province') {
+                items = rawProvinces.map(p => ({
+                    id: p.PROVINCE_ID,
+                    text: p.PROVINCE_THAI
+                }));
+            } else if (type === 'district') {
+                var provName = document.getElementById(getFieldId('province', prefix)).value;
+                var provObj = rawProvinces.find(p => p.PROVINCE_THAI === provName);
+                if (provObj) {
+                    items = rawDistricts
+                        .filter(d => d.PROVINCE_ID === provObj.PROVINCE_ID)
+                        .map(d => ({
+                            id: d.DISTRICT_ID,
+                            text: d.DISTRICT_THAI
+                        }));
+                }
+            } else if (type === 'subDistrict') {
+                var distName = document.getElementById(getFieldId('district', prefix)).value;
+                var distObj = rawDistricts.find(d => d.DISTRICT_THAI === distName);
+                if (distObj) {
+                    items = rawSubDistricts
+                        .filter(s => s.DISTRICT_ID === distObj.DISTRICT_ID)
+                        .map(s => ({
+                            id: s.SUB_DISTRICT_ID,
+                            text: s.SUB_DISTRICT_THAI,
+                            postcode: s.POSTAL_CODE
+                        }));
+                }
+            }
+
+            if (query) {
+                items = items.filter(i => i.text.toLowerCase().indexOf(query) !== -1);
+            }
+
+            listEl.innerHTML = '';
+            if (items.length === 0) { listEl.classList.remove('show'); return; }
+            items.slice(0, 30).forEach(function (itemObj) {
+                var val = itemObj.text;
+                var div = document.createElement('div');
+                div.className = 'autocomplete-item';
+                div.setAttribute('data-val', val);
+                if (itemObj.postcode) div.setAttribute('data-postcode', itemObj.postcode);
+
+                if (query) {
+                    var regex = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+                    div.innerHTML = val.replace(regex, '<mark style="background:rgba(228,160,37,0.25);padding:0;border-radius:2px;">$1</mark>');
+                } else {
+                    div.textContent = val;
+                }
+                div.onmousedown = function (e) {
+                    e.preventDefault();
+                    acSelect(val, type, prefix, itemObj.postcode);
+                };
+                listEl.appendChild(div);
+            });
+            listEl.classList.add('show');
+        }
+
+        function acSelect(value, type, prefix, postcode) {
+            var input = document.getElementById(getFieldId(type, prefix));
+            input.value = value;
+            document.getElementById(getFieldId(type, prefix) + '_list').classList.remove('show');
+            input.classList.remove('invalid');
+            removeErrorMsg(input);
+
+            // Cascade: clear child fields and set zip code if applicable
+            var zipField = prefix ? 'shipZipcode' : 'zipcode';
+
+            if (type === 'province') {
+                var distInput = document.getElementById(getFieldId('district', prefix));
+                var subInput = document.getElementById(getFieldId('subDistrict', prefix));
+                distInput.value = ''; subInput.value = '';
+                document.getElementById(zipField).value = '';
+            } else if (type === 'district') {
+                document.getElementById(getFieldId('subDistrict', prefix)).value = '';
+                document.getElementById(zipField).value = '';
+            } else if (type === 'subDistrict') {
+                var zipInput = document.getElementById(zipField);
+                if (postcode) {
+                    zipInput.value = postcode;
+                }
+                zipInput.classList.remove('invalid');
+                removeErrorMsg(zipInput);
+            }
+        }
+
+        // Keyboard navigation for Address autocomplete
+        ['province', 'district', 'subDistrict', 'shipProvince', 'shipDistrict', 'shipSubDistrict'].forEach(function (fieldId) {
+            var input = document.getElementById(fieldId);
+            if (!input) return;
+            var activeIdx = -1;
+
+            input.addEventListener('keydown', function (e) {
+                var listEl = document.getElementById(fieldId + '_list');
+                var items = listEl.querySelectorAll('.autocomplete-item');
+                if (!items.length) return;
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    activeIdx = Math.min(activeIdx + 1, items.length - 1);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    activeIdx = Math.max(activeIdx - 1, 0);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    var selectedIdx = activeIdx >= 0 ? activeIdx : 0;
+                    if (items[selectedIdx]) {
+                        var isShip = fieldId.startsWith('ship');
+                        var type = fieldId;
+                        if (isShip) {
+                            if (fieldId === 'shipProvince') type = 'province';
+                            if (fieldId === 'shipDistrict') type = 'district';
+                            if (fieldId === 'shipSubDistrict') type = 'subDistrict';
+                        }
+                        var prefix = isShip ? 'ship' : '';
+                        var val = items[selectedIdx].getAttribute('data-val');
+                        var postcode = items[selectedIdx].getAttribute('data-postcode');
+                        acSelect(val, type, prefix, postcode);
+                    }
+                    activeIdx = -1;
+                    return;
+                } else if (e.key === 'Escape') {
+                    listEl.classList.remove('show');
+                    activeIdx = -1;
+                    return;
+                } else {
+                    activeIdx = -1;
+                    return;
+                }
+
+                items.forEach(function (i) { i.classList.remove('active'); });
+                if (items[activeIdx]) {
+                    items[activeIdx].classList.add('active');
+                    items[activeIdx].scrollIntoView({ block: 'nearest' });
+                }
+            });
+
+            input.addEventListener('blur', function () {
+                setTimeout(function () {
+                    var listEl = document.getElementById(fieldId + '_list');
+                    if (listEl) listEl.classList.remove('show');
+                    activeIdx = -1;
+                }, 150);
+            });
+        });
+
+        // Close all autocomplete lists when clicking outside
+        document.addEventListener('click', function (e) {
+            if (e.target.closest('.autocomplete-wrapper')) return;
+            var lists = document.querySelectorAll('.autocomplete-list');
+            lists.forEach(function (l) { l.classList.remove('show'); });
+        });
+
+        // ===== Autocomplete: สังกัดภาค & สาขา =====
+        var agentRegionMap = {
+            'ภาค 1 (ภาคเหนือ)': ['เชียงราย', 'เชียงใหม่', 'นครสวรรค์', 'พิษณุโลก'],
+            'ภาค 2 (ภาคตะวันออกเฉียงเหนือ)': ['ขอนแก่น', 'นครราชสีมา', 'อุดรธานี', 'อุบลราชธานี'],
+            'ภาค 3 (ภาคตะวันออก)': ['จันทบุรี', 'ฉะเชิงเทรา', 'พัทยา', 'ระยอง'],
+            'ภาค 4 (ภาคกลางและภาคตะวันตก)': ['นครปฐม', 'พระนครศรีอยุธยา', 'สมุทรสาคร', 'สระบุรี'],
+            'ภาค 5 (ภาคใต้)': ['กระบี่', 'นครศรีธรรมราช', 'ภูเก็ต', 'สุราษฎร์ธานี', 'หาดใหญ่'],
+            'ภาค 6 (ภาคกรุงเทพฯ)': ['กรุงเกษม', 'ดอนเมือง', 'บางนา', 'บางพลัด', 'ปู่เจ้าสมิงพราย', 'พระราม 2', 'ปากเกร็ด-345', 'รัชดาภิเษก', 'ลุมพินี', 'วงศ์สว่าง', 'วิภาวดี', 'สุขสวัสดิ์', 'สุขาภิบาล 3', 'กิจกรรพิเศษ1', 'กิจกรรพิเศษ2']
+        };
+
+        var branchOptions = [];
+        var branchToRegion = {};
+        for (var region in agentRegionMap) {
+            agentRegionMap[region].forEach(function (branch) {
+                branchOptions.push(branch);
+                branchToRegion[branch] = region;
+            });
+        }
+
+        function initAutocomplete(inputId, listId, options) {
+            const input = document.getElementById(inputId);
+            const listEl = document.getElementById(listId);
+            if (!input || !listEl) return;
+            let activeIdx = -1;
+
+            function renderList(filter) {
+                listEl.innerHTML = '';
+                activeIdx = -1;
+                const q = (filter || '').trim().toLowerCase();
+                const filtered = q
+                    ? options.filter(o => o.toLowerCase().includes(q))
+                    : options;
+
+                if (filtered.length === 0) {
+                    listEl.classList.remove('show');
+                    return;
+                }
+
+                filtered.forEach((item, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'autocomplete-item';
+                    if (q) {
+                        const regex = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+                        div.innerHTML = item.replace(regex, '<mark>$1</mark>');
+                    } else {
+                        div.textContent = item;
+                    }
+                    div.addEventListener('mousedown', function (e) {
+                        e.preventDefault();
+                        input.value = item;
+                        listEl.classList.remove('show');
+                        input.classList.remove('invalid');
+                        removeErrorMsg(input);
+
+                        if (inputId === 'agentBranch') {
+                            const regionInput = document.getElementById('agentRegion');
+                            if (regionInput && branchToRegion[item]) {
+                                regionInput.value = branchToRegion[item];
+                                regionInput.classList.remove('invalid');
+                                removeErrorMsg(regionInput);
+                            }
+                        }
+                    });
+                    listEl.appendChild(div);
+                });
+                listEl.classList.add('show');
+            }
+
+            input.addEventListener('focus', function () {
+                renderList(this.value);
+            });
+
+            input.addEventListener('click', function () {
+                renderList(this.value);
+            });
+
+            input.addEventListener('input', function () {
+                renderList(this.value);
+                if (inputId === 'agentBranch') {
+                    const val = this.value.trim();
+                    const regionInput = document.getElementById('agentRegion');
+                    if (regionInput) {
+                        if (branchToRegion[val]) {
+                            regionInput.value = branchToRegion[val];
+                            regionInput.classList.remove('invalid');
+                            removeErrorMsg(regionInput);
+                        } else {
+                            regionInput.value = '';
+                        }
+                    }
+                }
+            });
+
+            input.addEventListener('blur', function () {
+                setTimeout(() => listEl.classList.remove('show'), 150);
+            });
+
+            input.addEventListener('keydown', function (e) {
+                const items = listEl.querySelectorAll('.autocomplete-item');
+                if (!items.length) return;
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    activeIdx = Math.min(activeIdx + 1, items.length - 1);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    activeIdx = Math.max(activeIdx - 1, 0);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const selectedIdx = activeIdx >= 0 ? activeIdx : 0;
+                    if (items[selectedIdx]) {
+                        const val = items[selectedIdx].textContent;
+                        input.value = val;
+                        listEl.classList.remove('show');
+                        input.classList.remove('invalid');
+                        removeErrorMsg(input);
+
+                        if (inputId === 'agentBranch') {
+                            const regionInput = document.getElementById('agentRegion');
+                            if (regionInput && branchToRegion[val]) {
+                                regionInput.value = branchToRegion[val];
+                                regionInput.classList.remove('invalid');
+                                removeErrorMsg(regionInput);
+                            }
+                        }
+                    }
+                    return;
+                } else if (e.key === 'Escape') {
+                    listEl.classList.remove('show');
+                    return;
+                } else {
+                    return;
+                }
+
+                items.forEach(i => i.classList.remove('active'));
+                if (items[activeIdx]) {
+                    items[activeIdx].classList.add('active');
+                    items[activeIdx].scrollIntoView({ block: 'nearest' });
+                }
+            });
+        }
+
+        initAutocomplete('agentBranch', 'agentBranch_list', branchOptions);
+
+        // ===== Video Modal (Autoplay) =====
+        function openVideoModal() {
+            var m = document.getElementById('videoModal');
+            var v = document.getElementById('howtoVideo');
+            if (m) m.classList.add('show');
+
+            if (v) {
+                try { v.currentTime = 0; } catch (e) { }
+                var p = v.play();
+                if (p && typeof p.catch === 'function') { p.catch(function () { }); }
+            }
+        }
+        function closeVideoModal() {
+            var m = document.getElementById('videoModal');
+            var v = document.getElementById('howtoVideo');
+            if (v) {
+                try { v.pause(); } catch (e) { }
+                try { v.currentTime = 0; } catch (e) { }
+            }
+            if (m) m.classList.remove('show');
+        }
+
+        // ===== Infographic Modal =====
+        function openInfographicModal() {
+            var m = document.getElementById('infographicModal');
+            if (m) m.classList.add('show');
+        }
+        function closeInfographicModal() {
+            var m = document.getElementById('infographicModal');
+            if (m) m.classList.remove('show');
+        }
+
+        // ===== Sample Modal (Image Only) =====
+        function openSampleModal(titleText, imgSrc) {
+            var m = document.getElementById('sampleModal');
+            var t = document.getElementById('sampleModalTitle');
+            var img = document.getElementById('sampleModalImg');
+
+            if (t) t.textContent = titleText || 'ตัวอย่างภาพที่ถูกต้อง';
+            if (img) {
+                img.src = imgSrc;
+                img.alt = titleText || 'ตัวอย่างภาพที่ถูกต้อง';
+            }
+            if (m) m.classList.add('show');
+        }
+        function closeSampleModal() {
+            var m = document.getElementById('sampleModal');
+            var img = document.getElementById('sampleModalImg');
+            if (img) img.src = '';
+            if (m) m.classList.remove('show');
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var thumb = document.getElementById('videoThumb');
+            if (thumb) {
+                thumb.addEventListener('click', openVideoModal);
+                thumb.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openVideoModal(); }
+                });
+            }
+
+            var info = document.getElementById('infographicThumb');
+            if (info) info.addEventListener('click', openInfographicModal);
+
+            // Sample links: prevent bubbling to label (so it won't open file dialog)
+            var links = document.querySelectorAll('.sample-link');
+            for (var i = 0; i < links.length; i++) {
+                links[i].addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    var src = this.getAttribute('data-sample') || '';
+                    var title = this.getAttribute('data-title') || 'ตัวอย่างภาพที่ถูกต้อง';
+                    if (!src) return;
+
+                    openSampleModal(title, src);
+                }, false);
+
+                links[i].addEventListener('mousedown', function (e) {
+                    // extra safety: stop label-trigger on mousedown as well
+                    e.stopPropagation();
+                }, false);
+            }
+        });
+
+        document.addEventListener('click', function (e) {
+            // Close by clicking backdrop
+            var vm = document.getElementById('videoModal');
+            if (vm && vm.classList.contains('show') && e.target === vm) { closeVideoModal(); return; }
+
+            var im = document.getElementById('infographicModal');
+            if (im && im.classList.contains('show') && e.target === im) { closeInfographicModal(); return; }
+
+            var pm = document.getElementById('sampleModal');
+            if (pm && pm.classList.contains('show') && e.target === pm) { closeSampleModal(); return; }
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key !== 'Escape') return;
+
+            var vm = document.getElementById('videoModal');
+            if (vm && vm.classList.contains('show')) { closeVideoModal(); return; }
+
+            var im = document.getElementById('infographicModal');
+            if (im && im.classList.contains('show')) { closeInfographicModal(); return; }
+
+            var pm = document.getElementById('sampleModal');
+            if (pm && pm.classList.contains('show')) { closeSampleModal(); return; }
+        });
+
+        // ===== Blur Event Validations =====
+        document.addEventListener('DOMContentLoaded', function() {
+            // ID Card validation
+            let idCardInput = document.querySelector('input[name="idCard"]');
+            if (idCardInput) {
+                idCardInput.addEventListener('blur', function() {
+                    let id = this.value.replace(/\D/g, '');
+                    if (id.length > 0 && id.length !== 13) {
+                        showFieldError(this, "เลขบัตรประชาชนต้องมี 13 หลัก");
+                        return;
+                    }
+                    if (id.length === 13) {
+                        let sum = 0;
+                        for (let i = 0; i < 12; i++) {
+                            sum += parseInt(id.charAt(i)) * (13 - i);
+                        }
+                        if ((11 - (sum % 11)) % 10 !== parseInt(id.charAt(12))) {
+                            showFieldError(this, "เลขบัตรประชาชนไม่ถูกต้องตามรูปแบบราชการ");
+                        }
+                    }
+                });
+            }
+
+            // Phone validation
+            let phoneInputs = document.querySelectorAll('input[type="tel"]');
+            phoneInputs.forEach(function(input) {
+                input.addEventListener('blur', function() {
+                    let telRaw = this.value.replace(/\D/g, '');
+                    if (telRaw.length > 0) {
+                        if (telRaw.length !== 10 || telRaw.charAt(0) !== '0') {
+                            showFieldError(this, "หมายเลขโทรศัพท์ต้องมี 10 หลักและขึ้นต้นด้วย 0 เท่านั้น");
+                        }
+                    }
+                });
+            });
+
+            // ID Card Expiry validation
+            let idCardExpiryInput = document.querySelector('input[name="idCardExpiry"]');
+            if (idCardExpiryInput) {
+                let validateIdCardExpiry = function() {
+                    if (this.value.trim() !== "") {
+                        let parts = this.value.split('/');
+                        if (parts.length === 3) {
+                            let year = parseInt(parts[2]);
+                            if (year > 2400) year -= 543;
+                            let expDate = new Date(year, parts[1] - 1, parts[0]);
+                            let today = new Date();
+                            today.setHours(0,0,0,0);
+                            if (expDate <= today) {
+                                showFieldError(this, "วันหมดอายุบัตรประชาชน ต้องมากกว่าวันที่ปัจจุบันเท่านั้น");
+                            }
+                        }
+                    }
+                };
+                idCardExpiryInput.addEventListener('blur', validateIdCardExpiry);
+                idCardExpiryInput.addEventListener('change', validateIdCardExpiry);
+            }
+
+            // Birth Date validation
+            let birthDateInput = document.querySelector('input[name="birthDate"]');
+            if (birthDateInput) {
+                let validateBirthDate = function() {
+                    if (this.value.trim() !== "") {
+                        let parts = this.value.split('/');
+                        if (parts.length === 3) {
+                            let year = parseInt(parts[2]);
+                            if (year > 2400) year -= 543;
+                            let bday = new Date(year, parts[1] - 1, parts[0]);
+                            let today = new Date();
+                            let age = today.getFullYear() - bday.getFullYear();
+                            let m = today.getMonth() - bday.getMonth();
+                            if (m < 0 || (m === 0 && today.getDate() < bday.getDate())) {
+                                age--;
+                            }
+                            if (age < 20) {
+                                showFieldError(this, "วัน/เดือน/ปี เกิด ต้องมากกว่า 20 นับจากวันที่ปัจจุบันเท่านั้น");
+                            }
+                        }
+                    }
+                };
+                birthDateInput.addEventListener('blur', validateBirthDate);
+                birthDateInput.addEventListener('change', validateBirthDate);
+            }
+
+            // License No validation
+            let licenseNoInput = document.querySelector('input[name="licenseNo"]');
+            if (licenseNoInput) {
+                licenseNoInput.addEventListener('blur', function() {
+                    if (this.value.trim() !== "") {
+                        if (this.value.trim().length !== 10) {
+                            showFieldError(this, "เลขที่ใบอนุญาตต้องมี 10 หลัก");
+                        }
+                    }
+                });
+            }
+
+            // License Expire validation
+            let licenseExpireInput = document.querySelector('input[name="licenseExpire"]');
+            if (licenseExpireInput) {
+                let validateLicenseExpire = function() {
+                    if (this.value.trim() !== "") {
+                        let parts = this.value.split('/');
+                        if (parts.length === 3) {
+                            let year = parseInt(parts[2]);
+                            if (year > 2400) year -= 543;
+                            let expDate = new Date(year, parts[1] - 1, parts[0]);
+                            let today = new Date();
+                            today.setHours(0,0,0,0);
+                            if (expDate <= today) {
+                                showFieldError(this, "วันหมดอายุใบอนุญาต ต้องมากกว่าวันที่ปัจจุบันเท่านั้น");
+                            }
+                        }
+                    }
+                };
+                licenseExpireInput.addEventListener('blur', validateLicenseExpire);
+                licenseExpireInput.addEventListener('change', validateLicenseExpire);
+            }
+        });
+    </script>
+
+    <!-- =====================================================
+         Video Popup Modal
+    ===================================================== -->
+    <div id="videoModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="videoModalTitle">
+        <div class="video-modal-card">
+            <div class="modal-header">
+                <div>
+                    <div id="videoModalTitle" class="modal-title">วิดีโอแนะนำการลงทะเบียน</div>
+                    <div class="modal-sub">วิดีโอจะเล่นอัตโนมัติเมื่อเปิด (ถ้าเบราว์เซอร์อนุญาต)</div>
+                </div>
+                <button type="button" class="modal-x" aria-label="ปิด" onclick="closeVideoModal()">×</button>
+            </div>
+            <div class="video-modal-body">
+                <div class="video-box">
+                    <video id="howtoVideo" controls preload="metadata" playsinline>
+                        <source src="clip-register.mp4" type="video/mp4">
+                        เบราว์เซอร์ของคุณไม่รองรับการเล่นวิดีโอ
+                    </video>
+                </div>
+                <div class="video-hint">หากต้องการปิดเสียง ให้กด Mute ในตัวเล่น</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="modal-close" onclick="closeVideoModal()">ปิดหน้าต่าง</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================
+         Infographic Popup Modal
+    ==================================================== -->
+    <div id="infographicModal" class="modal-backdrop" role="dialog" aria-modal="true"
+        aria-labelledby="infographicModalTitle">
+        <div class="video-modal-card">
+            <div class="modal-header">
+                <div>
+                    <div id="infographicModalTitle" class="modal-title">ขั้นตอนการลงทะเบียน (ขยายภาพ)</div>
+                    <div class="modal-sub">กดปุ่มปิด หรือกดพื้นที่ด้านนอก/กด Esc เพื่อปิด</div>
+                </div>
+                <button type="button" class="modal-x" aria-label="ปิด" onclick="closeInfographicModal()">×</button>
+            </div>
+            <div class="video-modal-body">
+                <img src="infographic2569.png" alt="ขั้นตอนการลงทะเบียน (ขยาย)"
+                    style="width:100%; height:auto; border-radius:12px; background:#fff; display:block;">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="modal-close" onclick="closeInfographicModal()">ปิดหน้าต่าง</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================
+         Sample Image Popup Modal (show image only)
+    ===================================================== -->
+    <div id="sampleModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="sampleModalTitle">
+        <div class="video-modal-card">
+            <div class="modal-header">
+                <div>
+                    <div id="sampleModalTitle" class="modal-title">ตัวอย่างภาพที่ถูกต้อง</div>
+                    <div class="modal-sub">กดปุ่มปิด หรือกดพื้นที่ด้านนอก/กด Esc เพื่อปิด</div>
+                </div>
+                <button type="button" class="modal-x" aria-label="ปิด" onclick="closeSampleModal()">×</button>
+            </div>
+            <div class="sample-modal-body">
+                <div class="sample-img-wrap">
+                    <img id="sampleModalImg" src="" alt="ตัวอย่างภาพที่ถูกต้อง">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="modal-close" onclick="closeSampleModal()">ปิดหน้าต่าง</button>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function forceBE(instance) {
+                setTimeout(function() {
+                    if (instance.currentYearElement) {
+                        let y = instance.currentYear;
+                        if (y < 2400) {
+                            y += 543;
+                        }
+                        instance.currentYearElement.value = y;
+                    }
+                }, 0);
+            }
+
+            let baseConfig = {
+                dateFormat: "d/m/Y",
+                locale: "th",
+                allowInput: true,
+                disableMobile: true,
+                onReady: function(selectedDates, dateStr, instance) { forceBE(instance); },
+                onOpen: function(selectedDates, dateStr, instance) { forceBE(instance); },
+                onValueUpdate: function(selectedDates, dateStr, instance) { forceBE(instance); },
+                onYearChange: function(selectedDates, dateStr, instance) { forceBE(instance); },
+                onMonthChange: function(selectedDates, dateStr, instance) { forceBE(instance); },
+                formatDate: function(date, format, locale) {
+                    let d = date.getDate().toString().padStart(2, '0');
+                    let m = (date.getMonth() + 1).toString().padStart(2, '0');
+                    let y = date.getFullYear();
+                    if (y < 2400) {
+                        y += 543;
+                    }
+                    return d + '/' + m + '/' + y;
+                },
+                parseDate: function(datestr, format) {
+                    let parts = datestr.split('/');
+                    if (parts.length === 3) {
+                        let d = parseInt(parts[0], 10);
+                        let m = parseInt(parts[1], 10) - 1;
+                        let y = parseInt(parts[2], 10);
+                        if (y > 2400) {
+                            y -= 543;
+                        }
+                        return new Date(y, m, d);
+                    }
+                    return false;
+                }
+            };
+
+            document.querySelectorAll(".datepicker").forEach(function(el) {
+                let config = Object.assign({}, baseConfig);
+                if (el.name === "birthDate") {
+                    config.onOpen = function(selectedDates, dateStr, instance) {
+                        if (selectedDates.length === 0) {
+                            let d = new Date();
+                            d.setFullYear(d.getFullYear() - 20);
+                            instance.jumpToDate(d);
+                        }
+                        forceBE(instance);
+                    };
+                }
+                flatpickr(el, config);
+            });
+        });
+    </script>
+</body>
+
+</html>
