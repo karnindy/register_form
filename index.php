@@ -2440,7 +2440,7 @@ $brokerStyle = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'agent')
 
                     let deductionGroup = document.getElementById("deductionPrivilegeGroup");
                     if (deductionGroup) {
-                        if (this.value.includes("ขอต่อใบอนุญาตตัวแทน/นายหน้าประกันวินาศภัย 4 เป็นต้นไป")) {
+                        if (this.value.includes("4 เป็นต้นไป") || this.value.includes("ครั้งที่ 4")) {
                             deductionGroup.style.display = "block";
                         } else {
                             deductionGroup.style.display = "none";

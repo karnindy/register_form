@@ -94,6 +94,11 @@ if ($trainingExemption === null) {
     $trainingExemptionYet = null;
 }
 
+$highestEducationUpdate = "";
+if ($trainingExemption !== null) {
+    $highestEducationUpdate = "highest_education = 'ปริญญาโท',";
+}
+
 $pastTraining5y = null;
 $extraTrainingInterest = null; // Do not copy pastTraining5y here, as it causes Data too long errors.
 if (isset($_POST['previousCourses']) && is_array($_POST['previousCourses'])) {
@@ -127,6 +132,7 @@ $sql = "UPDATE " . DB_TABLE_REGISTER . " SET
     training_exemption_yet  = ?,
     past_training_5y        = ?,
     extra_training_interest = ?,
+    $highestEducationUpdate
     confirmed               = 'ยืนยันการสมัคร',
     updated_at              = NOW(),
     completion_time         = NOW()
