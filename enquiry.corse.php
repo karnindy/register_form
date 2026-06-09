@@ -439,6 +439,56 @@ $completionCol = pickFirstExisting(array('completion_time','completed_at','compl
                             $res = $stmt->get_result();
                             if ($res && $res->num_rows > 0) {
                                 $result = $res->fetch_assoc();
+
+                                // Merge renew_other for the same national_id
+                                if ($wantCourseCol === 'renew_other') {
+                                    $cteSql = "WITH RECURSIVE seq AS (
+                                        SELECT 1 n
+                                        UNION ALL
+                                        SELECT n + 1
+                                        FROM seq
+                                        WHERE n < 20
+                                    ),
+                                    split_data AS (
+                                        SELECT
+                                            r.`$idCol`,
+                                            TRIM(
+                                                SUBSTRING_INDEX(
+                                                    SUBSTRING_INDEX(r.renew_other, ';', n),
+                                                    ';',
+                                                    -1
+                                                )
+                                            ) AS subject
+                                        FROM `$table` r
+                                        JOIN seq
+                                            ON n <= 1 + LENGTH(IFNULL(r.renew_other,''))
+                                                  - LENGTH(REPLACE(IFNULL(r.renew_other,''), ';', ''))
+                                        WHERE LEFT(REPLACE(REPLACE(r.`$idCol`,'-',''),' ',''),13) = ?
+                                    )
+                                    SELECT
+                                        GROUP_CONCAT(
+                                            DISTINCT subject
+                                            ORDER BY subject
+                                            SEPARATOR ' ; '
+                                        ) AS renew_other_all
+                                    FROM split_data
+                                    WHERE subject <> ''";
+                                    
+                                    $stmtCte = $db->prepare($cteSql);
+                                    if ($stmtCte) {
+                                        $stmtCte->bind_param("s", $qIdDigits);
+                                        if ($stmtCte->execute()) {
+                                            $resCte = $stmtCte->get_result();
+                                            if ($resCte && $resCte->num_rows > 0) {
+                                                $rowCte = $resCte->fetch_assoc();
+                                                if (!empty($rowCte['renew_other_all'])) {
+                                                    $result['want_courses'] = $rowCte['renew_other_all'];
+                                                }
+                                            }
+                                        }
+                                        $stmtCte->close();
+                                    }
+                                }
                             } else {
                                 $notFoundMsg = "ไม่พบข้อมูลการอบรมของท่าน";
                             }
