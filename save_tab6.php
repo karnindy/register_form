@@ -63,7 +63,9 @@ $sql = "UPDATE " . DB_TABLE_REGISTER . " SET
     sales_area = ?,
     other_insurance_companies = ?,
     insurance_specialty = ?,
-    updated_at = NOW()
+    confirmed = 'ยืนยันการสมัคร',
+    updated_at = NOW(),
+    completion_time = NOW()
 WHERE id = ?";
 
 try {

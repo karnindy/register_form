@@ -127,7 +127,9 @@ $sql = "UPDATE " . DB_TABLE_REGISTER . " SET
     training_exemption_yet  = ?,
     past_training_5y        = ?,
     extra_training_interest = ?,
-    updated_at              = NOW()
+    confirmed               = 'ยืนยันการสมัคร',
+    updated_at              = NOW(),
+    completion_time         = NOW()
 WHERE id = ?";
 
 try {
