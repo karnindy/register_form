@@ -8,12 +8,44 @@
 include 'appconfig.php';
 
 // Check if system is closed
-if (defined('SYSTEM_CLOSED_START') && defined('SYSTEM_CLOSED_END') && SYSTEM_CLOSED_START !== '' && SYSTEM_CLOSED_END !== '') {
-    date_default_timezone_set('Asia/Bangkok');
-    $now = new DateTime();
-    $start = new DateTime(SYSTEM_CLOSED_START);
-    $end = new DateTime(SYSTEM_CLOSED_END);
-    if (!($now >= $start && $now <= $end)) {
+if (defined('SYSTEM_ALWAYS_CLOSED') && SYSTEM_ALWAYS_CLOSED === true) {
+    // If always closed, stay on this page
+} elseif (defined('SYSTEM_OPEN_PERIODS')) {
+    $periods = json_decode(SYSTEM_OPEN_PERIODS, true);
+    if (is_array($periods) && count($periods) > 0) {
+        date_default_timezone_set('Asia/Bangkok');
+        $now = new DateTime();
+        $isClosed = true;
+
+        foreach ($periods as $period) {
+            $openValid = true;
+            $closeValid = true;
+
+            if (!empty($period['open'])) {
+                $openDate = new DateTime($period['open']);
+                if ($now < $openDate) {
+                    $openValid = false;
+                }
+            }
+
+            if (!empty($period['close'])) {
+                $closeDate = new DateTime($period['close']);
+                if ($now >= $closeDate) {
+                    $closeValid = false;
+                }
+            }
+
+            if ($openValid && $closeValid) {
+                $isClosed = false;
+                break;
+            }
+        }
+
+        if (!$isClosed) {
+            header("Location: index.php");
+            exit();
+        }
+    } else {
         header("Location: index.php");
         exit();
     }

@@ -8,14 +8,44 @@
 include 'appconfig.php';
 
 // Check if system is closed
-if (defined('SYSTEM_CLOSED_START') && defined('SYSTEM_CLOSED_END') && SYSTEM_CLOSED_START !== '' && SYSTEM_CLOSED_END !== '') {
-    date_default_timezone_set('Asia/Bangkok');
-    $now = new DateTime();
-    $start = new DateTime(SYSTEM_CLOSED_START);
-    $end = new DateTime(SYSTEM_CLOSED_END);
-    if ($now >= $start && $now <= $end) {
-        header("Location: closed.php");
-        exit();
+if (defined('SYSTEM_ALWAYS_CLOSED') && SYSTEM_ALWAYS_CLOSED === true) {
+    header("Location: closed.php");
+    exit();
+} elseif (defined('SYSTEM_OPEN_PERIODS')) {
+    $periods = json_decode(SYSTEM_OPEN_PERIODS, true);
+    if (is_array($periods) && count($periods) > 0) {
+        date_default_timezone_set('Asia/Bangkok');
+        $now = new DateTime();
+        $isClosed = true;
+
+        foreach ($periods as $period) {
+            $openValid = true;
+            $closeValid = true;
+
+            if (!empty($period['open'])) {
+                $openDate = new DateTime($period['open']);
+                if ($now < $openDate) {
+                    $openValid = false;
+                }
+            }
+
+            if (!empty($period['close'])) {
+                $closeDate = new DateTime($period['close']);
+                if ($now >= $closeDate) {
+                    $closeValid = false;
+                }
+            }
+
+            if ($openValid && $closeValid) {
+                $isClosed = false;
+                break;
+            }
+        }
+
+        if ($isClosed) {
+            header("Location: closed.php");
+            exit();
+        }
     }
 }
 
@@ -1380,10 +1410,20 @@ function e($val) {
                 <div class="form-group">
                     <label class="required">ประเภทใบอนุญาต</label>
                     <input type="hidden" name="agentType" id="actualAgentType" value="">
+<?php
+$agentChecked = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'agent') ? 'checked' : '';
+$brokerChecked = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'broker') ? 'checked' : '';
+
+$agentDisabled = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'broker') ? 'disabled' : '';
+$brokerDisabled = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'agent') ? 'disabled' : '';
+
+$agentStyle = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'broker') ? 'style="opacity: 0.5; pointer-events: none;"' : '';
+$brokerStyle = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'agent') ? 'style="opacity: 0.5; pointer-events: none;"' : '';
+?>
                     <div class="radio-group">
-                        <label class="radio-item"><input type="radio" name="agentTypeMain" value="ตัวแทนประกันวินาศภัย"
-                                required onchange="toggleAgentAffiliation()"> ตัวแทนประกันวินาศภัย</label>
-                        <label class="radio-item"><input type="radio" name="agentTypeMain" value="นายหน้าประกันวินาศภัย" onchange="toggleAgentAffiliation()">
+                        <label class="radio-item" <?php echo $agentStyle; ?>><input type="radio" name="agentTypeMain" value="ตัวแทนประกันวินาศภัย"
+                                required onchange="toggleAgentAffiliation()" <?php echo $agentChecked; ?> <?php echo $agentDisabled; ?>> ตัวแทนประกันวินาศภัย</label>
+                        <label class="radio-item" <?php echo $brokerStyle; ?>><input type="radio" name="agentTypeMain" value="นายหน้าประกันวินาศภัย" onchange="toggleAgentAffiliation()" <?php echo $brokerChecked; ?> <?php echo $brokerDisabled; ?>>
                             นายหน้าประกันวินาศภัย</label>
                     </div>
                     <div id="brokerTypeSection" style="display: none; margin-top: 10px; margin-left: 20px; border-left: 2px solid var(--primary-color); padding-left: 15px;">
@@ -1454,17 +1494,17 @@ function e($val) {
 
                 <div class="grid-3">
                     <div class="form-group">
-                        <label class="required">เลขที่ใบอนุญาต</label>
+                        <label>เลขที่ใบอนุญาต</label>
                         <input type="text" class="form-control" name="licenseNo"
-                            placeholder="กรอกเลขที่ใบอนุญาต 10 หลัก" maxlength="10" minlength="10" pattern="\d{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required value="<?php echo e($formData['licenseNo']); ?>">
+                            placeholder="กรอกเลขที่ใบอนุญาต 10 หลัก" maxlength="10" minlength="10" pattern="\d{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" value="<?php echo e($formData['licenseNo']); ?>">
                     </div>
                     <div class="form-group">
                         <label>วันที่ออกใบอนุญาต</label>
                         <input type="text" class="form-control datepicker" name="licenseIssue" placeholder="DD/MM/YYYY" value="<?php echo e($formData['licenseIssue']); ?>">
                     </div>
                     <div class="form-group">
-                        <label class="required">วันหมดอายุใบอนุญาต</label>
-                        <input type="text" class="form-control datepicker" name="licenseExpire" placeholder="DD/MM/YYYY" required value="<?php echo e($formData['licenseExpire']); ?>">
+                        <label>วันหมดอายุใบอนุญาต</label>
+                        <input type="text" class="form-control datepicker" name="licenseExpire" placeholder="DD/MM/YYYY" value="<?php echo e($formData['licenseExpire']); ?>">
                     </div>
                 </div>
             </div>
@@ -1663,6 +1703,8 @@ function e($val) {
         let savedId = '';
 
         document.addEventListener("DOMContentLoaded", function() {
+            let checkedAgent = document.querySelector('input[name="agentTypeMain"]:checked');
+            if (checkedAgent) toggleAgentAffiliation();
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('success')) {
                 // We are on the success page tab
@@ -2651,8 +2693,37 @@ function e($val) {
                 }
             }
 
-            // Custom check for training dates in Step 5 (Index 4)
+            // Custom check for training dates and license requirement in Step 5 (Index 4)
             if (currentTab === 4) {
+                let courseTypeInput = document.getElementById('courseTypeHidden');
+                if (courseTypeInput && courseTypeInput.value.includes('ขอต่อ')) {
+                    let licenseNo = document.querySelector('input[name="licenseNo"]');
+                    let licenseExpire = document.querySelector('input[name="licenseExpire"]');
+                    let missing = false;
+                    
+                    if (!licenseNo || licenseNo.value.trim() === "") {
+                        missing = true;
+                        if (licenseNo) showFieldError(licenseNo, "กรุณาระบุเลขที่ใบอนุญาต (จำเป็นสำหรับหลักสูตรขอต่อ)");
+                    }
+                    if (!licenseExpire || licenseExpire.value.trim() === "") {
+                        missing = true;
+                        if (licenseExpire) showFieldError(licenseExpire, "กรุณาระบุวันหมดอายุใบอนุญาต (จำเป็นสำหรับหลักสูตรขอต่อ)");
+                    }
+
+                    if (missing) {
+                        alert("หลักสูตรที่คุณเลือก จำเป็นต้องระบุ 'เลขที่ใบอนุญาต' และ 'วันหมดอายุใบอนุญาต'\n\nระบบจะพากลับไปที่หน้าที่ 4 เพื่อให้คุณกรอกข้อมูลให้ครบถ้วน");
+                        
+                        // Switch back to Tab 4 (Index 3)
+                        tabs[currentTab].style.display = "none";
+                        currentTab = 3;
+                        showTab(currentTab);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        
+                        valid = false;
+                        return valid;
+                    }
+                }
+
                 let dateGroup = document.getElementById("trainingDateGroup");
                 if (dateGroup && dateGroup.style.display !== "none") {
                     let trainingCheckboxes = dateGroup.querySelectorAll('input[name="trainingDate[]"]');
@@ -3550,20 +3621,23 @@ function e($val) {
     <div id="confirmModal" class="confirm-overlay">
         <div class="confirm-card">
             <div class="confirm-header">
-                <div class="confirm-icon"><i class="fa-solid fa-circle-check"></i></div>
-                <h2>ยืนยันการส่งข้อมูล</h2>
-                <p>กรุณาตรวจสอบข้อมูลด้านล่างให้ถูกต้องก่อนยืนยัน</p>
+                <h2>กรุณาตรวจสอบข้อมูลด้านล่างให้ถูกต้องก่อนยืนยัน</h2>
             </div>
             <div class="confirm-body">
                 <div id="confirmSummary"></div>
             </div>
-            <div class="confirm-footer">
-                <button type="button" class="btn-confirm-cancel" onclick="cancelConfirm()">
-                    <i class="fa-solid fa-arrow-left"></i> ย้อนกลับแก้ไข
-                </button>
-                <button type="button" class="btn-confirm-submit" onclick="confirmSubmit()">
-                    <i class="fa-solid fa-paper-plane"></i> ยืนยันส่งข้อมูล
-                </button>
+            <div class="confirm-footer-wrapper">
+                <div class="confirm-warning">
+                    <i class="fa-solid fa-triangle-exclamation"></i> ข้อมูลยังไม่ถูกส่ง! กรุณากดปุ่ม "ยืนยันส่งข้อมูล" ด้านล่าง
+                </div>
+                <div class="confirm-footer">
+                    <button type="button" class="btn-confirm-cancel" onclick="cancelConfirm()">
+                        <i class="fa-solid fa-arrow-left"></i> ย้อนกลับแก้ไข
+                    </button>
+                    <button type="button" class="btn-confirm-submit pulse-button" onclick="confirmSubmit()">
+                        <i class="fa-solid fa-paper-plane"></i> ยืนยันส่งข้อมูล
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -3659,12 +3733,34 @@ function e($val) {
             word-break: break-word;
             line-height: 1.6;
         }
+        .confirm-footer-wrapper {
+            background: #FAFBFC;
+            border-top: 1px solid #EEEEEE;
+        }
+        .confirm-warning {
+            text-align: center;
+            padding: 16px 20px 0;
+            color: var(--error-color);
+            font-size: 16px;
+            font-weight: 600;
+            animation: flashWarning 2s infinite;
+        }
+        @keyframes flashWarning {
+            0%, 100% { color: var(--error-color); }
+            50% { color: #ff9800; }
+        }
+        .pulse-button {
+            animation: pulseSubmit 2s infinite;
+        }
+        @keyframes pulseSubmit {
+            0% { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0.6); }
+            70% { box-shadow: 0 0 0 12px rgba(26, 115, 232, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0); }
+        }
         .confirm-footer {
             display: flex;
             gap: 12px;
-            padding: 20px 28px;
-            border-top: 1px solid #EEEEEE;
-            background: #FAFBFC;
+            padding: 16px 28px 24px;
         }
         .btn-confirm-cancel {
             flex: 1;
