@@ -1440,15 +1440,17 @@ $brokerStyle = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'agent')
                     <div class="grid-2">
                         <div class="form-group">
                             <label class="required">สาขา</label>
+                            <p style="font-size: 13px; color: var(--text-muted); margin-top: -5px; margin-bottom: 8px;"><?php echo e(defined('DEFAULT_AGENT_BRANCH_HINT') ? DEFAULT_AGENT_BRANCH_HINT : ''); ?></p>
                             <div class="autocomplete-wrapper">
                                 <input type="text" class="form-control" name="agentBranch" id="agentBranch" placeholder="พิมพ์เพื่อค้นหาสาขา" autocomplete="off"
-                                    oninput="agentAcSearch('agentBranch')" onfocus="agentAcSearch('agentBranch')" onclick="agentAcSearch('agentBranch')" value="<?php echo e($formData['agentBranch']); ?>" required>
+                                    oninput="agentAcSearch('agentBranch')" onfocus="agentAcSearch('agentBranch')" onclick="agentAcSearch('agentBranch')" value="<?php echo e(!empty($formData['agentBranch']) ? $formData['agentBranch'] : (defined('DEFAULT_AGENT_BRANCH') ? DEFAULT_AGENT_BRANCH : '')); ?>" required>
                                 <div class="autocomplete-list" id="agentBranch_list"></div>
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label class="required">ภาค</label>
+                            <p style="font-size: 13px; color: var(--text-muted); margin-top: -5px; margin-bottom: 8px;"><?php echo e(defined('DEFAULT_AGENT_REGION_HINT') ? DEFAULT_AGENT_REGION_HINT : 'อัตโนมัติตามสาขาที่เลือก'); ?></p>
                             <div class="autocomplete-wrapper">
                                 <input type="text" class="form-control" name="agentRegion" id="agentRegion" placeholder="ระบบจะเติมให้อัตโนมัติ" autocomplete="off" readonly style="background-color: #E9ECEF; cursor: not-allowed;" value="<?php echo e($formData['agentRegion']); ?>" required>
                             </div>
@@ -1457,8 +1459,8 @@ $brokerStyle = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'agent')
                     
                     <div class="form-group">
                         <label class="required">รหัสที่มีสัญญากับ บมจ.วิริยะประกันภัย</label>
-                        <p style="font-size: 13px; color: var(--text-muted); margin-top: -5px; margin-bottom: 8px;">ถ้าไม่ทราบ สอบถามสาขา หรือตัวแทน/นายหน้าที่ท่านสังกัด , ถ้าเป็นขอรับใบอนุญาต และยังไม่มีรหัส ให้กรอก 00000</p>
-                        <input type="text" class="form-control" id="viriyahAgentCodeAgent" name="viriyahAgentCode" placeholder="เลข 5 หลักของตัวแทนขาย" maxlength="5" pattern="\d{5}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" value="<?php echo e($formData['viriyahAgentCode'] ?? ''); ?>" required>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-top: -5px; margin-bottom: 8px;"><?php echo e(defined('DEFAULT_VIRIYAH_CODE_HINT') ? DEFAULT_VIRIYAH_CODE_HINT : 'ถ้าไม่ทราบ สอบถามสาขา หรือตัวแทน/นายหน้าที่ท่านสังกัด , ถ้าเป็นขอรับใบอนุญาต และยังไม่มีรหัส ให้กรอก 00000'); ?></p>
+                        <input type="text" class="form-control" id="viriyahAgentCodeAgent" name="viriyahAgentCode" placeholder="เลข 5 หลักของตัวแทนขาย" maxlength="5" pattern="\d{5}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" value="<?php echo e(!empty($formData['viriyahAgentCode']) ? $formData['viriyahAgentCode'] : (defined('DEFAULT_VIRIYAH_CODE') ? DEFAULT_VIRIYAH_CODE : '')); ?>" required>
                     </div>
 
                 <div id="brokerAffiliationSection" style="display: none; background-color: #F8F9FA; padding: 20px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 20px;">
@@ -3429,6 +3431,15 @@ $brokerStyle = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'agent')
 
         // ===== Blur Event Validations =====
         document.addEventListener('DOMContentLoaded', function() {
+            // Auto-fill Region on load if Branch is pre-filled
+            var initialBranch = document.getElementById('agentBranch');
+            if (initialBranch && initialBranch.value) {
+                var regionInput = document.getElementById('agentRegion');
+                if (regionInput && branchToRegion[initialBranch.value.trim()]) {
+                    regionInput.value = branchToRegion[initialBranch.value.trim()];
+                }
+            }
+
             // ID Card validation
             let idCardInput = document.querySelector('input[name="idCard"]');
             if (idCardInput) {
