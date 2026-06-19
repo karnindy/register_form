@@ -20,10 +20,10 @@ function p($key, $default = '') {
     return isset($_POST[$key]) ? trim($_POST[$key]) : $default;
 }
 
-$id = p('id');
-if (empty($id)) {
-    jsonError('ไม่พบข้อมูลอ้างอิง กรุณากลับไปเริ่มใหม่');
+if (empty($_SESSION['register_id'])) {
+    jsonError('Session timeout. กรุณากลับไปเริ่มใหม่');
 }
+$id = $_SESSION['register_id'];
 
 mysqli_report(MYSQLI_REPORT_OFF);
 try {
@@ -53,6 +53,7 @@ try {
     }
     $stmt->close();
     $db->close();
+    unset($_SESSION['register_id']);
 } catch (Throwable $ex) {
     jsonError('เกิดข้อผิดพลาด: ' . $ex->getMessage());
 }

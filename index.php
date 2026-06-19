@@ -319,12 +319,12 @@ function e($val) {
     <style>
         :root {
             /* Viriyah CI Colors */
-            --primary-color: #005A9C;
+            --primary-color: #0033A2;
             /* Deep Blue */
-            --primary-light: #1A73E8;
-            --secondary-color: #E4A025;
+            --primary-light: #1A54D6;
+            --secondary-color: #FCAF17;
             /* Gold/Yellow */
-            --secondary-hover: #C98A1B;
+            --secondary-hover: #D98C04;
             --bg-color: #F4F7F6;
             --text-main: #333333;
             --text-muted: #666666;
@@ -1906,8 +1906,7 @@ $brokerStyle = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'agent')
             showSaving(true);
             try {
                 let data = new FormData();
-                data.append('national_id', savedNationalId);
-                data.append('id', savedId);
+
 
                 const fields = [
                     'houseNo','moo','village','soi','road',
@@ -1930,6 +1929,11 @@ $brokerStyle = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'agent')
                 if (json.ok) {
                     return true;
                 } else {
+                    if (json.error && json.error.includes('Session timeout')) {
+                        alert('หมดเวลาการทำรายการ (Session Timeout) กรุณาเริ่มทำรายการใหม่');
+                        window.location.reload();
+                        return false;
+                    }
                     showSaveError(json.error || 'บันทึกที่อยู่ไม่สำเร็จ');
                     return false;
                 }
@@ -1949,8 +1953,7 @@ $brokerStyle = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'agent')
             showSaving(true);
             try {
                 let data = new FormData();
-                data.append('national_id', savedNationalId);
-                data.append('id', savedId);
+
 
                 let agentType = document.getElementById("actualAgentType");
                 if (agentType && agentType.value) data.append('agentType', agentType.value);
@@ -1975,6 +1978,11 @@ $brokerStyle = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'agent')
                 if (json.ok) {
                     return true;
                 } else {
+                    if (json.error && json.error.includes('Session timeout')) {
+                        alert('หมดเวลาการทำรายการ (Session Timeout) กรุณาเริ่มทำรายการใหม่');
+                        window.location.reload();
+                        return false;
+                    }
                     showSaveError(json.error || 'บันทึกข้อมูลใบอนุญาตไม่สำเร็จ');
                     return false;
                 }
@@ -1994,8 +2002,7 @@ $brokerStyle = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'agent')
             showSaving(true);
             try {
                 let data = new FormData();
-                data.append('national_id', savedNationalId);
-                data.append('id', savedId);
+
 
                 let agentType = document.getElementById("actualAgentType");
                 if (agentType && agentType.value) data.append('agentType', agentType.value);
@@ -2026,6 +2033,11 @@ $brokerStyle = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'agent')
                 if (json.ok) {
                     return true;
                 } else {
+                    if (json.error && json.error.includes('Session timeout')) {
+                        alert('หมดเวลาการทำรายการ (Session Timeout) กรุณาเริ่มทำรายการใหม่');
+                        window.location.reload();
+                        return false;
+                    }
                     showSaveError(json.error || 'บันทึกข้อมูลการอบรมไม่สำเร็จ');
                     return false;
                 }
@@ -2045,8 +2057,7 @@ $brokerStyle = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'agent')
             showSaving(true);
             try {
                 let data = new FormData();
-                data.append('national_id', savedNationalId);
-                data.append('id', savedId);
+
 
                 let occupation = document.querySelector('[name="occupation"]');
                 if (occupation) data.append('occupation', occupation.value);
@@ -2069,6 +2080,11 @@ $brokerStyle = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'agent')
                 if (json.ok) {
                     return true;
                 } else {
+                    if (json.error && json.error.includes('Session timeout')) {
+                        alert('หมดเวลาการทำรายการ (Session Timeout) กรุณาเริ่มทำรายการใหม่');
+                        window.location.reload();
+                        return false;
+                    }
                     showSaveError(json.error || 'บันทึกข้อมูลรายละเอียดเพิ่มเติมไม่สำเร็จ');
                     return false;
                 }
@@ -3029,13 +3045,17 @@ $brokerStyle = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'agent')
 
             try {
                 let data = new FormData();
-                data.append('national_id', savedNationalId);
-                data.append('id', savedId);
+
 
                 let res = await fetch('save_final.php', { method: 'POST', body: data });
                 let json = await res.json();
 
                 if (!json.ok) {
+                    if (json.error && json.error.includes('Session timeout')) {
+                        alert('หมดเวลาการทำรายการ (Session Timeout) กรุณาเริ่มทำรายการใหม่');
+                        window.location.reload();
+                        return;
+                    }
                     alert('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + (json.error || 'Unknown error'));
                     if (btn) {
                         btn.innerHTML = origHtml;

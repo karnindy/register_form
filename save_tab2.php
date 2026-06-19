@@ -193,13 +193,18 @@ try {
     }
     
     // Get the ID
-    $getIdStmt = $db->prepare("SELECT id FROM " . DB_TABLE_REGISTER . " WHERE national_id = ? ORDER BY id DESC LIMIT 1");
+    $getIdStmt = $db->prepare("SELECT id FROM " . DB_TABLE_REGISTER . " WHERE national_id = ? ORDER BY updated_at DESC, id DESC LIMIT 1");
     $getIdStmt->bind_param('s', $idRaw);
     $getIdStmt->execute();
     $getIdStmt->bind_result($recordId);
     $getIdStmt->fetch();
     $getIdStmt->close();
 
+    if ($recordId) {
+        $_SESSION['register_id'] = $recordId;
+    }
+
+    $db->commit();
     $stmt->close();
     $db->close();
 } catch (Throwable $ex) {

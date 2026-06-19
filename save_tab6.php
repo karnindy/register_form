@@ -20,10 +20,10 @@ function p($key, $default = '') {
     return isset($_POST[$key]) ? trim($_POST[$key]) : $default;
 }
 
-$id = p('id');
-if (empty($id)) {
-    jsonError('ไม่พบข้อมูลอ้างอิง กรุณากลับไปเริ่มใหม่');
+if (empty($_SESSION['register_id'])) {
+    jsonError('Session timeout. กรุณากลับไปเริ่มใหม่');
 }
+$id = $_SESSION['register_id'];
 
 $mainBusiness = p('occupation');
 $insuranceExperienceYears = p('insuranceExperienceYears');

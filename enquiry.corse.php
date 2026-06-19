@@ -474,6 +474,7 @@ $completionCol = pickFirstExisting(array('completion_time','completed_at','compl
                                     FROM split_data
                                     WHERE subject <> ''";
                                     
+                                    $db->query("SET SESSION group_concat_max_len = 100000;");
                                     $stmtCte = $db->prepare($cteSql);
                                     if ($stmtCte) {
                                         $stmtCte->bind_param("s", $qIdDigits);

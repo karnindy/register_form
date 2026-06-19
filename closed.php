@@ -324,12 +324,12 @@ function e($val) {
     <style>
         :root {
             /* Viriyah CI Colors */
-            --primary-color: #005A9C;
+            --primary-color: #0033A2;
             /* Deep Blue */
-            --primary-light: #1A73E8;
-            --secondary-color: #E4A025;
+            --primary-light: #1A54D6;
+            --secondary-color: #FCAF17;
             /* Gold/Yellow */
-            --secondary-hover: #C98A1B;
+            --secondary-hover: #D98C04;
             --bg-color: #F4F7F6;
             --text-main: #333333;
             --text-muted: #666666;

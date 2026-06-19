@@ -1,4 +1,26 @@
 <?php
+// Session Timeout Configuration
+// กำหนดเวลา Session หมดอายุ (เป็นวินาที) ค่า default คือ 3600 (1 ชั่วโมง)
+define('SESSION_TIMEOUT_SECONDS', 3600);
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+if (isset($_SESSION['LAST_ACTIVITY'])) {
+    if (time() - $_SESSION['LAST_ACTIVITY'] > SESSION_TIMEOUT_SECONDS) {
+        // Session timed out
+        session_unset();
+        session_destroy();
+        session_start();
+    } else {
+        // Update activity timestamp
+        $_SESSION['LAST_ACTIVITY'] = time();
+    }
+} else {
+    $_SESSION['LAST_ACTIVITY'] = time();
+}
+
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', 'P@ssw0rd1234');
@@ -22,27 +44,29 @@ define('SYSTEM_OPEN_PERIODS', '[
 // Default Agent Type Configuration
 // กำหนดค่าเริ่มต้นสำหรับประเภทใบอนุญาต
 // ค่าที่ใส่ได้: 'agent' (ตัวแทน), 'broker' (นายหน้า), หรือ '' (ไม่ต้องมีค่าเริ่มต้น)
-$default_agent_type = 'broker';
+$default_agent_type = '';
 define('DEFAULT_AGENT_TYPE', !empty($_GET['agent_type']) ? $_GET['agent_type'] : $default_agent_type);
 
 // Default Viriyah Agent Code
-$default_viriyah_code = '16184';
+$default_viriyah_code = '';
 define('DEFAULT_VIRIYAH_CODE', !empty($_GET['viriyah_code']) ? $_GET['viriyah_code'] : $default_viriyah_code);
 
 // Default Agent Branch
-$default_agent_branch = 'พัทยา';
+$default_agent_branch = '';
 define('DEFAULT_AGENT_BRANCH', !empty($_GET['agent_branch']) ? $_GET['agent_branch'] : $default_agent_branch);
 
 // Default Agent Branch Hint
-$default_agent_branch_hint = 'ถ้าสังกัดเงินเทอร์โบ ใส่สาขา พัทยา';
+// พิมพ์เพื่อค้นหาสาขา
+$default_agent_branch_hint = 'พิมพ์เพื่อค้นหาสาขา';
 define('DEFAULT_AGENT_BRANCH_HINT', !empty($_GET['agent_branch_hint']) ? $_GET['agent_branch_hint'] : $default_agent_branch_hint);
 
 // Default Agent Region Hint
-$default_agent_region_hint = 'อัตโนมัติตามสาขาที่เลือก';
+// ระบบจะเติมให้อัตโนมัติ
+$default_agent_region_hint = 'ระบบจะเติมให้อัตโนมัติ';
 define('DEFAULT_AGENT_REGION_HINT', !empty($_GET['agent_region_hint']) ? $_GET['agent_region_hint'] : $default_agent_region_hint);
 
 // Default Viriyah Agent Code Hint
 // $default_viriyah_code_hint = 'ถ้าไม่ทราบ สอบถามสาขา หรือตัวแทน/นายหน้าที่ท่านสังกัด , ถ้าเป็นขอรับใบอนุญาต และยังไม่มีรหัส ให้กรอก 00000';
-$default_viriyah_code_hint = 'ถ้าสังกัดเงินเทอร์โบ ใส่ 16184';
+$default_viriyah_code_hint = 'ถ้าไม่ทราบ สอบถามสาขา หรือตัวแทน/นายหน้าที่ท่านสังกัด , ถ้าเป็นขอรับใบอนุญาต และยังไม่มีรหัส ให้กรอก 00000';
 define('DEFAULT_VIRIYAH_CODE_HINT', !empty($_GET['viriyah_code_hint']) ? $_GET['viriyah_code_hint'] : $default_viriyah_code_hint);
 ?>
