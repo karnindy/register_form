@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link href=""https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"" rel=""stylesheet"" />
+<script src=""https://code.jquery.com/jquery-3.7.0.min.js""></script>
+<script src=""https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js""></script>
+</head>
+<body>
+<select id=""region_affiliation"" data-selected=""ภาค 3 (ภาคตะวันออก)""></select>
+<select id=""region_bangkok"" data-selected=""พัทยา"">
+  <option value=""พัทยา"" selected>พัทยา</option>
+</select>
+<script>
+    function initRegionDropdowns() {
+        var agentRegionMap = {
+            'ภาค 1 (ภาคเหนือ)': ['เชียงใหม่','เชียงราย','พิษณุโลก','นครสวรรค์'],
+            'ภาค 2 (ภาคตะวันออกเฉียงเหนือ)': ['ขอนแก่น','โคราช','อุดรธานี','อุบลราชธานี'],
+            'ภาค 3 (ภาคตะวันออก)': ['ชลบุรี','จันทบุรี','พัทยา','ระยอง'],
+            'ภาค 4 (ภาคกลางและภาคตะวันตก)': ['นครปฐม','นนทบุรี','สมุทรสาคร','ราชบุรี'],
+            'ภาค 5 (ภาคใต้)': ['กระบี่','นครศรีธรรมราช','ภูเก็ต','สุราษฎร์ธานี','หาดใหญ่'],
+            'ภาค 6 (ภาคกรุงเทพฯ)': ['กรุงเทพ','ดอนเมือง','บางกะปิ','บางนา','สุรวงศ์','ลุมพินี','ปากเกร็ด-345','รัชดาภิเษก','วิภาวดี','วงศ์สว่าง','หัวหมาก','สุขสวัสดิ์','สุขาภิบาล 3','เพชรเกษม1','เพชรเกษม2']
+        };
+
+        let allBranches = [];
+        let branchToRegion = {};
+        for (let r in agentRegionMap) {
+            agentRegionMap[r].forEach(b => {
+                allBranches.push(b);
+                branchToRegion[b] = r;
+            });
+        }
+
+        const $region = $('#region_affiliation');
+        const $branch = $('#region_bangkok'); 
+
+        if (!$region.length || !$branch.length) return;
+
+        let currentRegion = $region.attr('data-selected');
+        let currentBranch = $branch.attr('data-selected');
+
+        $region.empty().append('<option value="""">- เลือกภาค -</option>');
+        for (let r in agentRegionMap) {
+            let selected = (r === currentRegion) ? 'selected' : '';
+            $region.append(<option value="${r}" ${selected}>${r}</option>);
+        }
+
+        $branch.empty().append('<option value="""">- เลือกสาขา/ศูนย์ปฏิบัติการ -</option>');
+        let foundCurrent = false;
+        allBranches.forEach(b => {
+            let selected = (b === currentBranch) ? 'selected' : '';
+            if (b === currentBranch) foundCurrent = true;
+            $branch.append(<option value="${b}" ${selected}>${b}</option>);
+        });
+
+        if (currentBranch && !foundCurrent) {
+            $branch.append(<option value="${currentBranch}" selected>${currentBranch}</option>);
+        }
+
+        $region.select2();
+        $branch.select2({ tags: true });
+    }
+
+    $(document).ready(function() {
+        initRegionDropdowns();
+    });
+</script>
+</body>
+</html>

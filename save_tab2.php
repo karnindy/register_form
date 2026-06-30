@@ -112,6 +112,72 @@ try {
 }
 $db->set_charset('utf8mb4');
 
+// Convert religion to ID
+if (!is_numeric($religion) && $religion !== '') {
+    $stmt = $db->prepare("SELECT id FROM mst_religion WHERE name = ?");
+    if ($stmt) {
+        $stmt->bind_param("s", $religion);
+        $stmt->execute();
+        $stmt->bind_result($mappedId);
+        if ($stmt->fetch()) {
+            $religion = $mappedId;
+        }
+        $stmt->close();
+    }
+}
+// Convert gender to ID
+if (!is_numeric($gender) && $gender !== '') {
+    $stmt = $db->prepare("SELECT id FROM mst_gender WHERE name = ?");
+    if ($stmt) {
+        $stmt->bind_param("s", $gender);
+        $stmt->execute();
+        $stmt->bind_result($mappedId);
+        if ($stmt->fetch()) {
+            $gender = $mappedId;
+        }
+        $stmt->close();
+    }
+}
+// Convert bloodGroup to ID
+if (!is_numeric($bloodGroup) && $bloodGroup !== '') {
+    $stmt = $db->prepare("SELECT id FROM mst_blood WHERE name = ?");
+    if ($stmt) {
+        $stmt->bind_param("s", $bloodGroup);
+        $stmt->execute();
+        $stmt->bind_result($mappedId);
+        if ($stmt->fetch()) {
+            $bloodGroup = $mappedId;
+        }
+        $stmt->close();
+    }
+}
+
+// Convert title text to ID
+if (!is_numeric($titleTh) && $titleTh !== '') {
+    $stmt = $db->prepare("SELECT id FROM mst_titles WHERE name = ?");
+    if ($stmt) {
+        $stmt->bind_param("s", $titleTh);
+        $stmt->execute();
+        $stmt->bind_result($mappedId);
+        if ($stmt->fetch()) {
+            $titleTh = $mappedId;
+        }
+        $stmt->close();
+    }
+}
+if (!is_numeric($titleThOld) && $titleThOld !== '') {
+    $stmt = $db->prepare("SELECT id FROM mst_titles WHERE name = ?");
+    if ($stmt) {
+        $stmt->bind_param("s", $titleThOld);
+        $stmt->execute();
+        $stmt->bind_result($mappedId);
+        if ($stmt->fetch()) {
+            $titleThOld = $mappedId;
+        }
+        $stmt->close();
+    }
+}
+
 $sql = "INSERT INTO " . DB_TABLE_REGISTER . " (
     pdpa_consent, national_id, id_card_expiry,
     title_th, title_custom,

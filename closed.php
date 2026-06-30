@@ -8,7 +8,7 @@
 include 'appconfig.php';
 
 // Check if system is closed
-if (defined('SYSTEM_ALWAYS_CLOSED') && SYSTEM_ALWAYS_CLOSED === true) {
+if (defined('SYSTEM_IS_ONLINE') && SYSTEM_IS_ONLINE === false) {
     // If always closed, stay on this page
 } elseif (defined('SYSTEM_OPEN_PERIODS')) {
     $periods = json_decode(SYSTEM_OPEN_PERIODS, true);

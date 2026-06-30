@@ -7,6 +7,77 @@
 
 include 'appconfig.php';
 
+// Create DB connection for rendering
+$render_db = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+$render_db->set_charset("utf8mb4");
+
+function getOptionsHtml($db, $table, $selectedValue = '') {
+    $html = '<option value="">-- กรุณาเลือก --</option>';
+    $res = $db->query("SELECT id, name FROM $table WHERE status='active' ORDER BY display_order");
+    if ($res) {
+        while ($row = $res->fetch_assoc()) {
+            $selected = ($selectedValue == $row['id'] || $selectedValue == $row['name']) ? ' selected' : '';
+            $html .= '<option value="' . htmlspecialchars($row['id']) . '"' . $selected . '>' . htmlspecialchars($row['name']) . '</option>';
+        }
+    }
+    return $html;
+}
+
+$courseScheduleData = [
+    'ตัวแทนประกันวินาศภัย' => [],
+    'นายหน้าประกันวินาศภัย' => []
+];
+
+if (isset($render_db)) {
+    // 1. Get basic courses
+    $res = $render_db->query("
+        SELECT b.id, b.course_name, b.agent_type, d.course_date_display 
+        FROM mst_renew_basic b
+        LEFT JOIN mst_renew_dates d ON b.date_id = d.id
+        WHERE b.status = 'active'
+        ORDER BY b.id
+    ");
+    if ($res) {
+        while ($row = $res->fetch_assoc()) {
+            $category = ($row['agent_type'] === 'agent') ? 'ตัวแทนประกันวินาศภัย' : 'นายหน้าประกันวินาศภัย';
+            $is_complex = (strpos($row['course_name'], '4 เป็นต้นไป') !== false);
+            
+            $courseScheduleData[$category][$row['id']] = [
+                'name' => $row['course_name'],
+                'is_complex' => $is_complex,
+                'dates' => $is_complex ? [] : [$row['course_date_display']]
+            ];
+        }
+    }
+
+    // 2. Get complex courses (from mst_renew_other)
+    $res = $render_db->query("
+        SELECT o.id, p.name as pillar_name, d.course_date_display, c.name as subject_name
+        FROM mst_renew_other o
+        JOIN mst_renew_pillars p ON o.pillar_id = p.id
+        JOIN mst_renew_dates d ON o.date_id = d.id
+        JOIN mst_renew_course c ON o.subject_id = c.id
+        WHERE o.status = 'active'
+        ORDER BY o.display_order
+    ");
+    $complex_dates = [];
+    if ($res) {
+        while ($row = $res->fetch_assoc()) {
+            $complex_dates[] = "[{$row['pillar_name']}] [{$row['course_date_display']}] : {$row['subject_name']}";
+        }
+    }
+
+    // Assign complex dates to 4+ courses
+    foreach ($courseScheduleData as $cat => &$courses) {
+        foreach ($courses as $id => &$course) {
+            if ($course['is_complex']) {
+                $course['dates'] = $complex_dates;
+            }
+        }
+    }
+}
+$courseScheduleJson = json_encode($courseScheduleData, JSON_UNESCAPED_UNICODE);
+
 // Check if system is closed
 if (defined('SYSTEM_ALWAYS_CLOSED') && SYSTEM_ALWAYS_CLOSED === true) {
     header("Location: closed.php");
@@ -1014,13 +1085,7 @@ function e($val) {
 
                 <div class="form-group">
                     <label class="required">คำนำหน้าชื่อ</label>
-                    <select class="form-control" name="titleName" required onchange="toggleTitleNameOther()">
-                        <option value="">- เลือกคำนำหน้า -</option>
-                        <option value="นาย">นาย</option>
-                        <option value="นาง">นาง</option>
-                        <option value="นางสาว">นางสาว</option>
-                        <option value="อื่นๆ">อื่นๆ</option>
-                    </select>
+                    <select class="form-control" name="titleName" required onchange="toggleTitleNameOther()"><?php echo getOptionsHtml($render_db, "mst_titles", isset($formData["titleName"]) ? $formData["titleName"] : ""); ?></select>
                     <div id="titleNameOtherContainer" style="display:none; margin-top: 10px;">
                         <label class="required" style="font-size: 14px;">คำนำหน้าตามบัตรประชาชน (โปรดระบุ)</label>
                         <input type="text" class="form-control" name="titleNameOther" id="titleNameOther"
@@ -1078,13 +1143,7 @@ function e($val) {
                     <div class="form-group">
                         <label class="required">คำนำหน้าชื่อ</label>
                         <select class="form-control" name="titleNamePrev" id="titleNamePrev"
-                            onchange="toggleTitleNameOtherPrev()">
-                            <option value="">- เลือกคำนำหน้า -</option>
-                            <option value="นาย">นาย</option>
-                            <option value="นาง">นาง</option>
-                            <option value="นางสาว">นางสาว</option>
-                            <option value="อื่นๆ">อื่นๆ</option>
-                        </select>
+                            onchange="toggleTitleNameOtherPrev()"><?php echo getOptionsHtml($render_db, "mst_titles", isset($formData["titleNamePrev"]) ? $formData["titleNamePrev"] : ""); ?></select>
                         <div id="titleNameOtherContainerPrev" style="display:none; margin-top: 10px;">
                             <label class="required" style="font-size: 14px;">คำนำหน้าตามบัตรประชาชน (โปรดระบุ)</label>
                             <input type="text" class="form-control" name="titleNameOtherPrev" id="titleNameOtherPrev"
@@ -1134,35 +1193,18 @@ function e($val) {
                     </div>
                     <div class="form-group">
                         <label>ศาสนา</label>
-                        <select class="form-control" name="religion">
-                            <option value="">- เลือกศาสนา -</option>
-                            <option value="พุทธ">พุทธ</option>
-                            <option value="คริสต์">คริสต์</option>
-                            <option value="อิสลาม">อิสลาม</option>
-                            <option value="อื่นๆ">อื่นๆ</option>
-                        </select>
+                        <select class="form-control" name="religion"><?php echo getOptionsHtml($render_db, "mst_religion", isset($formData["religion"]) ? $formData["religion"] : ""); ?></select>
                     </div>
                 </div>
 
                 <div class="grid-2">
                     <div class="form-group">
                         <label>เพศ</label>
-                        <select class="form-control" name="gender">
-                            <option value="">- เลือกเพศ -</option>
-                            <option value="ชาย">ชาย</option>
-                            <option value="หญิง">หญิง</option>
-                            <option value="ไม่ระบุ">ไม่ระบุ</option>
-                        </select>
+                        <select class="form-control" name="gender"><?php echo getOptionsHtml($render_db, "mst_gender", isset($formData["gender"]) ? $formData["gender"] : ""); ?></select>
                     </div>
                     <div class="form-group">
                         <label>กรุ๊ปเลือด</label>
-                        <select class="form-control" name="bloodGroup">
-                            <option value="">- เลือกกรุ๊ปเลือด -</option>
-                            <option value="A">A</option>
-                            <option value="B">B</option>
-                            <option value="O">O</option>
-                            <option value="AB">AB</option>
-                        </select>
+                        <select class="form-control" name="bloodGroup"><?php echo getOptionsHtml($render_db, "mst_blood", isset($formData["bloodGroup"]) ? $formData["bloodGroup"] : ""); ?></select>
                         <small style="color: var(--text-muted); display: block; margin-top: 5px;">* ใช้กรณีเกิดเหตุฉุกเฉินระหว่างการอบรม</small>
                     </div>
                 </div>
@@ -2349,203 +2391,176 @@ $brokerStyle = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'agent')
             }
         }
 
-        const courseScheduleData = {
-            "ตัวแทนประกันวินาศภัย": {
-                "ขอรับอนุญาตเป็นตัวแทนประกันวินาศภัย": ["18 มิถุนายน 2569"],
-                "ขอต่อใบอนุญาตเป็นตัวแทนประกันวินาศภัย 1": ["25 มิถุนายน 2569"],
-                "ขอต่อใบอนุญาตเป็นตัวแทนประกันวินาศภัย 2": ["2 กรกฎาคม 2569"],
-                "ขอต่อใบอนุญาตเป็นตัวแทนประกันวินาศภัย 3": ["9 กรกฎาคม 2569"],
-                "ขอต่อใบอนุญาตเป็นตัวแทน/นายหน้าประกันวินาศภัย 4 เป็นต้นไป": [
-                    "[Pillar 1] [5 สิงหาคม 2569] : การประกันความเสี่ยงภัยทรัพย์สิน",
-                    "[Pillar 1] [5 สิงหาคม 2569] : การกำกับดูแลบริษัทประกันภัยตามระดับความเสี่ยง",
-                    "[Pillar 1] [5 สิงหาคม 2569] : การจัดการสินไหมทดแทน Non-Motor",
-                    "[Pillar 1] [19 สิงหาคม 2569] : การวางแผนเพื่อวัยเกษียณ",
-                    "[Pillar 1] [19 สิงหาคม 2569] : การวางแผนภาษีสำหรับตัวแทนและนายหน้าประกันภัย",
-                    "[Pillar 1] [19 สิงหาคม 2569] : การประกันภัยต่อ",
-                    "[Pillar 3] [26 สิงหาคม 2569] : จรรยาบรรณและศีลธรรมของตัวแทน/นายหน้าประกันภัย",
-                    "[Pillar 3] [26 สิงหาคม 2569] : พ.ร.บ.จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562) และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร",
-                    "[Pillar 3] [26 สิงหาคม 2569] : พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล",
-                    "[Pillar 1] [2 กันยายน 2569] : กรมธรรม์ประกันภัยรถยนต์ไฟฟ้ารวมการคุ้มครองผู้ประสบภัยจากรถ",
-                    "[Pillar 1] [2 กันยายน 2569] : เสนอขายถูกหลักประกันภัยเติบโต",
-                    "[Pillar 3] [2 กันยายน 2569] : กฏหมายว่าด้วยการป้องกันและปราบปรามการฟอกเงินและต่อต้านการสนับสนุนทางการเงินแก่การก่อการร้าย",
-                    "[Pillar 3] [2 กันยายน 2569] : พ.ร.บ.การทวงถามหนี้",
-                    "[Pillar 2] [9 กันยายน 2569] : การตลาดยุคใหม่",
-                    "[Pillar 1] [9 กันยายน 2569] : การพิจารณารับประกันภัยรถยนต์",
-                    "[Pillar 1] [9 กันยายน 2569] : รู้จักประกันภัยสุขภาพ",
-                    "[Pillar 3] [9 กันยายน 2569] : ความเสี่ยงต่อความรับผิดในฐานะตัวแทน/นายหน้าประกันภัย"
-                ]
-            },
-            "นายหน้าประกันวินาศภัย": {
-                "ขอรับใบอนุญาตเป็นนายหน้าประกันวินาศภัย": ["17 มิถุนายน 2569"],
-                "ขอต่อใบอนุญาตเป็นนายหน้าประกันวินาศภัย 1": ["24 มิถุนายน 2569"],
-                "ขอต่อใบอนุญาตเป็นนายหน้าประกันวินาศภัย 2": ["1 กรกฎาคม 2569"],
-                "ขอต่อใบอนุญาตเป็นนายหน้าประกันวินาศภัย 3": ["8 กรกฎาคม 2569"],
-                "ขอต่อใบอนุญาตเป็นตัวแทน/นายหน้าประกันวินาศภัย 4 เป็นต้นไป": [
-                    "[Pillar 1] [5 สิงหาคม 2569] : การประกันความเสี่ยงภัยทรัพย์สิน",
-                    "[Pillar 1] [5 สิงหาคม 2569] : การกำกับดูแลบริษัทประกันภัยตามระดับความเสี่ยง",
-                    "[Pillar 1] [5 สิงหาคม 2569] : การจัดการสินไหมทดแทน Non-Motor",
-                    "[Pillar 1] [19 สิงหาคม 2569] : การวางแผนเพื่อวัยเกษียณ",
-                    "[Pillar 1] [19 สิงหาคม 2569] : การวางแผนภาษีสำหรับตัวแทนและนายหน้าประกันภัย",
-                    "[Pillar 1] [19 สิงหาคม 2569] : การประกันภัยต่อ",
-                    "[Pillar 3] [26 สิงหาคม 2569] : จรรยาบรรณและศีลธรรมของตัวแทน/นายหน้าประกันภัย",
-                    "[Pillar 3] [26 สิงหาคม 2569] : พ.ร.บ.จราจรทางบก พ.ศ.2522 (แก้ไขเพิ่มเติม2562) และการพิจารณาคดีแพ่ง/อาญาเมื่อเกิดอุบัติเหตุจราจร",
-                    "[Pillar 3] [26 สิงหาคม 2569] : หัวข้อการบรรยาย : พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล",
-                    "[Pillar 1] [2 กันยายน 2569] : กรมธรรม์ประกันภัยรถยนต์ไฟฟ้ารวมการคุ้มครองผู้ประสบภัยจากรถ",
-                    "[Pillar 1] [2 กันยายน 2569] : เสนอขายถูกหลักประกันภัยเติบโต",
-                    "[Pillar 3] [2 กันยายน 2569] : กฏหมายว่าด้วยการป้องกันและปราบปรามการฟอกเงินและต่อต้านการสนับสนุนทางการเงินแก่การก่อการร้าย",
-                    "[Pillar 3] [2 กันยายน 2569] : พ.ร.บ.การทวงถามหนี้",
-                    "[Pillar 2] [9 กันยายน 2569] : การตลาดยุคใหม่",
-                    "[Pillar 1] [9 กันยายน 2569] : การพิจารณารับประกันภัยรถยนต์",
-                    "[Pillar 1] [9 กันยายน 2569] : รู้จักประกันภัยสุขภาพ",
-                    "[Pillar 3] [9 กันยายน 2569] : ความเสี่ยงต่อความรับผิดในฐานะตัวแทน/นายหน้าประกันภัย"
-                ]
-            }
-        };
+        const courseScheduleData = <?php echo $courseScheduleJson; ?>;
+function updateCourseTypeOptions(selectedType) {
+    let courseGroup = document.getElementById("courseTypeGroup");
+    let dateGroup = document.getElementById("trainingDateGroup");
+    let container = document.getElementById("courseTypeContainer");
+    let label = document.getElementById("courseTypeLabel");
+    let hiddenInput = document.getElementById("courseTypeHidden");
 
-        function updateCourseTypeOptions(selectedType) {
-            let courseGroup = document.getElementById("courseTypeGroup");
-            let dateGroup = document.getElementById("trainingDateGroup");
-            let container = document.getElementById("courseTypeContainer");
-            let label = document.getElementById("courseTypeLabel");
-            let hiddenInput = document.getElementById("courseTypeHidden");
+    // Reset
+    container.innerHTML = "";
+    hiddenInput.value = "";
+    dateGroup.style.display = "none";
+    let previousCoursesSection = document.getElementById("previousCoursesSection");
+    if (previousCoursesSection) {
+        previousCoursesSection.style.display = "none";
+        let checkboxes = previousCoursesSection.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(cb => { cb.checked = false; });
+    }
 
-            // Reset
-            container.innerHTML = "";
-            hiddenInput.value = "";
-            dateGroup.style.display = "none";
-            let previousCoursesSection = document.getElementById("previousCoursesSection");
-            if (previousCoursesSection) {
-                previousCoursesSection.style.display = "none";
-                let checkboxes = previousCoursesSection.querySelectorAll('input[type="checkbox"]');
-                checkboxes.forEach(cb => { cb.checked = false; });
+    let deductionGroup = document.getElementById("deductionPrivilegeGroup");
+    if (deductionGroup) {
+        deductionGroup.style.display = "none";
+        let checkboxes = deductionGroup.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(cb => { cb.checked = false; });
+        if (typeof toggleMasterDegreeRadios === 'function') toggleMasterDegreeRadios();
+    }
+
+    let baseType = (selectedType && selectedType.includes("นายหน้า")) ? "นายหน้าประกันวินาศภัย" : "ตัวแทนประกันวินาศภัย";
+
+    if (!selectedType || !courseScheduleData[baseType]) {
+        courseGroup.style.display = "none";
+        return;
+    }
+
+    courseGroup.style.display = "block";
+    label.textContent = "หลักสูตร";
+
+    let courses = courseScheduleData[baseType];
+    
+    for (let courseId in courses) {
+        let course = courses[courseId];
+        let labelEl = document.createElement("label");
+        labelEl.className = "radio-item custom-radio";
+        
+        let input = document.createElement("input");
+        input.type = "radio";
+        input.name = "courseTypeUI";
+        input.value = courseId; // ID
+        input.required = true;
+        input.dataset.name = course.name;
+
+        // Restore if matches
+        <?php if (isset($formData['courseType'])): ?>
+            if ("<?php echo $formData['courseType']; ?>" === courseId || "<?php echo $formData['courseType']; ?>" === course.name) {
+                input.checked = true;
             }
+        <?php endif; ?>
+        
+        input.addEventListener("change", function() {
+            hiddenInput.value = this.value; // Store ID
+            renderTrainingDates(selectedType, this.value);
 
             let deductionGroup = document.getElementById("deductionPrivilegeGroup");
             if (deductionGroup) {
-                deductionGroup.style.display = "none";
-                let checkboxes = deductionGroup.querySelectorAll('input[type="checkbox"]');
-                checkboxes.forEach(cb => { cb.checked = false; });
-                if (typeof toggleMasterDegreeRadios === 'function') toggleMasterDegreeRadios();
+                if (course.is_complex || course.name.includes("4 เป็นต้นไป")) {
+                    deductionGroup.style.display = "block";
+                } else {
+                    deductionGroup.style.display = "none";
+                    let checkboxes = deductionGroup.querySelectorAll('input[type="checkbox"]');
+                    checkboxes.forEach(cb => { cb.checked = false; });
+                    if (typeof toggleMasterDegreeRadios === 'function') toggleMasterDegreeRadios();
+                }
             }
 
-            let baseType = (selectedType && selectedType.includes("นายหน้า")) ? "นายหน้าประกันวินาศภัย" : "ตัวแทนประกันวินาศภัย";
-
-            if (!selectedType || !courseScheduleData[baseType]) {
-                courseGroup.style.display = "none";
-                return;
+            let previousCoursesSection = document.getElementById("previousCoursesSection");
+            if (previousCoursesSection) {
+                if (course.is_complex || course.name.includes("4 เป็นต้นไป")) {
+                    previousCoursesSection.style.display = "block";
+                } else {
+                    previousCoursesSection.style.display = "none";
+                    let checkboxes = previousCoursesSection.querySelectorAll('input[type="checkbox"]');
+                    checkboxes.forEach(cb => { cb.checked = false; });
+                }
             }
+        });
 
-            courseGroup.style.display = "block";
-            // let roleLabel = baseType === "ตัวแทนประกันวินาศภัย" ? "[ตัวแทน]" : "[นายหน้า]";
-            // label.textContent = `ระดับขอต่อ ${roleLabel}`;
-            label.textContent = `หลักสูตร`;
+        labelEl.appendChild(input);
+        labelEl.appendChild(document.createTextNode(" " + course.name));
+        container.appendChild(labelEl);
+    }
+}
 
-            let courses = Object.keys(courseScheduleData[baseType]);
-            
-            courses.forEach((course) => {
-                let labelEl = document.createElement("label");
-                labelEl.className = "radio-item custom-radio";
-                
-                let input = document.createElement("input");
-                input.type = "radio";
-                input.name = "courseTypeUI";
-                input.value = course;
-                input.required = true;
-                
-                input.addEventListener("change", function() {
-                    hiddenInput.value = this.value;
-                    renderTrainingDates(selectedType, this.value);
 
-                    let deductionGroup = document.getElementById("deductionPrivilegeGroup");
-                    if (deductionGroup) {
-                        if (this.value.includes("4 เป็นต้นไป") || this.value.includes("ครั้งที่ 4")) {
-                            deductionGroup.style.display = "block";
-                        } else {
-                            deductionGroup.style.display = "none";
-                            let checkboxes = deductionGroup.querySelectorAll('input[type="checkbox"]');
-                            checkboxes.forEach(cb => { cb.checked = false; });
-                            if (typeof toggleMasterDegreeRadios === 'function') toggleMasterDegreeRadios();
-                        }
-                    }
 
-                    let previousCoursesSection = document.getElementById("previousCoursesSection");
-                    if (previousCoursesSection) {
-                        if (this.value.includes("4 เป็นต้นไป") || this.value.includes("ครั้งที่ 4")) {
-                            previousCoursesSection.style.display = "block";
-                        } else {
-                            previousCoursesSection.style.display = "none";
-                            let checkboxes = previousCoursesSection.querySelectorAll('input[type="checkbox"]');
-                            checkboxes.forEach(cb => { cb.checked = false; });
-                        }
-                    }
-                });
+        function renderTrainingDates(agentType, courseId) {
+    let dateGroup = document.getElementById("trainingDateGroup");
+    let container = document.getElementById("trainingDateContainer");
+    let label = document.getElementById("trainingDateLabel");
+    
+    container.innerHTML = "";
+    
+    let baseType = (agentType && agentType.includes("นายหน้า")) ? "นายหน้าประกันวินาศภัย" : "ตัวแทนประกันวินาศภัย";
+    let course = courseScheduleData[baseType][courseId];
 
-                labelEl.appendChild(input);
-                labelEl.appendChild(document.createTextNode(" " + course));
-                container.appendChild(labelEl);
+    if (!course || !course.dates || course.dates.length === 0) {
+        dateGroup.style.display = "none";
+        return;
+    }
+
+    dateGroup.style.display = "block";
+    label.textContent = course.name; 
+    
+    let isMultiple = course.is_complex || course.name.includes("4 เป็นต้นไป");
+    let inputType = isMultiple ? "checkbox" : "radio";
+    
+    course.dates.forEach((dateStr) => {
+        let labelEl = document.createElement("label");
+        labelEl.className = "radio-item " + (isMultiple ? "custom-checkbox" : "custom-radio");
+        
+        let input = document.createElement("input");
+        input.type = inputType;
+        input.name = isMultiple ? "trainingDate[]" : "trainingDate";
+        input.value = dateStr;
+        if (!isMultiple) input.required = true;
+
+        <?php if (isset($formData['trainingDate'])): ?>
+            let selectedDates = <?php echo json_encode(is_array($formData['trainingDate']) ? $formData['trainingDate'] : [$formData['trainingDate']]); ?>;
+            if (selectedDates.includes(dateStr)) {
+                input.checked = true;
+            }
+        <?php endif; ?>
+
+        input.addEventListener('change', function() {
+            container.classList.remove('invalid');
+            removeErrorMsg(container);
+            let items = container.querySelectorAll('.radio-item');
+            items.forEach(el => {
+                el.classList.remove('invalid');
+                removeErrorMsg(el);
             });
-        }
-
-        function renderTrainingDates(agentType, courseType) {
-            let dateGroup = document.getElementById("trainingDateGroup");
-            let container = document.getElementById("trainingDateContainer");
-            let label = document.getElementById("trainingDateLabel");
-            
-            container.innerHTML = "";
-            
-            let baseType = (agentType && agentType.includes("นายหน้า")) ? "นายหน้าประกันวินาศภัย" : "ตัวแทนประกันวินาศภัย";
-            let dataList = courseScheduleData[baseType][courseType];
-            if (!dataList || dataList.length === 0) {
-                dateGroup.style.display = "none";
-                return;
-            }
-
-            dateGroup.style.display = "block";
-            label.textContent = courseType; // Match screenshot: the label is the course type
-            
-            let isMultiple = courseType.includes("ครั้งที่ 4") || courseType.includes("4 เป็นต้นไป") || courseType.endsWith(" 4");
-            let inputType = isMultiple ? "checkbox" : "radio";
-            
-            dataList.forEach((item) => {
-                let labelEl = document.createElement("label");
-                labelEl.className = "radio-item custom-radio";
-                
-                let input = document.createElement("input");
-                input.type = inputType;
-                input.name = isMultiple ? "trainingDate[]" : "trainingDate";
-                input.value = item;
-                if (!isMultiple) input.required = true;
-                
-                input.addEventListener('change', function() {
-                    container.classList.remove('invalid');
-                    removeErrorMsg(container);
-                    let items = container.querySelectorAll('.radio-item');
-                    items.forEach(el => {
-                        el.classList.remove('invalid');
-                        removeErrorMsg(el);
-                    });
-                });
-                
-                labelEl.appendChild(input);
-                labelEl.appendChild(document.createTextNode(" " + item));
-                container.appendChild(labelEl);
-            });
-            let oldNote = document.getElementById("trainingNoteMsg");
-            if (oldNote) oldNote.remove();
-
             if (isMultiple) {
-                // Add an asterisk note for multiple checkboxes
-                let note = document.createElement("div");
-                note.id = "trainingNoteMsg";
-                note.style.marginTop = "5px";
-                note.style.marginBottom = "10px";
-                note.innerHTML = "<span style='color: var(--error-color); font-size: 14px;'>* เลือกได้มากกว่า 1 วิชา *</span><br><span style='color: var(--error-color); font-size: 14px; font-weight: normal;'>* ห้ามเลือกวิชาที่เคยผ่านการอบรมในรอบการสะสมชั่วโมงอบรมปัจจุบัน (5 ปี) *</span>";
-                label.insertAdjacentElement('afterend', note);
+                let checkedCount = container.querySelectorAll('input[type="checkbox"]:checked').length;
+                if (checkedCount > 5) {
+                    alert("คุณสามารถเลือกได้สูงสุด 5 วิชา");
+                    this.checked = false;
+                }
             }
+        });
+        
+        labelEl.appendChild(input);
+        labelEl.appendChild(document.createTextNode(" " + dateStr));
+        container.appendChild(labelEl);
+    });
 
-            // Immediately disable dates that are already checked in previous courses
-            updateDisabledTrainingDates();
-        }
+    let oldNote = document.getElementById("trainingNoteMsg");
+    if (oldNote) oldNote.remove();
+
+    if (isMultiple) {
+        let note = document.createElement("div");
+        note.id = "trainingNoteMsg";
+        note.style.marginTop = "5px";
+        note.style.marginBottom = "10px";
+        note.innerHTML = "<span style='color: var(--error-color); font-size: 14px;'>* เลือกได้มากกว่า 1 วิชา *</span><br><span style='color: var(--error-color); font-size: 14px; font-weight: normal;'>* หากเลือกวิชาที่เคยอบรม จะไม่นับรวมรอบปัจจุบัน (5 ปี) *</span>";
+        label.insertAdjacentElement('afterend', note);
+    }
+
+    if (typeof updateDisabledTrainingDates === 'function') {
+        updateDisabledTrainingDates();
+    }
+}
 
         function checkPDPA() {
             let pdpaRadios = document.getElementsByName('pdpaConsent');
