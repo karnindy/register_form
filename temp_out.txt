@@ -1,0 +1,40 @@
+Table: mst_gender
+id - int(11)
+name - varchar(100)
+status - enum('active','inactive')
+display_order - int(11)
+create_date - datetime
+create_by - varchar(100)
+update_date - datetime
+update_by - varchar(100)
+
+Table: mst_blood
+id - int(11)
+name - varchar(100)
+status - enum('active','inactive')
+display_order - int(11)
+create_date - datetime
+create_by - varchar(100)
+update_date - datetime
+update_by - varchar(100)
+
+Table: mst_religion
+id - int(11)
+name - varchar(100)
+status - enum('active','inactive')
+display_order - int(11)
+create_date - datetime
+create_by - varchar(100)
+update_date - datetime
+update_by - varchar(100)
+
+Table: mst_titles
+id - int(11)
+name - varchar(100)
+status - enum('active','inactive')
+display_order - int(11)
+create_date - datetime
+create_by - varchar(100)
+update_date - datetime
+update_by - varchar(100)
+

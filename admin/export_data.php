@@ -210,11 +210,11 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['csv', 'excel', 'xlsx']
         $query = "select 
 r.id,start_time,completion_time
 ,form_name,last_modified_time,pdpa_consent
-,title_th,title_custom,first_name_th,first_name_old_th
+,case when mt.name is not null then mt.name else r.title_th end as title_th,title_custom,first_name_th,first_name_old_th
 ,first_name_en,middle_name_th,middle_name_old_th
 ,middle_name_en,last_name_th,last_name_old_th
-,last_name_en,email_alt,gender,birth_date,blood_group,r.national_id
-,id_card_expiry,religion,line_id,facebook,instagram
+,last_name_en,email_alt,case when mg.name is not null then mg.name else r.gender end as gender,birth_date,case when mb.name is not null then mb.name else r.blood_group end as blood_group,r.national_id
+,id_card_expiry,case when mr.name is not null then mr.name else r.religion end as religion,line_id,facebook,instagram
 ,food_allergy,medical_condition,phone_otp,emergency_contact_name
 ,emergency_contact_phone,addr_house_no,addr_soi,addr_moo
 ,addr_village,addr_road,addr_subdistrict,addr_district
@@ -248,7 +248,11 @@ inner join
     GROUP BY t1.national_id
 ) ru 
 on r.id = ru.id
-left join vw_renew_other_all v on r.national_id = v.national_id";
+left join vw_renew_other_all v on r.national_id = v.national_id
+left join mst_titles mt on r.title_th = CAST(mt.id AS CHAR) COLLATE utf8mb4_unicode_ci
+left join mst_gender mg on r.gender = CAST(mg.id AS CHAR) COLLATE utf8mb4_unicode_ci
+left join mst_blood mb on r.blood_group = CAST(mb.id AS CHAR) COLLATE utf8mb4_unicode_ci
+left join mst_religion mr on r.religion = CAST(mr.id AS CHAR) COLLATE utf8mb4_unicode_ci";
 
         $combinations = [];
         if (!empty($_GET['selected_ids']) && is_array($_GET['selected_ids'])) {
@@ -719,7 +723,7 @@ left join vw_renew_other_all v on r.national_id = v.national_id";
             
             <div id="selected_persons_container" style="display:none; background: #f8f9fa; padding: 1rem; border-radius: 0.5rem; border: 1px solid #ddd;">
                 <h4 style="font-size: 0.95rem; color: #333; margin-bottom: 0.75rem; font-weight: 600;">บุคคลที่เลือกสำหรับส่งออก (<span id="selected_count">0</span> คน)</h4>
-                <ul id="selected_persons_list" style="list-style:none; padding:0; margin:0;"></ul>
+                <ul id="selected_persons_list" style="list-style:none; padding:0; margin:0; max-height: 150px; overflow-y: auto; border: 1px solid #eee; border-radius: 0.25rem; background: #fff;"></ul>
                 <div id="selected_hidden_inputs"></div>
             </div>
         </div>

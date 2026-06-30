@@ -50,3 +50,7 @@
 [30-Jun-2026 07:10:13 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
 [30-Jun-2026 07:10:13 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
 [30-Jun-2026 07:10:13 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
+[30-Jun-2026 08:16:24 UTC] PHP Fatal error:  Uncaught Error: Call to a member function fetch_assoc() on bool in D:\git_kraken\register_form\temp.php:22
+Stack trace:
+#0 {main}
+  thrown in D:\git_kraken\register_form\temp.php on line 22
