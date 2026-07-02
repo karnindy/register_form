@@ -28,6 +28,16 @@ require_once 'includes/header.php';
     </div>
     
     <!-- Future reports can go here -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center p-5">
+                <i class="fa-solid fa-comments fa-3x text-viriyah-blue mb-3"></i>
+                <h4 class="card-title fw-bold">รายงานหมายเหตุ (Remarks)</h4>
+                <p class="card-text text-muted">ดูรายการผู้สมัครอบรมทั้งหมดที่มีการระบุหมายเหตุเพิ่มเติม (Remark) พร้อมดูรายละเอียด</p>
+                <a href="report_remarks.php" class="btn btn-outline-primary mt-3">เข้าสู่หน้ารายงาน</a>
+            </div>
+        </div>
+    </div>
 </div>
 
 <?php

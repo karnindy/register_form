@@ -1,4 +1,6 @@
 <?php
+ini_set('memory_limit', '512M');
+set_time_limit(300);
 require_once 'includes/auth.php';
 
 if (isset($_GET['search_person'])) {

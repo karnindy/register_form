@@ -51,6 +51,22 @@ if ($res_genders) {
     }
 }
 
+$mst_basic = [];
+$res_basic = $db->query("SELECT id, course_name AS name FROM mst_renew_basic");
+if ($res_basic) {
+    while ($r = $res_basic->fetch_assoc()) {
+        $mst_basic[$r['id']] = $r['name'];
+    }
+}
+
+$mst_dates = [];
+$res_dates = $db->query("SELECT id, course_date_display AS name FROM mst_renew_dates");
+if ($res_dates) {
+    while ($r = $res_dates->fetch_assoc()) {
+        $mst_dates[$r['id']] = $r['name'];
+    }
+}
+
 $mst_bloods = [];
 $res_bloods = $db->query("SELECT id, name FROM mst_blood");
 if ($res_bloods) {
@@ -91,6 +107,10 @@ require_once 'includes/header.php';
                         $displayValue = $mst_genders[$value];
                     } elseif ($key === 'blood_group' && is_numeric($value) && isset($mst_bloods[$value])) {
                         $displayValue = $mst_bloods[$value];
+                    } elseif (in_array($key, ['agent_level', 'broker_level']) && is_numeric($value) && isset($mst_basic[$value])) {
+                        $displayValue = $mst_basic[$value];
+                    } elseif (in_array($key, ['renew_agent_1', 'renew_agent_2', 'renew_agent_3', 'renew_broker_1', 'renew_broker_2', 'renew_broker_3']) && is_numeric($value) && isset($mst_dates[$value])) {
+                        $displayValue = $mst_dates[$value];
                     }
                 ?>
                     <tr>

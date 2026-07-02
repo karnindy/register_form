@@ -9,3 +9,56 @@ Stack trace:
   thrown in D:\git_kraken\register_form\temp.php on line 5
 [02-Jul-2026 04:46:18 UTC] PHP Warning:  mysqli::__construct(): The server requested authentication method unknown to the client [caching_sha2_password] in D:\git_kraken\register_form\temp.php on line 5
 [02-Jul-2026 04:46:18 UTC] PHP Warning:  mysqli::__construct(): (HY000/2054): The server requested authentication method unknown to the client in D:\git_kraken\register_form\temp.php on line 5
+[02-Jul-2026 06:08:15 UTC] PHP Warning:  mysqli::__construct(): The server requested authentication method unknown to the client [caching_sha2_password] in D:\git_kraken\register_form\admin\report_remarks.php on line 5
+[02-Jul-2026 06:08:15 UTC] PHP Warning:  mysqli::__construct(): (HY000/2054): The server requested authentication method unknown to the client in D:\git_kraken\register_form\admin\report_remarks.php on line 5
+[02-Jul-2026 06:37:51 UTC] PHP Notice:  Undefined index: name in D:\git_kraken\register_form\temp.php on line 13
+[02-Jul-2026 06:37:51 UTC] PHP Notice:  Undefined index: name in D:\git_kraken\register_form\temp.php on line 13
+[02-Jul-2026 06:37:51 UTC] PHP Notice:  Undefined index: name in D:\git_kraken\register_form\temp.php on line 13
+[02-Jul-2026 06:37:51 UTC] PHP Notice:  Undefined index: name in D:\git_kraken\register_form\temp.php on line 13
+[02-Jul-2026 06:37:51 UTC] PHP Notice:  Undefined index: name in D:\git_kraken\register_form\temp.php on line 13
+[02-Jul-2026 06:37:51 UTC] PHP Notice:  Undefined index: name in D:\git_kraken\register_form\temp.php on line 13
+[02-Jul-2026 06:37:51 UTC] PHP Notice:  Undefined index: name in D:\git_kraken\register_form\temp.php on line 13
+[02-Jul-2026 06:37:51 UTC] PHP Notice:  Undefined index: name in D:\git_kraken\register_form\temp.php on line 13
+[02-Jul-2026 06:37:51 UTC] PHP Notice:  Undefined index: name in D:\git_kraken\register_form\temp.php on line 13
+[02-Jul-2026 06:37:51 UTC] PHP Notice:  Undefined index: name in D:\git_kraken\register_form\temp.php on line 13
+[02-Jul-2026 07:51:17 UTC] PHP Fatal error:  Allowed memory size of 134217728 bytes exhausted (tried to allocate 12292269 bytes) in D:\git_kraken\register_form\admin\SimpleXLSXGen.php on line 1152
+[02-Jul-2026 07:54:23 UTC] PHP Fatal error:  Allowed memory size of 134217728 bytes exhausted (tried to allocate 12292269 bytes) in D:\git_kraken\register_form\admin\SimpleXLSXGen.php on line 1152
+[02-Jul-2026 08:09:11 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_pillars.php on line 128
+[02-Jul-2026 08:09:11 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_pillars.php on line 128
+[02-Jul-2026 08:09:11 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_pillars.php on line 128
+[02-Jul-2026 08:09:11 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_pillars.php on line 128
+[02-Jul-2026 08:09:14 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_dates.php on line 145
+[02-Jul-2026 08:09:14 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_dates.php on line 145
+[02-Jul-2026 08:09:14 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_dates.php on line 145
+[02-Jul-2026 08:09:14 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_dates.php on line 145
+[02-Jul-2026 08:09:14 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_dates.php on line 145
+[02-Jul-2026 08:09:14 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_dates.php on line 145
+[02-Jul-2026 08:09:14 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_dates.php on line 145
+[02-Jul-2026 08:09:14 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_dates.php on line 145
+[02-Jul-2026 08:09:14 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_dates.php on line 145
+[02-Jul-2026 08:09:14 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_dates.php on line 145
+[02-Jul-2026 08:09:14 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_dates.php on line 145
+[02-Jul-2026 08:09:14 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_dates.php on line 145
+[02-Jul-2026 08:09:14 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_dates.php on line 145
+[02-Jul-2026 08:09:14 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_dates.php on line 145
+[02-Jul-2026 08:09:14 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_dates.php on line 145
+[02-Jul-2026 08:09:14 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_dates.php on line 145
+[02-Jul-2026 08:09:14 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_dates.php on line 145
+[02-Jul-2026 08:09:14 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_dates.php on line 145
+[02-Jul-2026 08:09:22 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
+[02-Jul-2026 08:09:22 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
+[02-Jul-2026 08:09:22 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
+[02-Jul-2026 08:09:22 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
+[02-Jul-2026 08:09:22 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
+[02-Jul-2026 08:09:22 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
+[02-Jul-2026 08:09:22 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
+[02-Jul-2026 08:09:22 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
+[02-Jul-2026 08:09:22 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
+[02-Jul-2026 08:09:22 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
+[02-Jul-2026 08:09:22 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
+[02-Jul-2026 08:09:22 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
+[02-Jul-2026 08:09:22 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
+[02-Jul-2026 08:09:22 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
+[02-Jul-2026 08:09:22 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
+[02-Jul-2026 08:09:22 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
+[02-Jul-2026 08:09:22 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
