@@ -32,13 +32,13 @@ if (isset($_SESSION['LAST_ACTIVITY'])) {
 }
 
 define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', 'P@ssw0rd1234');
-// define('DB_USER', 'thaiairp_iptc');
-// define('DB_PASS', 'Pass@456981@XKTT');
+// define('DB_USER', 'root');
+// define('DB_PASS', 'P@ssw0rd1234');
+define('DB_USER', 'thaiairp_iptc');
+define('DB_PASS', 'Pass@456981@XKTT');
 define('DB_NAME', 'thaiairp_iptc');
 
-define('APP_ENV', 'prd'); // Set to 'prd' for production, 'uat' for testing
+define('APP_ENV', 'uat'); // Set to 'prd' for production, 'uat' for testing
 define('DB_TABLE_REGISTER', APP_ENV === 'prd' ? 'register' : 'register_uat');
 define('DB_TABLE_HISTORY', APP_ENV === 'prd' ? 'register_history' : 'register_history_uat');
 
@@ -85,7 +85,7 @@ define('DEFAULT_VIRIYAH_CODE_HINT', !empty($_GET['viriyah_code_hint']) ? $_GET['
 
 // Function to log register history
 function log_register_history($db, $register_id, $edited_by_type, $created_by, $old_data, $new_data) {
-    if (empty($old_data) || empty($new_data)) return;
+    if (empty($new_data)) return;
     $protected_fields = ['id', 'created_at', 'updated_at', 'last_modified_time'];
     $old_data_changed = [];
     $new_data_changed = [];

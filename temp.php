@@ -1,11 +1,14 @@
 <?php
-$content = file_get_contents('index.php');
-
-$content = preg_replace(
-    '/(let selectedText = selectBox\.options\.length > 0 && selectBox\.selectedIndex >= 0 \? selectBox\.options\[selectBox\.selectedIndex\]\.text : "";)\s+let selectedText = selectBox\.options\.length > 0 && selectBox\.selectedIndex >= 0 \? selectBox\.options\[selectBox\.selectedIndex\]\.text : "";/',
-    '$1',
-    $content
-);
-
-file_put_contents('index.php', $content);
-echo "Cleaned up duplicates with regex\n";
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+require 'appconfig.php';
+$db = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+if ($db->connect_error) {
+    die("Connection failed: " . $db->connect_error);
+}
+$res = $db->query("SHOW CREATE TABLE " . DB_TABLE_HISTORY);
+if (!$res) {
+    die("Error: " . $db->error);
+}
+$row = $res->fetch_array();
+echo $row[1] . "\n";

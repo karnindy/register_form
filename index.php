@@ -323,6 +323,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $coursesStr = implode(',', $previousCourses);
                 $emergPhone = preg_replace('/[^0-9]/', '', $formData['emergencyContactPhone']);
 
+                if (($formData['titleName'] === '4' || $formData['titleName'] === 'อื่นๆ') && $formData['titleNameOther'] !== '') {
+                    $formData['titleName'] = $formData['titleNameOther'];
+                }
+                if (($formData['titleNamePrev'] === '4' || $formData['titleNamePrev'] === 'อื่นๆ') && $formData['titleNameOtherPrev'] !== '') {
+                    $formData['titleNamePrev'] = $formData['titleNameOtherPrev'];
+                }
+
                 $stmt->bind_param("ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
                     $formData['pdpaConsent'], $idRaw, $dbIdCardExpiry,
                     $formData['titleName'], $formData['titleNameOther'],

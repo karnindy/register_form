@@ -74,6 +74,15 @@ $lastNameOldTh   = p('lastNameThPrev');
 $firstNameEnOld  = p('firstNameEnPrev');
 $middleNameEnOld = p('middleNameEnPrev');
 $lastNameOldEn   = p('lastNameEnPrev');
+
+// Override titleTh with custom text if "อื่นๆ" (ID 4) is selected
+if (($titleTh === '4' || $titleTh === 'อื่นๆ') && $titleCustom !== '') {
+    $titleTh = $titleCustom;
+}
+if (($titleThOld === '4' || $titleThOld === 'อื่นๆ') && $titleCustomOld !== '') {
+    $titleThOld = $titleCustomOld;
+}
+
 $birthDate       = p('birthDate');
 $dbBirthDate     = null;
 if (!empty($birthDate)) {
@@ -178,96 +187,134 @@ if (!is_numeric($titleThOld) && $titleThOld !== '') {
     }
 }
 
-$sql = "INSERT INTO " . DB_TABLE_REGISTER . " (
-    pdpa_consent, national_id, id_card_expiry,
-    title_th, title_custom,
-    first_name_th, middle_name_th, last_name_th,
-    first_name_en, middle_name_en, last_name_en,
-    has_changed_name,
-    title_prev, title_custom_prev,
-    first_name_old_th, middle_name_old_th, last_name_old_th,
-    first_name_en_prev, middle_name_en_prev, last_name_en_prev,
-    birth_date, religion, gender, blood_group,
-    phone_otp, email_alt, email,
-    line_id, facebook, instagram,
-    food_allergy, medical_condition,
-    emergency_contact_name, emergency_contact_phone,
-    created_at, start_time
-) VALUES (
-    ?, ?, ?,  ?, ?,  ?, ?, ?,  ?, ?, ?,
-    ?,  ?, ?,  ?, ?, ?,  ?, ?, ?,
-    ?, ?, ?, ?,  ?, ?,  ?, ?, ?,  ?, ?,  ?, ?, ?, NOW(), NOW()
-) ON DUPLICATE KEY UPDATE
-    pdpa_consent            = VALUES(pdpa_consent),
-    id_card_expiry          = VALUES(id_card_expiry),
-    title_th                = VALUES(title_th),
-    title_custom            = VALUES(title_custom),
-    first_name_th           = VALUES(first_name_th),
-    middle_name_th          = VALUES(middle_name_th),
-    last_name_th            = VALUES(last_name_th),
-    first_name_en           = VALUES(first_name_en),
-    middle_name_en          = VALUES(middle_name_en),
-    last_name_en            = VALUES(last_name_en),
-    has_changed_name        = VALUES(has_changed_name),
-    title_prev              = VALUES(title_prev),
-    title_custom_prev       = VALUES(title_custom_prev),
-    first_name_old_th       = VALUES(first_name_old_th),
-    middle_name_old_th      = VALUES(middle_name_old_th),
-    last_name_old_th        = VALUES(last_name_old_th),
-    first_name_en_prev      = VALUES(first_name_en_prev),
-    middle_name_en_prev     = VALUES(middle_name_en_prev),
-    last_name_en_prev       = VALUES(last_name_en_prev),
-    birth_date              = VALUES(birth_date),
-    religion                = VALUES(religion),
-    gender                  = VALUES(gender),
-    blood_group             = VALUES(blood_group),
-    phone_otp               = VALUES(phone_otp),
-    email_alt               = VALUES(email_alt),
-    email                   = VALUES(email),
-    line_id                 = VALUES(line_id),
-    facebook                = VALUES(facebook),
-    instagram               = VALUES(instagram),
-    food_allergy            = VALUES(food_allergy),
-    medical_condition       = VALUES(medical_condition),
-    emergency_contact_name  = VALUES(emergency_contact_name),
-    emergency_contact_phone = VALUES(emergency_contact_phone),
-    updated_at              = NOW()";
+// --- BEFORE UPDATE ---
+$old_data = [];
+$stmt_old = $db->prepare("SELECT * FROM " . DB_TABLE_REGISTER . " WHERE national_id = ?");
+if ($stmt_old) {
+    $stmt_old->bind_param("s", $idRaw);
+    $stmt_old->execute();
+    $res_old = $stmt_old->get_result();
+    if ($res_old && $res_old->num_rows > 0) {
+        $old_data = $res_old->fetch_assoc();
+    }
+    $stmt_old->close();
+}
+
+$recordId = null;
+if (!empty($_SESSION['register_id'])) {
+    $recordId = $_SESSION['register_id'];
+} else {
+    $stmt_find = $db->prepare("SELECT id FROM " . DB_TABLE_REGISTER . " WHERE national_id = ? ORDER BY updated_at DESC, id DESC LIMIT 1");
+    if ($stmt_find) {
+        $stmt_find->bind_param("s", $idRaw);
+        $stmt_find->execute();
+        $stmt_find->bind_result($foundId);
+        if ($stmt_find->fetch()) {
+            $recordId = $foundId;
+        }
+        $stmt_find->close();
+    }
+}
+
+if ($recordId) {
+    $sql = "UPDATE " . DB_TABLE_REGISTER . " SET
+        pdpa_consent = ?, national_id = ?, id_card_expiry = ?, title_th = ?, title_custom = ?,
+        first_name_th = ?, middle_name_th = ?, last_name_th = ?,
+        first_name_en = ?, middle_name_en = ?, last_name_en = ?,
+        has_changed_name = ?, title_prev = ?, title_custom_prev = ?,
+        first_name_old_th = ?, middle_name_old_th = ?, last_name_old_th = ?,
+        first_name_en_prev = ?, middle_name_en_prev = ?, last_name_en_prev = ?,
+        birth_date = ?, religion = ?, gender = ?, blood_group = ?,
+        phone_otp = ?, email_alt = ?, email = ?,
+        line_id = ?, facebook = ?, instagram = ?,
+        food_allergy = ?, medical_condition = ?,
+        emergency_contact_name = ?, emergency_contact_phone = ?,
+        updated_at = NOW()
+    WHERE id = ?";
+} else {
+    $sql = "INSERT INTO " . DB_TABLE_REGISTER . " (
+        pdpa_consent, national_id, id_card_expiry, title_th, title_custom,
+        first_name_th, middle_name_th, last_name_th,
+        first_name_en, middle_name_en, last_name_en,
+        has_changed_name, title_prev, title_custom_prev,
+        first_name_old_th, middle_name_old_th, last_name_old_th,
+        first_name_en_prev, middle_name_en_prev, last_name_en_prev,
+        birth_date, religion, gender, blood_group,
+        phone_otp, email_alt, email,
+        line_id, facebook, instagram,
+        food_allergy, medical_condition,
+        emergency_contact_name, emergency_contact_phone,
+        created_at, start_time
+    ) VALUES (
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW()
+    )";
+}
 
 try {
     $stmt = $db->prepare($sql);
     if (!$stmt) {
         jsonError('เตรียมคำสั่ง SQL ไม่สำเร็จ: ' . $db->error);
     }
-    $stmt->bind_param(
-        'ssssssssssssssssssssssssssssssssss',
-        $pdpaConsent, $idRaw, $dbIdCardExpiry,
-        $titleTh, $titleCustom,
-        $firstNameTh, $middleNameTh, $lastNameTh,
-        $firstNameEn, $middleNameEn, $lastNameEn,
-        $hasChangedName,
-        $titleThOld, $titleCustomOld,
-        $firstNameOldTh, $middleNameOldTh, $lastNameOldTh,
-        $firstNameEnOld, $middleNameEnOld, $lastNameOldEn,
-        $dbBirthDate, $religion, $gender, $bloodGroup,
-        $phoneRaw, $email, $email,
-        $lineId, $facebook, $instagram,
-        $foodAllergy, $medicalCond,
-        $emergencyName, $emergencyPhone
-    );
+    
+    if ($recordId) {
+        $stmt->bind_param(
+            'ssssssssssssssssssssssssssssssssssi',
+            $pdpaConsent, $idRaw, $dbIdCardExpiry, $titleTh, $titleCustom,
+            $firstNameTh, $middleNameTh, $lastNameTh,
+            $firstNameEn, $middleNameEn, $lastNameEn,
+            $hasChangedName, $titleThOld, $titleCustomOld,
+            $firstNameOldTh, $middleNameOldTh, $lastNameOldTh,
+            $firstNameEnOld, $middleNameEnOld, $lastNameOldEn,
+            $dbBirthDate, $religion, $gender, $bloodGroup,
+            $phoneRaw, $email, $email,
+            $lineId, $facebook, $instagram,
+            $foodAllergy, $medicalCond,
+            $emergencyName, $emergencyPhone,
+            $recordId
+        );
+    } else {
+        $stmt->bind_param(
+            'ssssssssssssssssssssssssssssssssss',
+            $pdpaConsent, $idRaw, $dbIdCardExpiry, $titleTh, $titleCustom,
+            $firstNameTh, $middleNameTh, $lastNameTh,
+            $firstNameEn, $middleNameEn, $lastNameEn,
+            $hasChangedName, $titleThOld, $titleCustomOld,
+            $firstNameOldTh, $middleNameOldTh, $lastNameOldTh,
+            $firstNameEnOld, $middleNameEnOld, $lastNameOldEn,
+            $dbBirthDate, $religion, $gender, $bloodGroup,
+            $phoneRaw, $email, $email,
+            $lineId, $facebook, $instagram,
+            $foodAllergy, $medicalCond,
+            $emergencyName, $emergencyPhone
+        );
+    }
+    
     if (!$stmt->execute()) {
         jsonError('บันทึกข้อมูลไม่สำเร็จ: ' . $stmt->error);
     }
     
-    // Get the ID
-    $getIdStmt = $db->prepare("SELECT id FROM " . DB_TABLE_REGISTER . " WHERE national_id = ? ORDER BY updated_at DESC, id DESC LIMIT 1");
-    $getIdStmt->bind_param('s', $idRaw);
-    $getIdStmt->execute();
-    $getIdStmt->bind_result($recordId);
-    $getIdStmt->fetch();
-    $getIdStmt->close();
+    if (!$recordId) {
+        $recordId = $stmt->insert_id;
+    }
 
     if ($recordId) {
         $_SESSION['register_id'] = $recordId;
+    }
+
+    // --- AFTER UPDATE ---
+    if ($recordId) {
+        $stmt_new = $db->prepare("SELECT * FROM " . DB_TABLE_REGISTER . " WHERE id = ?");
+        if ($stmt_new) {
+            $stmt_new->bind_param("i", $recordId);
+            $stmt_new->execute();
+            $res_new = $stmt_new->get_result();
+            if ($res_new && $res_new->num_rows > 0) {
+                $new_data = $res_new->fetch_assoc();
+                log_register_history($db, $recordId, 'applicant', 'user', $old_data, $new_data);
+            }
+            $stmt_new->close();
+        }
     }
 
     $db->commit();
