@@ -79,7 +79,7 @@ if (isset($render_db)) {
 $courseScheduleJson = json_encode($courseScheduleData, JSON_UNESCAPED_UNICODE);
 
 // Check if system is closed
-if (defined('SYSTEM_ALWAYS_CLOSED') && SYSTEM_ALWAYS_CLOSED === true) {
+if (defined('SYSTEM_IS_ONLINE') && SYSTEM_IS_ONLINE === false) {
     header("Location: closed.php");
     exit();
 } elseif (defined('SYSTEM_OPEN_PERIODS')) {
@@ -1746,6 +1746,37 @@ $brokerStyle = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'agent')
         let savedNationalId = ''; // จำ national_id หลัง Tab 2 save เสร็จ
         let savedId = '';
 
+        function toggleTitleNameOther() {
+            let selectBox = document.getElementsByName("titleName")[0];
+            let otherContainer = document.getElementById("titleNameOtherContainer");
+            let otherInput = document.getElementById("titleNameOther");
+            let selectedText = selectBox.options.length > 0 && selectBox.selectedIndex >= 0 ? selectBox.options[selectBox.selectedIndex].text : "";
+            if (selectedText === "อื่นๆ" || selectBox.value === "4" || selectBox.value === "อื่นๆ") {
+                otherContainer.style.display = "block";
+                otherInput.setAttribute("required", "required");
+            } else {
+                otherContainer.style.display = "none";
+                otherInput.removeAttribute("required");
+                otherInput.value = "";
+                otherInput.classList.remove("invalid");
+            }
+        }
+        function toggleTitleNameOtherPrev() {
+            let selectBox = document.getElementById("titleNamePrev");
+            let otherContainer = document.getElementById("titleNameOtherContainerPrev");
+            let otherInput = document.getElementById("titleNameOtherPrev");
+            let selectedText = selectBox.options.length > 0 && selectBox.selectedIndex >= 0 ? selectBox.options[selectBox.selectedIndex].text : "";
+            if (selectedText === "อื่นๆ" || selectBox.value === "4" || selectBox.value === "อื่นๆ") {
+                otherContainer.style.display = "block";
+                otherInput.setAttribute("required", "required");
+            } else {
+                otherContainer.style.display = "none";
+                otherInput.removeAttribute("required");
+                otherInput.value = "";
+                otherInput.classList.remove("invalid");
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
             let checkedAgent = document.querySelector('input[name="agentTypeMain"]:checked');
             if (checkedAgent) toggleAgentAffiliation();
@@ -2214,7 +2245,8 @@ $brokerStyle = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'agent')
             let otherContainer = document.getElementById("titleNameOtherContainer");
             let otherInput = document.getElementById("titleNameOther");
 
-            if (selectBox.value === "อื่นๆ") {
+            let selectedText = selectBox.options.length > 0 && selectBox.selectedIndex >= 0 ? selectBox.options[selectBox.selectedIndex].text : "";
+            if (selectedText === "อื่นๆ" || selectBox.value === "4" || selectBox.value === "อื่นๆ") {
                 otherContainer.style.display = "block";
                 otherInput.setAttribute("required", "required");
             } else {
@@ -2229,7 +2261,8 @@ $brokerStyle = (defined('DEFAULT_AGENT_TYPE') && DEFAULT_AGENT_TYPE === 'agent')
             let otherContainer = document.getElementById("titleNameOtherContainerPrev");
             let otherInput = document.getElementById("titleNameOtherPrev");
 
-            if (selectBox.value === "อื่นๆ") {
+            let selectedText = selectBox.options.length > 0 && selectBox.selectedIndex >= 0 ? selectBox.options[selectBox.selectedIndex].text : "";
+            if (selectedText === "อื่นๆ" || selectBox.value === "4" || selectBox.value === "อื่นๆ") {
                 otherContainer.style.display = "block";
                 otherInput.setAttribute("required", "required");
             } else {

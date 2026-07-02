@@ -49,9 +49,7 @@ define('DB_TABLE_HISTORY', APP_ENV === 'prd' ? 'register_history' : 'register_hi
 // หากต้องการปิดระบบตลอดเวลา ให้ตั้งค่า SYSTEM_IS_ONLINE เป็น false
 define('SYSTEM_IS_ONLINE', true);
 define('SYSTEM_OPEN_PERIODS', '[
-{"open": "2026-07-01 00:00:00", "close": "2026-07-02 08:37:00"}
-,{"open": "2026-07-02 08:40:00", "close": "2026-07-02 08:43:00"}
-,{"open": "2026-07-02 08:46:00"}
+
 ]');
 
 // Default Agent Type Configuration

@@ -13,32 +13,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     if (!is_editor()) {
         $error = "คุณไม่มีสิทธิ์ในการบันทึกการตั้งค่า";
     } else {
-        $appconfig_path = '../appconfig.php';
+        $appconfig_path = __DIR__ . '/../appconfig.php';
         $content = file_get_contents($appconfig_path);
 
         // 1. SESSION_TIMEOUT_SECONDS
         if (isset($_POST['SESSION_TIMEOUT_SECONDS'])) {
             $timeout = intval($_POST['SESSION_TIMEOUT_SECONDS']);
-            $content = preg_replace("/define\('SESSION_TIMEOUT_SECONDS',\s*(\d+)\);/", "define('SESSION_TIMEOUT_SECONDS', $timeout);", $content);
+            $content = preg_replace("/define\('SESSION_TIMEOUT_SECONDS',\s*(\d+)\);/i", "define('SESSION_TIMEOUT_SECONDS', $timeout);", $content);
         }
 
         // 2. APP_ENV
         if (isset($_POST['APP_ENV'])) {
             $env = $_POST['APP_ENV'];
             if (in_array($env, ['prd', 'uat'])) {
-                $content = preg_replace("/define\('APP_ENV',\s*'(.*?)'\);/", "define('APP_ENV', '$env');", $content);
+                $content = preg_replace("/define\('APP_ENV',\s*'(.*?)'\);/i", "define('APP_ENV', '$env');", $content);
             }
         }
 
         // 3. SYSTEM_IS_ONLINE
         $is_online = isset($_POST['SYSTEM_IS_ONLINE']) ? 'true' : 'false';
-        $content = preg_replace("/define\('SYSTEM_IS_ONLINE',\s*(true|false)\);/", "define('SYSTEM_IS_ONLINE', $is_online);", $content);
+        $content = preg_replace("/define\('SYSTEM_IS_ONLINE',\s*(true|false|1|0)\);/i", "define('SYSTEM_IS_ONLINE', $is_online);", $content);
 
         // 4. SYSTEM_OPEN_PERIODS
         if (isset($_POST['SYSTEM_OPEN_PERIODS'])) {
             $open_periods = $_POST['SYSTEM_OPEN_PERIODS'];
             $open_periods_clean = str_replace("'", "\\'", $open_periods);
-            $content = preg_replace("/define\('SYSTEM_OPEN_PERIODS',\s*'(.*?)'\);/s", "define('SYSTEM_OPEN_PERIODS', '$open_periods_clean');", $content);
+            $content = preg_replace("/define\('SYSTEM_OPEN_PERIODS',\s*'(.*?)'\);/si", "define('SYSTEM_OPEN_PERIODS', '$open_periods_clean');", $content);
         }
 
         // 5. Variables
@@ -58,10 +58,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
 
         // Save back to file
-        file_put_contents($appconfig_path, $content);
-        
-        header("Location: config.php?saved=1");
-        exit;
+        $bytes = file_put_contents($appconfig_path, $content);
+        if ($bytes === false) {
+            $error = "ไม่สามารถบันทึกไฟล์ได้ กรุณาตรวจสอบสิทธิ์ (Permissions) การเขียนไฟล์: appconfig.php";
+        } else {
+            if (function_exists('opcache_invalidate')) {
+                opcache_invalidate($appconfig_path, true);
+            }
+            header("Location: config.php?saved=1");
+            exit;
+        }
     }
 }
 
@@ -119,8 +125,11 @@ require_once 'includes/header.php';
         <div class="card-header bg-viriyah-gold">ค่าเริ่มต้นของแบบฟอร์ม (Form Defaults)</div>
         <div class="card-body">
             <div class="mb-3">
-                <label class="form-label fw-bold">ประเภทตัวแทนเริ่มต้น ($default_agent_type)</label>
-                <select name="default_agent_type" class="form-select">
+                <label class="form-label fw-bold d-flex align-items-center">
+                    <input type="checkbox" id="chk_default_agent_type" class="form-check-input me-2 mt-0" onclick="toggleDefault('default_agent_type')">
+                    ประเภทตัวแทนเริ่มต้น ($default_agent_type)
+                </label>
+                <select name="default_agent_type" id="inp_default_agent_type" class="form-select">
                     <option value="" <?= $default_agent_type === '' ? 'selected' : '' ?>>ไม่มี (ให้ผู้ใช้เลือกเอง)</option>
                     <option value="agent" <?= $default_agent_type === 'agent' ? 'selected' : '' ?>>ตัวแทน (agent)</option>
                     <option value="broker" <?= $default_agent_type === 'broker' ? 'selected' : '' ?>>นายหน้า (broker)</option>
@@ -128,29 +137,89 @@ require_once 'includes/header.php';
             </div>
 
             <div class="mb-3">
-                <label class="form-label fw-bold">รหัสตัวแทนวิริยะเริ่มต้น ($default_viriyah_code)</label>
-                <input type="text" name="default_viriyah_code" class="form-control" value="<?= esc($default_viriyah_code) ?>">
+                <label class="form-label fw-bold d-flex align-items-center">
+                    <input type="checkbox" id="chk_default_viriyah_code" class="form-check-input me-2 mt-0" onclick="toggleDefault('default_viriyah_code')">
+                    รหัสตัวแทนวิริยะเริ่มต้น ($default_viriyah_code)
+                </label>
+                <input type="text" name="default_viriyah_code" id="inp_default_viriyah_code" class="form-control" value="<?= esc($default_viriyah_code) ?>">
             </div>
 
             <div class="mb-3">
-                <label class="form-label fw-bold">สาขาเริ่มต้น ($default_agent_branch)</label>
-                <input type="text" name="default_agent_branch" class="form-control" value="<?= esc($default_agent_branch) ?>">
+                <label class="form-label fw-bold d-flex align-items-center">
+                    <input type="checkbox" id="chk_default_agent_branch" class="form-check-input me-2 mt-0" onclick="toggleDefault('default_agent_branch')">
+                    สาขาเริ่มต้น ($default_agent_branch)
+                </label>
+                <input type="text" name="default_agent_branch" id="inp_default_agent_branch" class="form-control" value="<?= esc($default_agent_branch) ?>">
             </div>
 
             <div class="mb-3">
-                <label class="form-label fw-bold">คำแนะนำ: รหัสตัวแทน ($default_viriyah_code_hint)</label>
-                <input type="text" name="default_viriyah_code_hint" class="form-control" value="<?= esc($default_viriyah_code_hint) ?>">
+                <label class="form-label fw-bold d-flex align-items-center">
+                    <input type="checkbox" id="chk_default_viriyah_code_hint" class="form-check-input me-2 mt-0" onclick="toggleDefault('default_viriyah_code_hint')">
+                    คำแนะนำ: รหัสตัวแทน ($default_viriyah_code_hint)
+                </label>
+                <input type="text" name="default_viriyah_code_hint" id="inp_default_viriyah_code_hint" class="form-control" value="<?= esc($default_viriyah_code_hint) ?>">
             </div>
 
             <div class="mb-3">
-                <label class="form-label fw-bold">คำแนะนำ: สาขา ($default_agent_branch_hint)</label>
-                <input type="text" name="default_agent_branch_hint" class="form-control" value="<?= esc($default_agent_branch_hint) ?>">
+                <label class="form-label fw-bold d-flex align-items-center">
+                    <input type="checkbox" id="chk_default_agent_branch_hint" class="form-check-input me-2 mt-0" onclick="toggleDefault('default_agent_branch_hint')">
+                    คำแนะนำ: สาขา ($default_agent_branch_hint)
+                </label>
+                <input type="text" name="default_agent_branch_hint" id="inp_default_agent_branch_hint" class="form-control" value="<?= esc($default_agent_branch_hint) ?>">
             </div>
 
             <div class="mb-3">
-                <label class="form-label fw-bold">คำแนะนำ: ภาค ($default_agent_region_hint)</label>
-                <input type="text" name="default_agent_region_hint" class="form-control" value="<?= esc($default_agent_region_hint) ?>">
+                <label class="form-label fw-bold d-flex align-items-center">
+                    <input type="checkbox" id="chk_default_agent_region_hint" class="form-check-input me-2 mt-0" onclick="toggleDefault('default_agent_region_hint')">
+                    คำแนะนำ: ภาค ($default_agent_region_hint)
+                </label>
+                <input type="text" name="default_agent_region_hint" id="inp_default_agent_region_hint" class="form-control" value="<?= esc($default_agent_region_hint) ?>">
             </div>
+
+            <script>
+            const formDefaults = {
+                'default_agent_type': '',
+                'default_viriyah_code': '',
+                'default_agent_branch': '',
+                'default_viriyah_code_hint': 'ถ้าไม่ทราบ สอบถามสาขา หรือตัวแทน/นายหน้าที่ท่านสังกัด , ถ้าเป็นขอรับใบอนุญาต และยังไม่มีรหัส ให้กรอก 00000',
+                'default_agent_branch_hint': 'พิมพ์เพื่อค้นหาสาขา',
+                'default_agent_region_hint': 'ระบบจะเติมให้อัตโนมัติ'
+            };
+
+            function toggleDefault(fieldId) {
+                const chk = document.getElementById('chk_' + fieldId);
+                const inp = document.getElementById('inp_' + fieldId);
+                if (chk.checked) {
+                    inp.value = formDefaults[fieldId];
+                    inp.setAttribute('readonly', 'readonly');
+                    if (inp.tagName === 'SELECT') {
+                        inp.style.pointerEvents = 'none';
+                        inp.style.backgroundColor = '#e9ecef';
+                    } else {
+                        inp.style.backgroundColor = '#e9ecef';
+                    }
+                } else {
+                    inp.removeAttribute('readonly');
+                    if (inp.tagName === 'SELECT') {
+                        inp.style.pointerEvents = 'auto';
+                        inp.style.backgroundColor = '';
+                    } else {
+                        inp.style.backgroundColor = '';
+                    }
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", function() {
+                for (let key in formDefaults) {
+                    const inp = document.getElementById('inp_' + key);
+                    const chk = document.getElementById('chk_' + key);
+                    if (inp && inp.value === formDefaults[key]) {
+                        chk.checked = true;
+                        toggleDefault(key);
+                    }
+                }
+            });
+            </script>
             <div class="card-footer text-end p-3">
                 <?php if (is_editor()): ?>
                     <button type="submit" class="btn btn-primary btn-lg px-5 shadow-sm"><i class="fa-solid fa-save"></i> บันทึกการตั้งค่า</button>
