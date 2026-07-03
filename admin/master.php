@@ -59,7 +59,38 @@ require_once 'includes/header.php';
             </div>
         </div>
     </div>
-    <!-- Future master data blocks can go here -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center p-5">
+                <i class="fa-solid fa-map-location-dot fa-3x text-viriyah-blue mb-3"></i>
+                <h4 class="card-title fw-bold">จัดการจังหวัด</h4>
+                <p class="card-text text-muted">เพิ่ม ลบ หรือแก้ไขข้อมูลจังหวัดในระบบ</p>
+                <a href="master_provinces.php" class="btn btn-outline-primary mt-3">จัดการข้อมูล</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center p-5">
+                <i class="fa-solid fa-map fa-3x text-viriyah-blue mb-3"></i>
+                <h4 class="card-title fw-bold">จัดการอำเภอ</h4>
+                <p class="card-text text-muted">เพิ่ม ลบ หรือแก้ไขข้อมูลอำเภอในระบบ</p>
+                <a href="master_districts.php" class="btn btn-outline-primary mt-3">จัดการข้อมูล</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center p-5">
+                <i class="fa-solid fa-location-crosshairs fa-3x text-viriyah-blue mb-3"></i>
+                <h4 class="card-title fw-bold">จัดการตำบล</h4>
+                <p class="card-text text-muted">เพิ่ม ลบ หรือแก้ไขข้อมูลตำบลในระบบ</p>
+                <a href="master_sub_districts.php" class="btn btn-outline-primary mt-3">จัดการข้อมูล</a>
+            </div>
+        </div>
+    </div>
 </div>
 
 <h3 class="mt-4 mb-3 text-viriyah-blue fw-bold border-bottom pb-2">จัดการวิชาต่ออายุ (Renew Other & Past Training)</h3>

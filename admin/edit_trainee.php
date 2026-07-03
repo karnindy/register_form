@@ -206,25 +206,21 @@ require_once 'includes/header.php';
 <?php
 // Fetch master agent levels
 $mst_agent_levels = [];
-$mst_agent_levels[] = ['id' => 'ไม่มีใบอนุญาต/ใบอนุญาตขาดต่อ', 'name' => 'ไม่มีใบอนุญาต/ใบอนุญาตขาดต่อ'];
 $res_agent = $db->query("SELECT MIN(id) as id, course_name as name FROM mst_renew_basic WHERE status = 'active' AND course_name LIKE '%ตัวแทน%' GROUP BY course_name ORDER BY MIN(id) ASC");
 if ($res_agent) {
     while ($r = $res_agent->fetch_assoc()) {
         $mst_agent_levels[] = ['id' => $r['id'], 'name' => $r['name']];
     }
 }
-$mst_agent_levels[] = ['id' => 'ขอต่ออายุใบอนุญาตเป็น ตัวแทนหรือนายหน้า ประกันวินาศภัย ครั้งที่ 4 เป็นต้นไป', 'name' => 'ขอต่ออายุใบอนุญาตเป็น ตัวแทนหรือนายหน้า ประกันวินาศภัย ครั้งที่ 4 เป็นต้นไป'];
 
 // Fetch master broker levels
 $mst_broker_levels = [];
-$mst_broker_levels[] = ['id' => 'ไม่มีใบอนุญาต/ใบอนุญาตขาดต่อ', 'name' => 'ไม่มีใบอนุญาต/ใบอนุญาตขาดต่อ'];
 $res_broker = $db->query("SELECT MIN(id) as id, course_name as name FROM mst_renew_basic WHERE status = 'active' AND course_name LIKE '%นายหน้า%' GROUP BY course_name ORDER BY MIN(id) ASC");
 if ($res_broker) {
     while ($r = $res_broker->fetch_assoc()) {
         $mst_broker_levels[] = ['id' => $r['id'], 'name' => $r['name']];
     }
 }
-$mst_broker_levels[] = ['id' => 'ขอต่ออายุใบอนุญาตเป็น ตัวแทนหรือนายหน้า ประกันวินาศภัย ครั้งที่ 4 เป็นต้นไป', 'name' => 'ขอต่ออายุใบอนุญาตเป็น ตัวแทนหรือนายหน้า ประกันวินาศภัย ครั้งที่ 4 เป็นต้นไป'];
 
 $select_options = [
     'title_th' => $mst_titles,
@@ -587,9 +583,9 @@ $select_options = [
                 return JSON.parse(text);
             };
 
-            let provData = await loadJson('provinces.json');
-            let distData = await loadJson('districts.json');
-            let subData = await loadJson('sub_districts.json');
+            let provData = await loadJson('api_locations.php\?type=provinces');
+            let distData = await loadJson('api_locations.php\?type=districts');
+            let subData = await loadJson('api_locations.php\?type=sub_districts');
 
             rawProvinces = provData.provinces || [];
             rawDistricts = distData.districts || [];
@@ -616,28 +612,49 @@ $select_options = [
         $dist.select2({ theme: 'bootstrap-5', width: '100%' });
         $sub.select2({ theme: 'bootstrap-5', width: '100%' });
 
+        function markUnmapped($select, isUnmapped) {
+            let $label = $select.closest('div').find('label.form-label');
+            $label.find('.m-badge-addr').remove();
+            if (isUnmapped && $select.val()) {
+                $label.append('<span class="badge ms-2 m-badge-addr" style="background-color: #fd7e14; color: white;" title="ข้อมูลเดิมที่ไม่มีในระบบ (ไม่ Map กับ Master)">M</span>');
+            }
+        }
+
         // Populate Provinces
         let currentProv = $prov.attr('data-selected');
         $prov.empty().append('<option value="">- เลือกจังหวัด -</option>');
+        let foundProv = false;
         rawProvinces.forEach(p => {
             let selected = (p.PROVINCE_THAI === currentProv) ? 'selected' : '';
+            if (selected) foundProv = true;
             $prov.append(`<option value="${p.PROVINCE_THAI}" ${selected}>${p.PROVINCE_THAI}</option>`);
         });
+        if (currentProv && !foundProv) {
+            $prov.append(`<option value="${currentProv}" selected>${currentProv}</option>`);
+        }
+        markUnmapped($prov, currentProv && !foundProv);
 
         const updateDistricts = () => {
             let provName = $prov.val();
             let currentDist = $dist.attr('data-selected');
             $dist.empty().append('<option value="">- เลือกอำเภอ/เขต -</option>');
             $sub.empty().append('<option value="">- เลือกตำบล/แขวง -</option>');
+            let foundDist = false;
             
             let provObj = rawProvinces.find(p => p.PROVINCE_THAI === provName);
             if (provObj) {
                 let dists = rawDistricts.filter(d => d.PROVINCE_ID === provObj.PROVINCE_ID);
                 dists.forEach(d => {
                     let selected = (d.DISTRICT_THAI === currentDist) ? 'selected' : '';
+                    if (selected) foundDist = true;
                     $dist.append(`<option value="${d.DISTRICT_THAI}" ${selected}>${d.DISTRICT_THAI}</option>`);
                 });
             }
+            if (currentDist && !foundDist && currentDist === $dist.attr('data-selected')) {
+                $dist.append(`<option value="${currentDist}" selected>${currentDist}</option>`);
+            }
+            markUnmapped($dist, currentDist && !foundDist);
+            
             // Refresh select2 UI
             if ($dist.hasClass("select2-hidden-accessible")) $dist.select2('destroy').select2({ theme: 'bootstrap-5', width: '100%' });
             if ($sub.hasClass("select2-hidden-accessible")) $sub.select2('destroy').select2({ theme: 'bootstrap-5', width: '100%' });
@@ -647,15 +664,22 @@ $select_options = [
             let distName = $dist.val();
             let currentSub = $sub.attr('data-selected');
             $sub.empty().append('<option value="">- เลือกตำบล/แขวง -</option>');
+            let foundSub = false;
 
             let distObj = rawDistricts.find(d => d.DISTRICT_THAI === distName);
             if (distObj) {
                 let subs = rawSubDistricts.filter(s => s.DISTRICT_ID === distObj.DISTRICT_ID);
                 subs.forEach(s => {
                     let selected = (s.SUB_DISTRICT_THAI === currentSub) ? 'selected' : '';
+                    if (selected) foundSub = true;
                     $sub.append(`<option value="${s.SUB_DISTRICT_THAI}" data-zip="${s.POSTAL_CODE}" ${selected}>${s.SUB_DISTRICT_THAI}</option>`);
                 });
             }
+            if (currentSub && !foundSub && currentSub === $sub.attr('data-selected')) {
+                $sub.append(`<option value="${currentSub}" selected>${currentSub}</option>`);
+            }
+            markUnmapped($sub, currentSub && !foundSub);
+            
             // Refresh select2 UI
             if ($sub.hasClass("select2-hidden-accessible")) $sub.select2('destroy').select2({ theme: 'bootstrap-5', width: '100%' });
         };
@@ -793,3 +817,4 @@ $select_options = [
 </script>
 
 <?php require_once 'includes/footer.php'; ?>
+

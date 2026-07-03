@@ -62,3 +62,5 @@ Stack trace:
 [02-Jul-2026 08:09:22 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
 [02-Jul-2026 08:09:22 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
 [02-Jul-2026 08:09:22 UTC] PHP Notice:  Undefined index: update_date in D:\git_kraken\register_form\admin\master_renew_course.php on line 128
+[02-Jul-2026 08:37:02 UTC] PHP Warning:  require_once(../appconfig.php): failed to open stream: No such file or directory in D:\git_kraken\register_form\admin\migrate_locations.php on line 3
+[02-Jul-2026 08:37:02 UTC] PHP Fatal error:  require_once(): Failed opening required '../appconfig.php' (include_path='.;C:\php\pear') in D:\git_kraken\register_form\admin\migrate_locations.php on line 3

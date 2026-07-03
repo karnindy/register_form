@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // =====================================================
 //  Viriyah Registration Form (PHP Version)
 //  แปลงจาก viriyah_registration_form.html
@@ -2606,27 +2606,6 @@ function updateCourseTypeOptions(selectedType) {
             let pdpaRadios = document.getElementsByName('pdpaConsent');
             let nextBtn = document.getElementById("nextBtn");
             let isAccepted = false;
-
-            for (let i = 0; i < pdpaRadios.length; i++) {
-                if (pdpaRadios[i].checked && pdpaRadios[i].value === 'accept') {
-                    isAccepted = true;
-                }
-            }
-
-            if (currentTab === 0) {
-                if (!isAccepted) {
-                    nextBtn.disabled = true;
-                    nextBtn.style.opacity = "0.5";
-                    nextBtn.style.cursor = "not-allowed";
-                } else {
-                    nextBtn.disabled = false;
-                    nextBtn.style.opacity = "1";
-                    nextBtn.style.cursor = "pointer";
-                }
-            }
-        }
-
-        function showFieldError(element, msg) {
             if (!element) return;
             element.classList.add("invalid");
             
@@ -3174,9 +3153,9 @@ function updateCourseTypeOptions(selectedType) {
                     return JSON.parse(text);
                 };
 
-                const provData = await fetchWithFallback('provinces.json');
-                const distData = await fetchWithFallback('districts.json');
-                const subData = await fetchWithFallback('sub_districts.json');
+                const provData = await fetchWithFallback('api_locations.php?type=provinces');
+                const distData = await fetchWithFallback('api_locations.php?type=districts');
+                const subData = await fetchWithFallback('api_locations.php?type=sub_districts');
 
                 rawProvinces = provData.provinces || [];
                 rawDistricts = distData.districts || [];
@@ -3906,3 +3885,4 @@ function updateCourseTypeOptions(selectedType) {
 </body>
 
 </html>
+

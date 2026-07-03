@@ -219,10 +219,10 @@ r.id,start_time,completion_time
 ,id_card_expiry,case when mr.name is not null then mr.name else r.religion end as religion,line_id,facebook,instagram
 ,food_allergy,medical_condition,phone_otp,emergency_contact_name
 ,emergency_contact_phone,addr_house_no,addr_soi,addr_moo
-,addr_village,addr_road,addr_subdistrict,addr_district
-,addr_province,addr_postcode,contact_address,contact_house_no
+,addr_village,addr_road,case when ms1.sub_district_thai is not null then ms1.sub_district_thai else r.addr_subdistrict end as addr_subdistrict,case when md1.district_thai is not null then md1.district_thai else r.addr_district end as addr_district
+,case when mp1.province_thai is not null then mp1.province_thai else r.addr_province end as addr_province,addr_postcode,contact_address,contact_house_no
 ,contact_soi,contact_moo,contact_village,contact_road
-,contact_subdistrict,contact_district,contact_province
+,case when ms2.sub_district_thai is not null then ms2.sub_district_thai else r.contact_subdistrict end as contact_subdistrict,case when md2.district_thai is not null then md2.district_thai else r.contact_district end as contact_district,case when mp2.province_thai is not null then mp2.province_thai else r.contact_province end as contact_province
 ,contact_postcode,license_type,license_no,license_status
 ,license_issue_date,license_expiry_date,region_affiliation
 ,region_north,region_northeast,region_east,region_central_west
@@ -254,7 +254,13 @@ left join vw_renew_other_all v on r.national_id = v.national_id
 left join mst_titles mt on r.title_th = CAST(mt.id AS CHAR) COLLATE utf8mb4_unicode_ci
 left join mst_gender mg on r.gender = CAST(mg.id AS CHAR) COLLATE utf8mb4_unicode_ci
 left join mst_blood mb on r.blood_group = CAST(mb.id AS CHAR) COLLATE utf8mb4_unicode_ci
-left join mst_religion mr on r.religion = CAST(mr.id AS CHAR) COLLATE utf8mb4_unicode_ci";
+left join mst_religion mr on r.religion = CAST(mr.id AS CHAR) COLLATE utf8mb4_unicode_ci
+left join mst_provinces mp1 on r.addr_province = mp1.province_thai
+left join mst_districts md1 on r.addr_district = md1.district_thai and md1.province_id = mp1.province_id
+left join mst_sub_districts ms1 on r.addr_subdistrict = ms1.sub_district_thai and ms1.district_id = md1.district_id
+left join mst_provinces mp2 on r.contact_province = mp2.province_thai
+left join mst_districts md2 on r.contact_district = md2.district_thai and md2.province_id = mp2.province_id
+left join mst_sub_districts ms2 on r.contact_subdistrict = ms2.sub_district_thai and ms2.district_id = md2.district_id";
 
         $combinations = [];
         if (!empty($_GET['selected_ids']) && is_array($_GET['selected_ids'])) {
