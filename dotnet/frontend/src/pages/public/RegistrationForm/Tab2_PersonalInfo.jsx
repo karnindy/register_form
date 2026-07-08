@@ -74,10 +74,6 @@ export default function Tab2PersonalInfo() {
       { id: 'titleTh', name: 'คำนำหน้าชื่อ' },
       { id: 'firstNameTh', name: 'ชื่อ' },
       { id: 'lastNameTh', name: 'นามสกุล' },
-      { id: 'birthDate', name: 'วัน/เดือน/ปี เกิด' },
-      { id: 'religion', name: 'ศาสนา' },
-      { id: 'gender', name: 'เพศ' },
-      { id: 'bloodGroup', name: 'กรุ๊ปเลือด' },
       { id: 'phone', name: 'หมายเลขโทรศัพท์มือถือ' },
       { id: 'email', name: 'อีเมล' },
       { id: 'emergencyContactName', name: 'ชื่อ-สกุล ผู้ติดต่อฉุกเฉิน' },
@@ -260,14 +256,14 @@ export default function Tab2PersonalInfo() {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-          <ThaiDatePicker label="วัน/เดือน/ปี เกิด" id="birthDate" required value={formData.birthDate || ''} onChange={handleChange} error={errors.birthDate} />
-          <Select label="ศาสนา" id="religion" required options={religionOptions} value={formData.religion || ''} onChange={handleChange} error={errors.religion} />
+          <ThaiDatePicker label="วัน/เดือน/ปี เกิด" id="birthDate" value={formData.birthDate || ''} onChange={handleChange} error={errors.birthDate} />
+          <Select label="ศาสนา" id="religion" options={religionOptions} value={formData.religion || ''} onChange={handleChange} error={errors.religion} />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-          <Select label="เพศ" id="gender" required options={genderOptions} value={formData.gender || ''} onChange={handleChange} error={errors.gender} />
+          <Select label="เพศ" id="gender" options={genderOptions} value={formData.gender || ''} onChange={handleChange} error={errors.gender} />
           <div>
-            <Select label="กรุ๊ปเลือด" id="bloodGroup" required options={bloodOptions} value={formData.bloodGroup || ''} onChange={handleChange} error={errors.bloodGroup} />
+            <Select label="กรุ๊ปเลือด" id="bloodGroup" options={bloodOptions} value={formData.bloodGroup || ''} onChange={handleChange} error={errors.bloodGroup} />
             <small className="text-textMuted block mt-1">* ให้ระบุให้ครบถ้วนเพื่อความรวดเร็วในการอบรม</small>
           </div>
         </div>

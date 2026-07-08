@@ -1,16 +1,14 @@
 import { useRegistration } from '../../../context/RegistrationContext';
 import Button from '../../../components/Button';
 import Input from '../../../components/Input';
-import Select from '../../../components/Select';
+import CascadingAddress from '../../../components/CascadingAddress';
 
 export default function Tab3Address() {
-  const { nextStep, prevStep, formData, updateData, masterData } = useRegistration();
+  const { nextStep, prevStep, formData, updateData } = useRegistration();
 
   const handleChange = (e) => {
     updateData({ [e.target.id]: e.target.value });
   };
-
-  const provinceOptions = masterData.provinces.map(p => ({ value: p.provinceId, label: p.provinceThai })) || [];
 
   return (
     <div className="animate-[fadeIn_0.5s]">
@@ -23,16 +21,11 @@ export default function Tab3Address() {
         <Input label="ซอย" id="soi" value={formData.soi || ''} onChange={handleChange} />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+      <div className="grid grid-cols-1 gap-4 mt-2 mb-4">
         <Input label="ถนน" id="road" value={formData.road || ''} onChange={handleChange} />
-        <Select label="จังหวัด" id="province" required options={provinceOptions} value={formData.province || ''} onChange={handleChange} />
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-        <Select label="อำเภอ/เขต" id="district" required options={[]} value={formData.district || ''} onChange={handleChange} />
-        <Select label="ตำบล/แขวง" id="subDistrict" required options={[]} value={formData.subDistrict || ''} onChange={handleChange} />
-        <Input label="รหัสไปรษณีย์" id="zipcode" required value={formData.zipcode || ''} onChange={handleChange} />
-      </div>
+      
+      <CascadingAddress prefix="" />
 
       <div className="mt-8 mb-4 flex items-center gap-3">
         <input 
@@ -56,15 +49,11 @@ export default function Tab3Address() {
             <Input label="หมู่บ้าน/อาคาร" id="shipVillage" value={formData.shipVillage || ''} onChange={handleChange} />
             <Input label="ซอย" id="shipSoi" value={formData.shipSoi || ''} onChange={handleChange} />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+          <div className="grid grid-cols-1 gap-4 mt-2 mb-4">
             <Input label="ถนน" id="shipRoad" value={formData.shipRoad || ''} onChange={handleChange} />
-            <Select label="จังหวัด" id="shipProvince" required options={[]} value={formData.shipProvince || ''} onChange={handleChange} />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-            <Select label="อำเภอ/เขต" id="shipDistrict" required options={[]} value={formData.shipDistrict || ''} onChange={handleChange} />
-            <Select label="ตำบล/แขวง" id="shipSubDistrict" required options={[]} value={formData.shipSubDistrict || ''} onChange={handleChange} />
-            <Input label="รหัสไปรษณีย์" id="shipZipcode" required value={formData.shipZipcode || ''} onChange={handleChange} />
-          </div>
+
+          <CascadingAddress prefix="ship" />
         </div>
       )}
 

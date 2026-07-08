@@ -27,8 +27,16 @@ namespace backend.Models
     public class MstProvince
     {
         [Key]
+        [Column("id")]
+        public int Id { get; set; }
+        
+        [Column("province_id")]
         public int ProvinceId { get; set; }
+        
+        [Column("province_thai")]
         public string ProvinceThai { get; set; } = null!;
+        
+        [Column("province_english")]
         public string? ProvinceEng { get; set; }
     }
 
@@ -36,10 +44,19 @@ namespace backend.Models
     public class MstDistrict
     {
         [Key]
+        [Column("id")]
+        public int Id { get; set; }
+        
+        [Column("district_id")]
         public int DistrictId { get; set; }
+        
+        [Column("district_thai")]
         public string DistrictThai { get; set; } = null!;
+        
+        [Column("district_english")]
         public string? DistrictEng { get; set; }
         
+        [Column("province_id")]
         public int ProvinceId { get; set; }
     }
 
@@ -47,11 +64,22 @@ namespace backend.Models
     public class MstSubDistrict
     {
         [Key]
+        [Column("id")]
+        public int Id { get; set; }
+        
+        [Column("sub_district_id")]
         public int SubDistrictId { get; set; }
+        
+        [Column("sub_district_thai")]
         public string SubDistrictThai { get; set; } = null!;
+        
+        [Column("sub_district_english")]
         public string? SubDistrictEng { get; set; }
         
+        [Column("district_id")]
         public int DistrictId { get; set; }
+        
+        [Column("postal_code")]
         public string? Zipcode { get; set; }
     }
 
