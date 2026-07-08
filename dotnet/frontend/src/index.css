@@ -1,0 +1,22 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+
+@theme {
+  --color-primary: #0033A2;
+  --color-primary-light: #1A54D6;
+  --color-secondary: #FCAF17;
+  --color-secondary-hover: #D98C04;
+  --color-background: #F4F7F6;
+  --color-textMain: #333333;
+  --color-textMuted: #666666;
+  --color-border: #DDDDDD;
+  --color-error: #D32F2F;
+  --color-success: #388E3C;
+  --font-sarabun: 'Sarabun', sans-serif;
+}
+
+@layer base {
+  body {
+    @apply font-sarabun bg-background text-textMain leading-relaxed;
+  }
+}

@@ -1,0 +1,23 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8085:8085"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8085
+      - ConnectionStrings__DefaultConnection=Server=host.docker.internal;Database=thaiairp_iptc;User=thaiairp_iptc;Password=Pass@456981@XKTT;SslMode=none;AllowPublicKeyRetrieval=True;
+    # Uncomment and configure depends_on if you add a mysql service locally
+    # depends_on:
+    #   - mysql
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
