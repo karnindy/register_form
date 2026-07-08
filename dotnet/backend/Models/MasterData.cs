@@ -117,4 +117,29 @@ namespace backend.Models
         [Column("course_date")]
         public DateTime CourseDate { get; set; }
     }
+
+    [Table("mst_agent_regions")]
+    public class MstAgentRegion
+    {
+        [Key]
+        [Column("id")]
+        public int Id { get; set; }
+        
+        [Column("name")]
+        public string Name { get; set; } = null!;
+    }
+
+    [Table("mst_agent_branches")]
+    public class MstAgentBranch
+    {
+        [Key]
+        [Column("id")]
+        public int Id { get; set; }
+        
+        [Column("name")]
+        public string Name { get; set; } = null!;
+        
+        [Column("region_id")]
+        public int RegionId { get; set; }
+    }
 }

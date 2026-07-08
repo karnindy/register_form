@@ -93,6 +93,37 @@ using (var scope = app.Services.CreateScope())
         });
         context.SaveChanges();
     }
+
+    // Seed agent regions and branches
+    if (!context.AgentRegions.Any())
+    {
+        var agentRegionMap = new Dictionary<string, string[]>
+        {
+            { "ภาค 1 (ภาคเหนือ)", new[] { "เชียงราย", "เชียงใหม่", "นครสวรรค์", "พิษณุโลก" } },
+            { "ภาค 2 (ภาคตะวันออกเฉียงเหนือ)", new[] { "ขอนแก่น", "นครราชสีมา", "อุดรธานี", "อุบลราชธานี" } },
+            { "ภาค 3 (ภาคตะวันออก)", new[] { "จันทบุรี", "ฉะเชิงเทรา", "พัทยา", "ระยอง" } },
+            { "ภาค 4 (ภาคกลางและภาคตะวันตก)", new[] { "นครปฐม", "พระนครศรีอยุธยา", "สมุทรสาคร", "สระบุรี" } },
+            { "ภาค 5 (ภาคใต้)", new[] { "กระบี่", "นครศรีธรรมราช", "ภูเก็ต", "สุราษฎร์ธานี", "หาดใหญ่" } },
+            { "ภาค 6 (ภาคกรุงเทพฯ)", new[] { "กรุงเกษม", "ดอนเมือง", "บางนา", "บางพลัด", "ปู่เจ้าสมิงพราย", "พระราม 2", "ปากเกร็ด-345", "รัชดาภิเษก", "ลุมพินี", "วงศ์สว่าง", "วิภาวดี", "สุขสวัสดิ์", "สุขาภิบาล 3", "กิจกรรพิเศษ1", "กิจกรรพิเศษ2" } }
+        };
+
+        foreach (var kvp in agentRegionMap)
+        {
+            var region = new backend.Models.MstAgentRegion { Name = kvp.Key };
+            context.AgentRegions.Add(region);
+            context.SaveChanges(); // Need ID generated
+
+            foreach (var branch in kvp.Value)
+            {
+                context.AgentBranches.Add(new backend.Models.MstAgentBranch 
+                { 
+                    Name = branch, 
+                    RegionId = region.Id 
+                });
+            }
+        }
+        context.SaveChanges();
+    }
 }
 
 app.UseSerilogRequestLogging();

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Select from 'react-select';
 import { useRegistration } from '../context/RegistrationContext';
 
-export default function CascadingAddress({ prefix = "" }) {
+export default function CascadingAddress({ prefix = "", errors = {} }) {
   const { formData, updateData, masterData } = useRegistration();
 
   const [districts, setDistricts] = useState([]);
@@ -15,6 +15,10 @@ export default function CascadingAddress({ prefix = "" }) {
   const subDistrictField = `${prefix}subDistrict`;
   const zipcodeField = `${prefix}zipcode`;
 
+  const provinceIdField = `${prefix}provinceId`;
+  const districtIdField = `${prefix}districtId`;
+  const subDistrictIdField = `${prefix}subDistrictId`;
+
   const provinceOptions = masterData.provinces?.map(p => ({ 
     value: p.provinceId, 
     label: p.provinceThai 
@@ -22,7 +26,7 @@ export default function CascadingAddress({ prefix = "" }) {
 
   // Fetch districts when province changes
   useEffect(() => {
-    const provinceId = formData[`${provinceField}Id`];
+    const provinceId = formData[provinceIdField];
     if (provinceId) {
       setLoadingDistricts(true);
       fetch(`http://localhost:8085/api/masterdata/districts/${provinceId}`)
@@ -35,11 +39,11 @@ export default function CascadingAddress({ prefix = "" }) {
     } else {
       setDistricts([]);
     }
-  }, [formData[`${provinceField}Id`]]);
+  }, [formData[provinceIdField]]);
 
   // Fetch sub-districts when district changes
   useEffect(() => {
-    const districtId = formData[`${districtField}Id`];
+    const districtId = formData[districtIdField];
     if (districtId) {
       setLoadingSubDistricts(true);
       fetch(`http://localhost:8085/api/masterdata/subdistricts/${districtId}`)
@@ -52,16 +56,16 @@ export default function CascadingAddress({ prefix = "" }) {
     } else {
       setSubDistricts([]);
     }
-  }, [formData[`${districtField}Id`]]);
+  }, [formData[districtIdField]]);
 
   const handleProvinceChange = (selected) => {
     updateData({
       [provinceField]: selected ? selected.label : '',
-      [`${provinceField}Id`]: selected ? selected.value : null,
+      [provinceIdField]: selected ? selected.value : null,
       [districtField]: '',
-      [`${districtField}Id`]: null,
+      [districtIdField]: null,
       [subDistrictField]: '',
-      [`${subDistrictField}Id`]: null,
+      [subDistrictIdField]: null,
       [zipcodeField]: ''
     });
   };
@@ -69,9 +73,9 @@ export default function CascadingAddress({ prefix = "" }) {
   const handleDistrictChange = (selected) => {
     updateData({
       [districtField]: selected ? selected.label : '',
-      [`${districtField}Id`]: selected ? selected.value : null,
+      [districtIdField]: selected ? selected.value : null,
       [subDistrictField]: '',
-      [`${subDistrictField}Id`]: null,
+      [subDistrictIdField]: null,
       [zipcodeField]: ''
     });
   };
@@ -79,20 +83,20 @@ export default function CascadingAddress({ prefix = "" }) {
   const handleSubDistrictChange = (selected) => {
     updateData({
       [subDistrictField]: selected ? selected.label : '',
-      [`${subDistrictField}Id`]: selected ? selected.value : null,
+      [subDistrictIdField]: selected ? selected.value : null,
       [zipcodeField]: selected ? selected.zipcode : ''
     });
   };
 
-  const customStyles = {
+  const getCustomStyles = (hasError) => ({
     control: (provided, state) => ({
       ...provided,
       padding: '0.4rem',
       borderRadius: '0.375rem',
-      borderColor: state.isFocused ? '#1d4ed8' : '#e5e7eb',
+      borderColor: hasError ? '#ef4444' : (state.isFocused ? '#1d4ed8' : '#e5e7eb'),
       boxShadow: state.isFocused ? '0 0 0 4px rgba(29, 78, 216, 0.1)' : 'none',
       '&:hover': {
-        borderColor: '#1d4ed8'
+        borderColor: hasError ? '#ef4444' : '#1d4ed8'
       }
     }),
     option: (provided, state) => ({
@@ -103,47 +107,50 @@ export default function CascadingAddress({ prefix = "" }) {
       ...provided,
       fontFamily: 'Sarabun, sans-serif'
     })
-  };
+  });
 
   return (
     <>
-      <div className="mb-5">
+      <div className="mb-5" id={provinceIdField}>
         <label className="block mb-2 font-medium text-textMain after:content-['_*'] after:text-error">จังหวัด</label>
         <Select
           options={provinceOptions}
-          value={provinceOptions.find(o => o.value === formData[`${provinceField}Id`]) || null}
+          value={provinceOptions.find(o => o.value === formData[provinceIdField]) || null}
           onChange={handleProvinceChange}
           placeholder="-- ค้นหา/เลือกจังหวัด --"
           isClearable
-          styles={customStyles}
+          styles={getCustomStyles(!!errors[provinceIdField])}
         />
+        {errors[provinceIdField] && <p className="text-error text-sm mt-1">{errors[provinceIdField]}</p>}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-        <div className="mb-5">
+        <div className="mb-5" id={districtIdField}>
           <label className="block mb-2 font-medium text-textMain after:content-['_*'] after:text-error">อำเภอ/เขต</label>
           <Select
             options={districts}
-            value={districts.find(o => o.value === formData[`${districtField}Id`]) || null}
+            value={districts.find(o => o.value === formData[districtIdField]) || null}
             onChange={handleDistrictChange}
             placeholder="-- ค้นหา/เลือกอำเภอ --"
-            isDisabled={!formData[`${provinceField}Id`]}
+            isDisabled={!formData[provinceIdField]}
             isLoading={loadingDistricts}
             isClearable
-            styles={customStyles}
+            styles={getCustomStyles(!!errors[districtIdField])}
           />
+          {errors[districtIdField] && <p className="text-error text-sm mt-1">{errors[districtIdField]}</p>}
         </div>
-        <div className="mb-5">
+        <div className="mb-5" id={subDistrictIdField}>
           <label className="block mb-2 font-medium text-textMain after:content-['_*'] after:text-error">ตำบล/แขวง</label>
           <Select
             options={subDistricts}
-            value={subDistricts.find(o => o.value === formData[`${subDistrictField}Id`]) || null}
+            value={subDistricts.find(o => o.value === formData[subDistrictIdField]) || null}
             onChange={handleSubDistrictChange}
             placeholder="-- ค้นหา/เลือกตำบล --"
-            isDisabled={!formData[`${districtField}Id`]}
+            isDisabled={!formData[districtIdField]}
             isLoading={loadingSubDistricts}
             isClearable
-            styles={customStyles}
+            styles={getCustomStyles(!!errors[subDistrictIdField])}
           />
+          {errors[subDistrictIdField] && <p className="text-error text-sm mt-1">{errors[subDistrictIdField]}</p>}
         </div>
         <div className="mb-5">
           <label className="block mb-2 font-medium text-textMain after:content-['_*'] after:text-error">รหัสไปรษณีย์</label>

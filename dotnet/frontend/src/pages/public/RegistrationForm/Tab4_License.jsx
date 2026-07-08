@@ -1,53 +1,245 @@
 import { useRegistration } from '../../../context/RegistrationContext';
 import Button from '../../../components/Button';
 import Input from '../../../components/Input';
-import Select from '../../../components/Select';
+import { useEffect, useState } from 'react';
+import Select from 'react-select';
 
 export default function Tab4License() {
-  const { nextStep, prevStep, formData, updateData } = useRegistration();
+  const { nextStep, prevStep, formData, updateData, masterData } = useRegistration();
+  const [errors, setErrors] = useState({});
+  const [urlParams, setUrlParams] = useState({
+    agentBranchHint: 'พิมพ์เพื่อค้นหาสาขา',
+    agentRegionHint: 'ระบบจะเติมให้อัตโนมัติ',
+    viriyahCodeHint: 'ถ้าไม่ทราบ สอบถามสาขา หรือตัวแทน/นายหน้าที่ท่านสังกัด, ถ้าเป็นขอรับใบอนุญาต และยังไม่มีรหัส ให้กรอก 00000'
+  });
+
+  const branchOptions = (masterData?.agentBranches || []).map(b => ({
+    value: b.branchName,
+    label: b.branchName,
+    region: b.regionName
+  }));
+
+  const selectedBranch = branchOptions.find(o => o.value === formData.agentBranch) || null;
+
+  const handleBranchChange = (selectedOption) => {
+    updateData({ 
+      agentBranch: selectedOption ? selectedOption.value : '',
+      agentRegion: selectedOption ? selectedOption.region : ''
+    });
+    if (errors.agentBranch) {
+      setErrors(prev => ({ ...prev, agentBranch: '' }));
+    }
+  };
+
+  useEffect(() => {
+    // Parse URL query parameters similar to legacy appconfig.php
+    const params = new URLSearchParams(window.location.search);
+    
+    // Set hints from URL if provided
+    const bHint = params.get('agent_branch_hint');
+    const rHint = params.get('agent_region_hint');
+    const vHint = params.get('viriyah_code_hint');
+    
+    setUrlParams(prev => ({
+      agentBranchHint: bHint || prev.agentBranchHint,
+      agentRegionHint: rHint || prev.agentRegionHint,
+      viriyahCodeHint: vHint || prev.viriyahCodeHint
+    }));
+
+    // Initialize default values if not already set in formData
+    const updates = {};
+    if (!formData.agentType && params.get('agent_type')) {
+      updates.agentType = params.get('agent_type') === 'broker' ? 'broker' : 'agent';
+    }
+    if (!formData.agentBranch && params.get('agent_branch')) {
+      updates.agentBranch = params.get('agent_branch');
+    }
+    if (!formData.viriyaContractCode && params.get('viriyah_code')) {
+      updates.viriyaContractCode = params.get('viriyah_code');
+    }
+    
+    if (Object.keys(updates).length > 0) {
+      updateData(updates);
+    }
+  }, []); // Run once on mount
 
   const handleChange = (e) => {
     updateData({ [e.target.id]: e.target.value });
+    if (errors[e.target.id]) {
+      setErrors(prev => ({ ...prev, [e.target.id]: '' }));
+    }
   };
 
-  const agentTypeOptions = [
-    { value: 'agent', label: 'ตัวแทนประกันวินาศภัย' },
-    { value: 'broker', label: 'นายหน้าประกันวินาศภัย' },
-  ];
+  const handleNext = (e) => {
+    e.preventDefault();
+    const newErrors = {};
 
-  const licenseStatusOptions = [
-    { value: 'new', label: 'ขอรับใบอนุญาตใหม่' },
-    { value: 'renew1', label: 'ต่ออายุใบอนุญาตครั้งที่ 1' },
-    { value: 'renew2', label: 'ต่ออายุใบอนุญาตครั้งที่ 2' },
-    { value: 'renew3', label: 'ต่ออายุใบอนุญาตครั้งที่ 3' },
-    { value: 'renew4', label: 'ต่ออายุใบอนุญาตครั้งที่ 4 เป็นต้นไป' },
-  ];
+    if (!formData.agentType) newErrors.agentType = 'กรุณาเลือกประเภทใบอนุญาต';
+    
+    if (formData.agentType === 'broker' && !formData.brokerType) {
+      newErrors.brokerType = 'กรุณาเลือกประเภทนายหน้า';
+    }
+
+    if (!formData.agentBranch?.trim()) newErrors.agentBranch = 'กรุณาระบุสาขา';
+    
+    if (!formData.viriyaContractCode?.trim()) {
+      newErrors.viriyaContractCode = 'กรุณาระบุรหัสที่ทำสัญญา';
+    } else if (!/^\d{5}$/.test(formData.viriyaContractCode)) {
+      newErrors.viriyaContractCode = 'กรุณาระบุตัวเลข 5 หลัก';
+    }
+
+    if (!formData.licenseNo?.trim()) {
+      newErrors.licenseNo = 'กรุณาระบุเลขที่ใบอนุญาต';
+    } else if (!/^\d{10}$/.test(formData.licenseNo)) {
+      newErrors.licenseNo = 'กรุณาระบุตัวเลข 10 หลัก';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      const firstErrorId = Object.keys(newErrors)[0];
+      // special handling for radio buttons
+      const errorElement = document.getElementById(firstErrorId) || document.getElementsByName(firstErrorId)[0];
+      errorElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    nextStep();
+  };
 
   return (
     <div className="animate-[fadeIn_0.5s]">
-      <h3 className="text-xl font-semibold mb-6 text-primary border-b pb-2">ส่วนที่ 4: ข้อมูลใบอนุญาต (License Information)</h3>
+      <h3 className="text-xl font-semibold mb-6 text-primary border-b pb-2">ส่วนที่ 4: ข้อมูลใบอนุญาตตัวแทน/นายหน้า</h3>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Select label="ประเภทบุคคล" id="agentType" required options={agentTypeOptions} value={formData.agentType || ''} onChange={handleChange} />
-        <Select label="สถานะการขอรับ/ต่ออายุ" id="licenseStatus" required options={licenseStatusOptions} value={formData.licenseStatus || ''} onChange={handleChange} />
-      </div>
+      <form onSubmit={handleNext} noValidate>
+        <div className="mb-6">
+          <label className="block mb-2 font-medium text-textMain after:content-['_*'] after:text-error">ประเภทใบอนุญาต</label>
+          
+          <div className="border border-border rounded-md p-3 mb-2 flex items-center gap-3 bg-white hover:bg-gray-50 cursor-pointer" onClick={() => updateData({ agentType: 'agent', brokerType: '' })}>
+            <input 
+              type="radio" 
+              name="agentType" 
+              id="agentType_agent" 
+              className="w-5 h-5 accent-primary" 
+              checked={formData.agentType === 'agent'}
+              onChange={() => updateData({ agentType: 'agent', brokerType: '' })}
+            />
+            <label htmlFor="agentType_agent" className="cursor-pointer font-medium">ตัวแทนประกันวินาศภัย</label>
+          </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-        <Input label="เลขที่ใบอนุญาต (ถ้ามี)" id="licenseNo" value={formData.licenseNo || ''} onChange={handleChange} />
-        <Input label="วันที่ออกใบอนุญาต" id="licenseIssue" type="date" value={formData.licenseIssue || ''} onChange={handleChange} />
-        <Input label="วันที่บัตรหมดอายุ" id="licenseExpire" type="date" value={formData.licenseExpire || ''} onChange={handleChange} />
-      </div>
+          <div className={`border rounded-md p-3 flex flex-col gap-3 bg-white transition-all ${formData.agentType === 'broker' ? 'border-primary' : 'border-border'}`}>
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => updateData({ agentType: 'broker' })}>
+              <input 
+                type="radio" 
+                name="agentType" 
+                id="agentType_broker" 
+                className="w-5 h-5 accent-primary" 
+                checked={formData.agentType === 'broker'}
+                onChange={() => updateData({ agentType: 'broker' })}
+              />
+              <label htmlFor="agentType_broker" className="cursor-pointer font-medium">นายหน้าประกันวินาศภัย</label>
+            </div>
 
-      <h4 className="text-lg font-semibold mt-6 mb-4 text-primary border-b pb-2">สังกัดภูมิภาค/สาขา (วิริยะประกันภัย)</h4>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Select label="ภาคที่สังกัด" id="agentRegion" required options={[]} value={formData.agentRegion || ''} onChange={handleChange} />
-        <Select label="สาขาที่สังกัด" id="agentBranch" required options={[]} value={formData.agentBranch || ''} onChange={handleChange} />
-      </div>
+            {formData.agentType === 'broker' && (
+              <div className="pl-8 pt-3 pb-2 border-t border-gray-100 flex flex-col gap-4 animate-[fadeIn_0.3s]">
+                <label className="block font-medium text-textMain after:content-['_*'] after:text-error">ประเภทนายหน้า</label>
+                
+                <div className="flex items-center gap-3 cursor-pointer" onClick={() => { updateData({ brokerType: 'individual' }); if (errors.brokerType) setErrors(prev => ({...prev, brokerType: ''})) }}>
+                  <input 
+                    type="radio" 
+                    name="brokerType" 
+                    id="brokerType_ind" 
+                    className="w-4 h-4 accent-primary" 
+                    checked={formData.brokerType === 'individual'}
+                    onChange={() => { updateData({ brokerType: 'individual' }); if (errors.brokerType) setErrors(prev => ({...prev, brokerType: ''})) }}
+                  />
+                  <label htmlFor="brokerType_ind" className="cursor-pointer">นายหน้าบุคคล</label>
+                </div>
 
-      <div className="flex justify-between mt-10 pt-5 border-t border-border">
-        <Button variant="secondary" onClick={prevStep}><i className="fas fa-arrow-left"></i> ย้อนกลับ</Button>
-        <Button onClick={nextStep}>ถัดไป <i className="fas fa-arrow-right"></i></Button>
-      </div>
+                <div className="flex items-center gap-3 cursor-pointer" onClick={() => { updateData({ brokerType: 'corporate' }); if (errors.brokerType) setErrors(prev => ({...prev, brokerType: ''})) }}>
+                  <input 
+                    type="radio" 
+                    name="brokerType" 
+                    id="brokerType_corp" 
+                    className="w-4 h-4 accent-primary" 
+                    checked={formData.brokerType === 'corporate'}
+                    onChange={() => { updateData({ brokerType: 'corporate' }); if (errors.brokerType) setErrors(prev => ({...prev, brokerType: ''})) }}
+                  />
+                  <label htmlFor="brokerType_corp" className="cursor-pointer">นายหน้านิติบุคคล</label>
+                </div>
+                {errors.brokerType && <p className="text-error text-sm mt-1">{errors.brokerType}</p>}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+          <div id="agentBranch">
+            <label htmlFor="agentBranch" className="block text-sm font-medium text-textMain mb-1 after:content-['_*'] after:text-error">สาขา</label>
+            <p className="text-[13px] text-gray-500 mb-2 mt-[-4px]">{urlParams.agentBranchHint}</p>
+            <Select
+              options={branchOptions}
+              value={selectedBranch}
+              onChange={handleBranchChange}
+              placeholder="พิมพ์ค้นหาสาขา"
+              isClearable
+              className={`react-select-container ${errors.agentBranch ? 'border-error rounded-md' : ''}`}
+              classNamePrefix="react-select"
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  borderColor: errors.agentBranch ? '#ef4444' : '#d1d5db',
+                  padding: '4px',
+                  boxShadow: 'none',
+                  '&:hover': {
+                    borderColor: '#1e3a8a'
+                  }
+                })
+              }}
+            />
+            {errors.agentBranch && <p className="text-error text-sm mt-1">{errors.agentBranch}</p>}
+          </div>
+          
+          <div>
+            <label htmlFor="agentRegion" className="block text-sm font-medium text-textMain mb-1 after:content-['_*'] after:text-error">ภาค</label>
+            <p className="text-[13px] text-gray-500 mb-2 mt-[-4px]">{urlParams.agentRegionHint}</p>
+            <input
+              type="text"
+              id="agentRegion"
+              className="w-full px-4 py-[11px] border border-border rounded-md bg-gray-100 cursor-not-allowed text-gray-600 focus:outline-none h-[42px] mt-[1px]"
+              placeholder="ระบบจะเติมให้อัตโนมัติ"
+              value={formData.agentRegion || ''}
+              readOnly
+              required
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 mb-6">
+          <label htmlFor="viriyaContractCode" className="block mb-1 font-medium text-textMain after:content-['_*'] after:text-error">รหัสที่มีสัญญากับ บมจ.วิริยะประกันภัย</label>
+          <span className="text-sm text-gray-500 block mb-2">{urlParams.viriyahCodeHint}</span>
+          <input 
+            type="text"
+            id="viriyaContractCode"
+            placeholder="เลข 5 หลักของตัวแทนขาย"
+            maxLength={5}
+            className={`w-full px-4 py-3 border rounded-md font-sarabun text-[15px] focus:outline-none focus:ring-4 transition-colors ${errors.viriyaContractCode ? 'border-error focus:border-error focus:ring-error/10' : 'border-border focus:border-primary focus:ring-primary/10'}`}
+            value={formData.viriyaContractCode || ''}
+            onChange={handleChange}
+          />
+          {errors.viriyaContractCode && <p className="text-error text-sm mt-1">{errors.viriyaContractCode}</p>}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Input label="เลขที่ใบอนุญาต" id="licenseNo" placeholder="กรอกเลขที่ใบอนุญาต 10 หลัก" required maxLength={10} value={formData.licenseNo || ''} onChange={handleChange} error={errors.licenseNo} />
+          <Input label="วันที่ออกใบอนุญาต" id="licenseIssue" type="date" value={formData.licenseIssue || ''} onChange={handleChange} />
+          <Input label="วันที่บัตรหมดอายุ" id="licenseExpire" type="date" value={formData.licenseExpire || ''} onChange={handleChange} />
+        </div>
+
+        <div className="flex justify-between mt-10 pt-5 border-t border-border">
+          <Button type="button" variant="secondary" onClick={prevStep}><i className="fas fa-arrow-left"></i> ย้อนกลับ</Button>
+          <Button type="submit">ถัดไป <i className="fas fa-arrow-right"></i></Button>
+        </div>
+      </form>
     </div>
   );
 }

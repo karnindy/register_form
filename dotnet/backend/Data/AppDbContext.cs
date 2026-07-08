@@ -23,6 +23,8 @@ namespace backend.Data
         public DbSet<MstTitle> Titles { get; set; }
         public DbSet<MstRenewCourse> RenewCourses { get; set; }
         public DbSet<MstRenewDate> RenewDates { get; set; }
+        public DbSet<MstAgentRegion> AgentRegions { get; set; }
+        public DbSet<MstAgentBranch> AgentBranches { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

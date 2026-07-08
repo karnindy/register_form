@@ -9,7 +9,8 @@ export function RegistrationProvider({ children }) {
     titles: [],
     blood: [],
     gender: [],
-    religion: []
+    religion: [],
+    agentBranches: []
   });
   const [formData, setFormData] = useState({
     pdpaConsent: false,
@@ -23,12 +24,13 @@ export function RegistrationProvider({ children }) {
     // Fetch master data on load
     const fetchMasterData = async () => {
       try {
-        const [provRes, titlesRes, bloodRes, genderRes, religionRes] = await Promise.all([
+        const [provRes, titlesRes, bloodRes, genderRes, religionRes, branchesRes] = await Promise.all([
           fetch('http://localhost:8085/api/masterdata/provinces'),
           fetch('http://localhost:8085/api/masterdata/titles'),
           fetch('http://localhost:8085/api/masterdata/blood'),
           fetch('http://localhost:8085/api/masterdata/gender'),
-          fetch('http://localhost:8085/api/masterdata/religion')
+          fetch('http://localhost:8085/api/masterdata/religion'),
+          fetch('http://localhost:8085/api/masterdata/agent-branches')
         ]);
         
         const provinces = provRes.ok ? await provRes.json() : [];
@@ -36,8 +38,9 @@ export function RegistrationProvider({ children }) {
         const blood = bloodRes.ok ? await bloodRes.json() : [];
         const gender = genderRes.ok ? await genderRes.json() : [];
         const religion = religionRes.ok ? await religionRes.json() : [];
+        const agentBranches = branchesRes.ok ? await branchesRes.json() : [];
         
-        setMasterData(prev => ({ ...prev, provinces, titles, blood, gender, religion }));
+        setMasterData(prev => ({ ...prev, provinces, titles, blood, gender, religion, agentBranches }));
       } catch (err) {
         console.error("Failed to load master data", err);
       }

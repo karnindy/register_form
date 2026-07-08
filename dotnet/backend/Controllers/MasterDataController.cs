@@ -42,6 +42,26 @@ namespace backend.Controllers
             return Ok(data);
         }
 
+        [HttpGet("agent-branches")]
+        public async Task<IActionResult> GetAgentBranches()
+        {
+            var data = await _context.AgentBranches
+                .Join(_context.AgentRegions,
+                    b => b.RegionId,
+                    r => r.Id,
+                    (b, r) => new
+                    {
+                        branchId = b.Id,
+                        branchName = b.Name,
+                        regionId = r.Id,
+                        regionName = r.Name
+                    })
+                .OrderBy(x => x.branchName)
+                .ToListAsync();
+                
+            return Ok(data);
+        }
+
         // Generic Master Data DTO
         public class MasterDataDto
         {
