@@ -25,6 +25,9 @@ namespace backend.Data
         public DbSet<MstRenewDate> RenewDates { get; set; }
         public DbSet<MstAgentRegion> AgentRegions { get; set; }
         public DbSet<MstAgentBranch> AgentBranches { get; set; }
+        public DbSet<MstRenewBasic> RenewBasics { get; set; }
+        public DbSet<MstRenewPillar> RenewPillars { get; set; }
+        public DbSet<MstRenewOther> RenewOthers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

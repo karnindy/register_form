@@ -106,7 +106,8 @@ export default function CascadingAddress({ prefix = "", errors = {} }) {
     singleValue: (provided) => ({
       ...provided,
       fontFamily: 'Sarabun, sans-serif'
-    })
+    }),
+    menuPortal: base => ({ ...base, zIndex: 9999 })
   });
 
   return (
@@ -120,6 +121,7 @@ export default function CascadingAddress({ prefix = "", errors = {} }) {
           placeholder="-- ค้นหา/เลือกจังหวัด --"
           isClearable
           styles={getCustomStyles(!!errors[provinceIdField])}
+          menuPortalTarget={document.body}
         />
         {errors[provinceIdField] && <p className="text-error text-sm mt-1">{errors[provinceIdField]}</p>}
       </div>
@@ -135,6 +137,7 @@ export default function CascadingAddress({ prefix = "", errors = {} }) {
             isLoading={loadingDistricts}
             isClearable
             styles={getCustomStyles(!!errors[districtIdField])}
+            menuPortalTarget={document.body}
           />
           {errors[districtIdField] && <p className="text-error text-sm mt-1">{errors[districtIdField]}</p>}
         </div>
@@ -149,6 +152,7 @@ export default function CascadingAddress({ prefix = "", errors = {} }) {
             isLoading={loadingSubDistricts}
             isClearable
             styles={getCustomStyles(!!errors[subDistrictIdField])}
+            menuPortalTarget={document.body}
           />
           {errors[subDistrictIdField] && <p className="text-error text-sm mt-1">{errors[subDistrictIdField]}</p>}
         </div>

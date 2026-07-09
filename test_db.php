@@ -1,0 +1,1 @@
+<?php $db = new mysqli('127.0.0.1', 'thaiairp_iptc', 'Pass@456981@XKTT', 'thaiairp_iptc'); $res = $db->query('SELECT b.id, b.course_name, b.date_id, d.course_date_display FROM mst_renew_basic b LEFT JOIN mst_renew_dates d ON b.date_id = d.id'); while($row = $res->fetch_assoc()) { print_r($row); } ?>

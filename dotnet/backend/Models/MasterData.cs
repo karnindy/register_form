@@ -142,4 +142,54 @@ namespace backend.Models
         [Column("region_id")]
         public int RegionId { get; set; }
     }
+
+    [Table("mst_renew_basic")]
+    public class MstRenewBasic
+    {
+        [Key]
+        [Column("id")]
+        public int Id { get; set; }
+
+        [Column("course_name")]
+        public string CourseName { get; set; } = null!;
+
+        [Column("status")]
+        [MaxLength(20)]
+        public string Status { get; set; } = "active";
+
+        [Column("date_id")]
+        public int? DateId { get; set; }
+
+        [Column("agent_type")]
+        public string? AgentType { get; set; }
+    }
+
+    [Table("mst_renew_pillars")]
+    public class MstRenewPillar : BaseMasterData
+    {
+    }
+
+    [Table("mst_renew_other")]
+    public class MstRenewOther
+    {
+        [Key]
+        [Column("id")]
+        public int Id { get; set; }
+
+        [Column("pillar_id")]
+        public int PillarId { get; set; }
+
+        [Column("date_id")]
+        public int DateId { get; set; }
+
+        [Column("subject_id")]
+        public int SubjectId { get; set; }
+
+        [Column("status")]
+        [MaxLength(20)]
+        public string Status { get; set; } = "active";
+
+        [Column("display_order")]
+        public int DisplayOrder { get; set; } = 0;
+    }
 }

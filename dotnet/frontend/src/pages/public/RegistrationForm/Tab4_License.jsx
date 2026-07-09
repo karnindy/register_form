@@ -20,6 +20,7 @@ export default function Tab4License() {
   }));
 
   const selectedBranch = branchOptions.find(o => o.value === formData.agentBranch) || null;
+  const isRenewal = formData.courseType && formData.courseType.includes('ต่อใบอนุญาต');
 
   const handleBranchChange = (selectedOption) => {
     updateData({ 
@@ -64,7 +65,18 @@ export default function Tab4License() {
   }, []); // Run once on mount
 
   const handleChange = (e) => {
-    updateData({ [e.target.id]: e.target.value });
+    let value = e.target.value;
+    
+    // Force digits only and enforce length manually for these fields
+    if (e.target.id === 'viriyaContractCode') {
+      value = value.replace(/\D/g, '').slice(0, 5);
+      e.target.value = value; // Force DOM update for React controlled component edge case
+    } else if (e.target.id === 'licenseNo') {
+      value = value.replace(/\D/g, '').slice(0, 10);
+      e.target.value = value; // Force DOM update for React controlled component edge case
+    }
+
+    updateData({ [e.target.id]: value });
     if (errors[e.target.id]) {
       setErrors(prev => ({ ...prev, [e.target.id]: '' }));
     }
@@ -83,15 +95,41 @@ export default function Tab4License() {
     if (!formData.agentBranch?.trim()) newErrors.agentBranch = 'กรุณาระบุสาขา';
     
     if (!formData.viriyaContractCode?.trim()) {
-      newErrors.viriyaContractCode = 'กรุณาระบุรหัสที่ทำสัญญา';
-    } else if (!/^\d{5}$/.test(formData.viriyaContractCode)) {
+      newErrors.viriyaContractCode = 'กรุณาระบุรหัสที่มีสัญญากับ บมจ.วิริยะประกันภัย';
+    } else if (formData.viriyaContractCode?.trim() && !/^\d{5}$/.test(formData.viriyaContractCode)) {
       newErrors.viriyaContractCode = 'กรุณาระบุตัวเลข 5 หลัก';
     }
 
-    if (!formData.licenseNo?.trim()) {
-      newErrors.licenseNo = 'กรุณาระบุเลขที่ใบอนุญาต';
-    } else if (!/^\d{10}$/.test(formData.licenseNo)) {
-      newErrors.licenseNo = 'กรุณาระบุตัวเลข 10 หลัก';
+    if (isRenewal) {
+      if (!formData.licenseNo?.trim()) {
+        newErrors.licenseNo = 'กรุณาระบุเลขที่ใบอนุญาต';
+      } else if (!/^\d{10}$/.test(formData.licenseNo)) {
+        newErrors.licenseNo = 'กรุณาระบุตัวเลข 10 หลัก';
+      }
+      if (!formData.licenseExpire) {
+        newErrors.licenseExpire = 'กรุณาระบุวันที่บัตรหมดอายุ';
+      } else {
+        const expireDate = new Date(formData.licenseExpire);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (expireDate <= today) {
+          newErrors.licenseExpire = 'วันที่บัตรหมดอายุต้องมากกว่าวันปัจจุบัน';
+        }
+      }
+    } else {
+      // If they filled licenseNo voluntarily, still validate its format
+      if (formData.licenseNo?.trim() && !/^\d{10}$/.test(formData.licenseNo)) {
+        newErrors.licenseNo = 'กรุณาระบุตัวเลข 10 หลัก';
+      }
+      
+      if (formData.licenseExpire) {
+        const expireDate = new Date(formData.licenseExpire);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (expireDate <= today) {
+          newErrors.licenseExpire = 'วันที่บัตรหมดอายุต้องมากกว่าวันปัจจุบัน';
+        }
+      }
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -108,7 +146,9 @@ export default function Tab4License() {
 
   return (
     <div className="animate-[fadeIn_0.5s]">
-      <h3 className="text-xl font-semibold mb-6 text-primary border-b pb-2">ส่วนที่ 4: ข้อมูลใบอนุญาตตัวแทน/นายหน้า</h3>
+      <h3 className="text-xl font-semibold mb-6 text-primary border-b pb-2">
+        <i className="fa-solid fa-id-card"></i> 4. ข้อมูลใบอนุญาตตัวแทน/นายหน้า
+      </h3>
       
       <form onSubmit={handleNext} noValidate>
         <div className="mb-6">
@@ -184,6 +224,7 @@ export default function Tab4License() {
               isClearable
               className={`react-select-container ${errors.agentBranch ? 'border-error rounded-md' : ''}`}
               classNamePrefix="react-select"
+              menuPortalTarget={document.body}
               styles={{
                 control: (base) => ({
                   ...base,
@@ -193,7 +234,8 @@ export default function Tab4License() {
                   '&:hover': {
                     borderColor: '#1e3a8a'
                   }
-                })
+                }),
+                menuPortal: base => ({ ...base, zIndex: 9999 })
               }}
             />
             {errors.agentBranch && <p className="text-error text-sm mt-1">{errors.agentBranch}</p>}
@@ -220,8 +262,15 @@ export default function Tab4License() {
           <input 
             type="text"
             id="viriyaContractCode"
-            placeholder="เลข 5 หลักของตัวแทนขาย"
+            placeholder="(ระบบบังคับ 5 หลัก)"
             maxLength={5}
+            onKeyDown={(e) => {
+              if (e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Tab') {
+                if (!/[0-9]/.test(e.key) || (e.target.value && e.target.value.length >= 5)) {
+                  e.preventDefault();
+                }
+              }
+            }}
             className={`w-full px-4 py-3 border rounded-md font-sarabun text-[15px] focus:outline-none focus:ring-4 transition-colors ${errors.viriyaContractCode ? 'border-error focus:border-error focus:ring-error/10' : 'border-border focus:border-primary focus:ring-primary/10'}`}
             value={formData.viriyaContractCode || ''}
             onChange={handleChange}
@@ -229,10 +278,64 @@ export default function Tab4License() {
           {errors.viriyaContractCode && <p className="text-error text-sm mt-1">{errors.viriyaContractCode}</p>}
         </div>
 
+        {formData.agentType === 'broker' && formData.brokerType === 'corporate' && (
+          <div className="border border-border rounded-md overflow-hidden mb-6 bg-white animate-[fadeIn_0.3s]">
+            <div className="bg-[#243d7c] text-white p-3 font-medium flex items-center gap-2">
+              <i className="fa-solid fa-building"></i> ข้อมูลสังกัด
+            </div>
+            <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input 
+                label="ข้อมูลสังกัดบริษัทโบรกเกอร์" 
+                id="brokerAffiliation" 
+                placeholder="ถ้ามีกรุณาระบุชื่อ" 
+                value={formData.brokerAffiliation || ''} 
+                onChange={handleChange} 
+              />
+              <Input 
+                label="สาขาของบริษัทนายหน้าที่สังกัด (ถ้ามี)" 
+                id="branchRecommender" 
+                placeholder="ใส่คำตอบ" 
+                value={formData.branchRecommender || ''} 
+                onChange={handleChange} 
+              />
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Input label="เลขที่ใบอนุญาต" id="licenseNo" placeholder="กรอกเลขที่ใบอนุญาต 10 หลัก" required maxLength={10} value={formData.licenseNo || ''} onChange={handleChange} error={errors.licenseNo} />
-          <Input label="วันที่ออกใบอนุญาต" id="licenseIssue" type="date" value={formData.licenseIssue || ''} onChange={handleChange} />
-          <Input label="วันที่บัตรหมดอายุ" id="licenseExpire" type="date" value={formData.licenseExpire || ''} onChange={handleChange} />
+          <Input 
+            label="เลขที่ใบอนุญาต" 
+            id="licenseNo" 
+            placeholder="(บังคับ 10 หลัก)" 
+            required={isRenewal} 
+            maxLength={10} 
+            value={formData.licenseNo || ''} 
+            onChange={handleChange} 
+            error={errors.licenseNo} 
+            onKeyDown={(e) => {
+              if (e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Tab') {
+                if (!/[0-9]/.test(e.key) || (e.target.value && e.target.value.length >= 10)) {
+                  e.preventDefault();
+                }
+              }
+            }}
+          />
+          <Input 
+            label="วันที่ออกใบอนุญาต" 
+            id="licenseIssue" 
+            type="date" 
+            value={formData.licenseIssue || ''} 
+            onChange={handleChange} 
+          />
+          <Input 
+            label="วันที่บัตรหมดอายุ" 
+            id="licenseExpire" 
+            type="date" 
+            required={isRenewal}
+            error={errors.licenseExpire}
+            value={formData.licenseExpire || ''} 
+            onChange={handleChange} 
+          />
         </div>
 
         <div className="flex justify-between mt-10 pt-5 border-t border-border">

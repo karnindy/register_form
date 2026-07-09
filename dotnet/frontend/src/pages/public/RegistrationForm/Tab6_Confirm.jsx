@@ -70,7 +70,9 @@ export default function Tab6Confirm() {
 
   return (
     <div className="animate-[fadeIn_0.5s]">
-      <h3 className="text-xl font-semibold mb-6 text-primary border-b pb-2">ส่วนที่ 6: ข้อมูลรายละเอียด (Additional Details)</h3>
+      <h3 className="text-xl font-semibold mb-6 text-primary border-b pb-2">
+        <i className="fa-solid fa-paperclip"></i> 6. แนบไฟล์เอกสาร
+      </h3>
       
       <form onSubmit={submitForm} noValidate>
         <div className="mb-6" id="occupation">

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRegistration } from '../../../context/RegistrationContext';
 import Button from '../../../components/Button';
 import Select from '../../../components/Select';
@@ -29,12 +29,27 @@ export default function Tab5Course() {
       newErrors.courseType = 'กรุณาเลือกระดับคอร์สที่ต้องการอบรม';
     }
 
-    if (formData.courseType && !formData.trainingDate) {
+    const selectedCourseObj = courseOptions.find(c => c.courseName === formData.courseType);
+    const isComplex = selectedCourseObj && selectedCourseObj.dateId === null;
+
+    if (formData.courseType && !isComplex && !formData.trainingDate) {
       newErrors.trainingDate = 'กรุณาเลือกรอบวันอบรม';
     }
 
+    if (isComplex) {
+      if (!formData.selectedSubjects || formData.selectedSubjects.length === 0) {
+        newErrors.selectedSubjects = 'กรุณาเลือกวิชาที่ประสงค์จะเข้าอบรมอย่างน้อย 1 วิชา';
+      }
+    }
+
     if ((formData.deductionPrivilege || []).includes('MasterDegree') && !formData.masterDegreeStatus) {
-      newErrors.masterDegreeStatus = 'กรุณาระบุสถานะการศึกษา';
+      newErrors.masterDegreeStatus = 'กรุณาระบุสถานะการยื่นเอกสาร';
+    }
+
+    if (formData.courseType?.includes('ต่อใบอนุญาต')) {
+      if (!formData.licenseNo?.trim() || !formData.licenseExpire) {
+        newErrors.courseType = 'กรุณาย้อนกลับไปกรอก "เลขที่ใบอนุญาต" และ "วันที่บัตรหมดอายุ" ในส่วนที่ 4';
+      }
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -48,45 +63,74 @@ export default function Tab5Course() {
     nextStep();
   };
 
-  // Fake course options for now (would come from API)
-  const courseOptions = [
-    'ขอรับใบอนุญาตตัวแทน/นายหน้าประกันวินาศภัย',
-    'ต่ออายุใบอนุญาตตัวแทน/นายหน้าประกันวินาศภัย ครั้งที่ 1',
-    'ต่ออายุใบอนุญาตตัวแทน/นายหน้าประกันวินาศภัย ครั้งที่ 2',
-    'ต่ออายุใบอนุญาตตัวแทน/นายหน้าประกันวินาศภัย ครั้งที่ 3',
-    'ต่ออายุใบอนุญาตตัวแทน/นายหน้าประกันวินาศภัย ครั้งที่ 4 เป็นต้นไป'
-  ];
+  const [courseOptions, setCourseOptions] = useState([]);
+  const [isLoadingCourses, setIsLoadingCourses] = useState(true);
+  const [renewCourseCheckboxes, setRenewCourseCheckboxes] = useState([]);
+  const [renewOtherOptions, setRenewOtherOptions] = useState([]);
 
-  const previousCoursesList = [
-    "การกำกับดูแลบริษัทประกันภัยระดับเสียง",
-    "การจัดการสินไหมทดแทน Non-Motor",
-    "การประกันภัยความเสี่ยงภัยทรัพย์สิน",
-    "ทางเปลี่ยนผ่าน",
-    "ทางเปลี่ยนผ่านสำหรับตัวแทนและนายหน้าประกันภัย",
-    "การประกันภัยรถยนต์",
-    "จรรยาบรรณวิชาชีพของตัวแทน/นายหน้าประกันภัย",
-    "พ.ร.บ.จราจรทางบก พ.ศ.2522 (ปี2562) และการพิจารณาคดี/อาญาความผิดอุบัติเหตุจราจร",
-    "พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล",
-    "การถูกฉ้อฉลฉ้อโกงประกันภัย",
-    "มาตรการการป้องกันและปราบปรามการฟอกเงินและการต่อต้านการสนับสนุนทางการเงินแก่การก่อการร้าย",
-    "ประกันรถยนต์ไฟฟ้าและข้อควรระวังจากการใช้รถ",
-    "พ.ร.บ.ทวงหนี้",
-    "ความรับผิดในฐานะตัวแทน/นายหน้าประกันภัย",
-    "การตลาดบุคคล",
-    "หลักประกันสุขภาพ",
-    "การพิจารณารับประกันรถยนต์"
-  ];
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setIsLoadingCourses(true);
+        const agentType = formData.agentType || 'agent'; // Default to agent if not set
+        const res = await fetch(`http://localhost:8085/api/masterdata/renew-courses?agentType=${agentType}`);
+        if (res.ok) {
+          const data = await res.json();
+          setCourseOptions(data);
+        }
+      } catch (err) {
+        console.error("Failed to load courses", err);
+      } finally {
+        setIsLoadingCourses(false);
+      }
+    };
+    
+    fetchCourses();
+  }, [formData.agentType]);
 
-  const showPreviousCourses = formData.courseType?.includes('ครั้งที่ 4 เป็นต้นไป');
-  const showDeductionPrivilege = formData.courseType?.includes('ครั้งที่ 4 เป็นต้นไป');
+  useEffect(() => {
+    const fetchRenewCheckboxes = async () => {
+      try {
+        const res = await fetch(`http://localhost:8085/api/masterdata/renewcourse`);
+        if (res.ok) {
+          const data = await res.json();
+          setRenewCourseCheckboxes(data.map(item => item.name));
+        }
+      } catch (err) {
+        console.error("Failed to load renew courses", err);
+      }
+    };
+    fetchRenewCheckboxes();
+  }, []);
+
+  useEffect(() => {
+    const fetchRenewOtherOptions = async () => {
+      try {
+        const res = await fetch(`http://localhost:8085/api/masterdata/renew-other-courses`);
+        if (res.ok) {
+          const data = await res.json();
+          setRenewOtherOptions(data.map(item => item.displayName));
+        }
+      } catch (err) {
+        console.error("Failed to load renew other courses", err);
+      }
+    };
+    fetchRenewOtherOptions();
+  }, []);
+
+  const selectedCourseObj = courseOptions.find(c => c.courseName === formData.courseType);
+  const isComplexCourse = selectedCourseObj && selectedCourseObj.dateId === null;
+  const showDeductionPrivilege = formData.courseType && formData.courseType.includes('ขอรับใบอนุญาต');
 
   return (
-    <div className="animate-[fadeIn_0.5s]">
-      <h3 className="text-xl font-semibold mb-6 text-primary border-b pb-2">ส่วนที่ 5: หลักสูตรที่ต้องการอบรม (Course Selection)</h3>
+    <div className="bg-white p-6 md:p-8 rounded-lg shadow-sm border border-border">
+      <h3 className="text-xl font-semibold mb-6 text-primary border-b pb-2">
+        <i className="fa-solid fa-chalkboard-user"></i> 5. หลักสูตรที่ประสงค์เข้าอบรม
+      </h3>
       
       <form onSubmit={handleNext} noValidate>
-        <div className="mb-6" id="courseType">
-          <label className="block mb-3 font-medium text-textMain after:content-['_*'] after:text-error text-lg text-primary">ระดับคอร์ส</label>
+        <div className="mb-6">
+          <label className="block mb-2 font-medium text-textMain after:content-['_*'] after:text-error">ระดับคอร์ส</label>
           <div className="flex flex-col gap-3">
             {courseOptions.map((course, idx) => (
               <label key={idx} className={`flex items-center gap-3 cursor-pointer p-3 border rounded-md transition-colors bg-white ${errors.courseType ? 'border-error' : 'hover:bg-gray-50'}`}>
@@ -94,28 +138,50 @@ export default function Tab5Course() {
                   type="radio"
                   name="courseType"
                   className="w-4 h-4 accent-primary"
-                  value={course}
-                  checked={formData.courseType === course}
+                  value={course.courseName}
+                  checked={formData.courseType === course.courseName}
                   onChange={() => {
-                    updateData({ courseType: course, trainingDate: '' });
+                    updateData({ courseType: course.courseName, trainingDate: '', previousCourses: [], selectedSubjects: [] });
                     if (errors.courseType) setErrors(prev => ({ ...prev, courseType: '' }));
                   }}
                 />
-                {course}
+                {course.courseName}
               </label>
             ))}
           </div>
           {errors.courseType && <p className="text-error text-sm mt-2">{errors.courseType}</p>}
         </div>
 
-        {showPreviousCourses && (
+        {isComplexCourse && (
           <div className="mb-6 animate-[fadeIn_0.3s]">
-            <label className="block mb-2 font-medium text-textMain">
-              หากท่านขอต่ออายุใบอนุญาตเป็นตัวแทนหรือนายหน้าประกันวินาศภัยครั้งที่ 4 เป็นต้นไป โปรดระบุวิชาที่ท่านเคยอบรม (5 วิชา)<br/>
-              <span className="text-error text-sm font-normal">* สำคัญ * : ห้ามท่านเลือกลงทะเบียนอบรมวิชาที่เคยอบรมแล้ว หากฝ่าฝืนจะไม่สามารถขอรับใบอนุญาตได้</span>
+            <label className="block mb-3 font-medium text-primary text-lg">{selectedCourseObj.courseName} <span className="text-error">*</span></label>
+            <div className="mb-4">
+              <span className="text-error text-sm block mb-1">* เลือกได้มากกว่า 1 วิชา *</span>
+              <span className="text-error text-sm block mb-2">* หากเลือกวิชาที่เคยอบรม จะไม่นับรวมรอบปัจจุบัน (5 ปี) *</span>
+              <div className="flex flex-col gap-3">
+                {renewOtherOptions.map((course, idx) => (
+                  <label key={idx} className="flex items-start gap-3 cursor-pointer p-3 border rounded-md bg-white hover:bg-gray-50">
+                    <input
+                      type="checkbox"
+                      name="selectedSubjects"
+                      className="mt-1 w-4 h-4 accent-primary"
+                      value={course}
+                      checked={(formData.selectedSubjects || []).includes(course)}
+                      onChange={(e) => handleCheckboxChange('selectedSubjects', course, e.target.checked)}
+                    />
+                    <span className="text-sm">{course}</span>
+                  </label>
+                ))}
+              </div>
+              {errors.selectedSubjects && <p className="text-error text-sm mt-2">{errors.selectedSubjects}</p>}
+            </div>
+
+            <label className="block mb-2 font-medium text-textMain mt-6">
+              หากท่านถือใบอนุญาตเป็นตัวแทนหรือนายหน้าประกันวินาศภัยที่ต่ออายุครั้งที่ 4 เป็นต้นไป โปรดระบุวิชาที่ท่านเคยเข้าอบรมในรอบการสะสมชั่วโมงอบรมปัจจุบัน (5 ปี)<br/>
+              <span className="text-error text-sm font-normal">* สำคัญ * : เพื่อท่านจะต้องไม่อบรมวิชาที่เคยเข้าอบรมซ้ำอีก ตามข้อกำหนดของ สำนักงาน คปภ.</span>
             </label>
-            <div className="p-4 border border-border rounded-md bg-gray-50 max-h-60 overflow-y-auto flex flex-col gap-3">
-              {previousCoursesList.map((course, idx) => (
+            <div className="p-4 border border-border rounded-md bg-gray-50 flex flex-col gap-3">
+              {renewCourseCheckboxes.map((course, idx) => (
                 <label key={idx} className="flex items-start gap-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -132,18 +198,13 @@ export default function Tab5Course() {
           </div>
         )}
 
-        {formData.courseType && (
+        {formData.courseType && !isComplexCourse && selectedCourseObj?.dateDisplay && (
           <div className="mb-6 animate-[fadeIn_0.3s]" id="trainingDate">
-            <label className="block mb-3 font-medium text-textMain after:content-['_*'] after:text-error text-lg text-primary">เลือกรอบวันอบรม</label>
+            <label className="block mb-3 font-medium text-primary after:content-['_*'] after:text-error text-lg">{selectedCourseObj.courseName}</label>
             <div className="flex flex-col gap-3">
-              {/* Mock training dates */}
               <label className={`flex items-center gap-3 cursor-pointer p-3 border rounded-md bg-white ${errors.trainingDate ? 'border-error' : 'hover:bg-gray-50'}`}>
-                <input type="radio" name="trainingDate" className="w-4 h-4 accent-primary" value="รอบวันที่ 10 สิงหาคม 2569" checked={formData.trainingDate === "รอบวันที่ 10 สิงหาคม 2569"} onChange={(e) => { updateData({ trainingDate: e.target.value }); if (errors.trainingDate) setErrors(prev => ({ ...prev, trainingDate: '' })); }} />
-                รอบวันที่ 10 สิงหาคม 2569
-              </label>
-              <label className={`flex items-center gap-3 cursor-pointer p-3 border rounded-md bg-white ${errors.trainingDate ? 'border-error' : 'hover:bg-gray-50'}`}>
-                <input type="radio" name="trainingDate" className="w-4 h-4 accent-primary" value="รอบวันที่ 25 สิงหาคม 2569" checked={formData.trainingDate === "รอบวันที่ 25 สิงหาคม 2569"} onChange={(e) => { updateData({ trainingDate: e.target.value }); if (errors.trainingDate) setErrors(prev => ({ ...prev, trainingDate: '' })); }} />
-                รอบวันที่ 25 สิงหาคม 2569
+                <input type="radio" name="trainingDate" className="w-4 h-4 accent-primary" value={selectedCourseObj.dateDisplay} checked={formData.trainingDate === selectedCourseObj.dateDisplay} onChange={(e) => { updateData({ trainingDate: e.target.value }); if (errors.trainingDate) setErrors(prev => ({ ...prev, trainingDate: '' })); }} />
+                {selectedCourseObj.dateDisplay}
               </label>
             </div>
             {errors.trainingDate && <p className="text-error text-sm mt-2">{errors.trainingDate}</p>}
@@ -154,31 +215,33 @@ export default function Tab5Course() {
           <>
             <hr className="border-t border-border my-8" />
             <div className="mb-6 animate-[fadeIn_0.3s]">
-              <label className="block mb-3 font-medium text-textMain">สิทธิลดหย่อนการอบรม</label>
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="deductionPrivilege"
-                  className="mt-1 w-4 h-4 accent-primary"
-                  value="MasterDegree"
-                  checked={(formData.deductionPrivilege || []).includes('MasterDegree')}
-                  onChange={(e) => handleCheckboxChange('deductionPrivilege', 'MasterDegree', e.target.checked)}
-                />
-                <span>สำเร็จการศึกษาระดับปริญญาโทขึ้นไป จากสถาบันอุดมศึกษาที่ คปภ. รับรอง</span>
-              </label>
+              <label className="block mb-3 font-medium text-textMain">สิทธิ์ลดหย่อนชั่วโมงอบรม</label>
+              <div className="p-4 border border-primary rounded-md bg-white">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="deductionPrivilege"
+                    className="mt-1 w-4 h-4 accent-primary"
+                    value="MasterDegree"
+                    checked={(formData.deductionPrivilege || []).includes('MasterDegree')}
+                    onChange={(e) => handleCheckboxChange('deductionPrivilege', 'MasterDegree', e.target.checked)}
+                  />
+                  <span>สำเร็จการศึกษาตั้งแต่ระดับปริญญาโทขึ้นไป จากสถาบันอุดมศึกษาหรือสถาบันการศึกษาในต่างประเทศที่สำนักงานคณะกรรมการข้าราชการพลเรือนรับรอง</span>
+                </label>
+              </div>
 
               {(formData.deductionPrivilege || []).includes('MasterDegree') && (
-                <div className="ml-7 mt-4 animate-[fadeIn_0.3s]" id="masterDegreeStatus">
-                  <label className="block mb-1 font-medium text-textMain after:content-['_*'] after:text-error">กรุณาระบุสถานะการศึกษา</label>
-                  <span className="text-error text-sm block mb-3">* ต้องนำส่งหลักฐานประกอบการขอลดหย่อน</span>
-                  <div className="flex flex-col gap-2">
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input type="radio" name="masterDegreeStatus" className="w-4 h-4 accent-primary" value="อยู่ระหว่างการขออนุมัติ" checked={formData.masterDegreeStatus === "อยู่ระหว่างการขออนุมัติ"} onChange={(e) => { updateData({ masterDegreeStatus: e.target.value }); if (errors.masterDegreeStatus) setErrors(prev => ({ ...prev, masterDegreeStatus: '' })); }} />
-                      อยู่ระหว่างการขออนุมัติ
+                <div className="mt-6 animate-[fadeIn_0.3s]" id="masterDegreeStatus">
+                  <label className="block mb-1 font-medium text-textMain after:content-['_*'] after:text-error">กรุณาระบุสถานะการยื่นเอกสาร</label>
+                  <span className="text-error text-sm block mb-4">* หากท่านเคยยื่นเอกสารและบันทึกในระบบของสำนักงาน คปภ. แล้วไม่ต้องยื่นซ้ำ</span>
+                  <div className="flex flex-col gap-3">
+                    <label className="flex items-center gap-3 cursor-pointer p-3 border rounded-md bg-white hover:bg-gray-50">
+                      <input type="radio" name="masterDegreeStatus" className="w-4 h-4 accent-primary" value="เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว" checked={formData.masterDegreeStatus === "เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว"} onChange={(e) => { updateData({ masterDegreeStatus: e.target.value }); if (errors.masterDegreeStatus) setErrors(prev => ({ ...prev, masterDegreeStatus: '' })); }} />
+                      เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว
                     </label>
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input type="radio" name="masterDegreeStatus" className="w-4 h-4 accent-primary" value="อนุมัติแล้ว" checked={formData.masterDegreeStatus === "อนุมัติแล้ว"} onChange={(e) => { updateData({ masterDegreeStatus: e.target.value }); if (errors.masterDegreeStatus) setErrors(prev => ({ ...prev, masterDegreeStatus: '' })); }} />
-                      อนุมัติแล้ว
+                    <label className="flex items-center gap-3 cursor-pointer p-3 border rounded-md bg-white hover:bg-gray-50">
+                      <input type="radio" name="masterDegreeStatus" className="w-4 h-4 accent-primary" value="ไม่เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว" checked={formData.masterDegreeStatus === "ไม่เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว"} onChange={(e) => { updateData({ masterDegreeStatus: e.target.value }); if (errors.masterDegreeStatus) setErrors(prev => ({ ...prev, masterDegreeStatus: '' })); }} />
+                      ไม่เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว
                     </label>
                   </div>
                   {errors.masterDegreeStatus && <p className="text-error text-sm mt-2">{errors.masterDegreeStatus}</p>}

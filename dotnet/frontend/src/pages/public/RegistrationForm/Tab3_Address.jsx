@@ -26,7 +26,7 @@ export default function Tab3Address() {
     if (!formData.subDistrictId) newErrors.subDistrictId = 'กรุณาเลือกตำบล';
 
     // Validate shipping address if not same
-    if (!formData.sameAddress) {
+    if (formData.sameAddress === false) {
       if (!formData.shipHouseNo?.trim()) newErrors.shipHouseNo = 'กรุณากรอกบ้านเลขที่ (จัดส่ง)';
       if (!formData.shipprovinceId) newErrors.shipprovinceId = 'กรุณาเลือกจังหวัด (จัดส่ง)';
       if (!formData.shipdistrictId) newErrors.shipdistrictId = 'กรุณาเลือกอำเภอ (จัดส่ง)';
@@ -46,36 +46,58 @@ export default function Tab3Address() {
 
   return (
     <div className="animate-[fadeIn_0.5s]">
-      <h3 className="text-xl font-semibold mb-6 text-primary border-b pb-2">ส่วนที่ 3: ที่อยู่ (Address)</h3>
+      <h3 className="text-xl font-semibold mb-6 text-primary border-b pb-2">
+        <i className="fa-solid fa-map-location-dot"></i> 3. ข้อมูลที่อยู่
+      </h3>
       
       <form onSubmit={handleNext} noValidate>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Input label="บ้านเลขที่" id="houseNo" required value={formData.houseNo || ''} onChange={handleChange} error={errors.houseNo} />
-          <Input label="หมู่" id="moo" value={formData.moo || ''} onChange={handleChange} />
-          <Input label="หมู่บ้าน/อาคาร/ชั้น" id="village" value={formData.village || ''} onChange={handleChange} />
-          <Input label="ซอย" id="soi" value={formData.soi || ''} onChange={handleChange} />
+        <div className="border border-border rounded-md overflow-hidden mb-6 bg-white">
+          <div className="bg-[#243d7c] text-white p-3 font-medium flex items-center gap-2">
+            <i className="fas fa-home"></i> ที่อยู่ตามบัตรประชาชน
+          </div>
+          <div className="p-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Input label="บ้านเลขที่" id="houseNo" required value={formData.houseNo || ''} onChange={handleChange} error={errors.houseNo} placeholder="5555" />
+              <Input label="หมู่" id="moo" value={formData.moo || ''} onChange={handleChange} placeholder="เช่น 5" />
+              <Input label="หมู่บ้าน/อาคาร" id="village" value={formData.village || ''} onChange={handleChange} placeholder="เช่น หมู่บ้านสุขสันต์" />
+              <Input label="ซอย" id="soi" value={formData.soi || ''} onChange={handleChange} placeholder="เช่น ซอย 10" />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 mt-2 mb-4">
+              <Input label="ถนน" id="road" value={formData.road || ''} onChange={handleChange} placeholder="เช่น สุขุมวิท" />
+            </div>
+            
+            <CascadingAddress prefix="" errors={errors} />
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 mt-2 mb-4">
-          <Input label="ถนน" id="road" value={formData.road || ''} onChange={handleChange} />
+        <div className="mb-6">
+          <label className="block mb-2 font-medium text-textMain">ที่อยู่สำหรับจัดส่งเอกสาร</label>
+          <div className="flex flex-col gap-3">
+            <label className={`flex items-center gap-3 p-3 border rounded-md cursor-pointer transition-colors ${formData.sameAddress !== false ? 'border-primary bg-white text-primary' : 'border-border bg-white'}`}>
+              <input 
+                type="radio" 
+                name="addressChoice"
+                className="w-4 h-4 accent-primary"
+                checked={formData.sameAddress !== false}
+                onChange={() => updateData({ sameAddress: true })}
+              />
+              <span className="font-medium">ใช้ที่อยู่เดียวกันกับทะเบียนบ้าน</span>
+            </label>
+            <label className={`flex items-center gap-3 p-3 border rounded-md cursor-pointer transition-colors ${formData.sameAddress === false ? 'border-primary bg-white text-primary' : 'border-border bg-white'}`}>
+              <input 
+                type="radio" 
+                name="addressChoice"
+                className="w-4 h-4 accent-primary"
+                checked={formData.sameAddress === false}
+                onChange={() => updateData({ sameAddress: false })}
+              />
+              <span className="font-medium">ระบุที่อยู่ใหม่</span>
+            </label>
+          </div>
         </div>
-        
-        <CascadingAddress prefix="" errors={errors} />
 
-        <div className="mt-8 mb-4 flex items-center gap-3">
-          <input 
-            type="checkbox" 
-            id="sameAddress" 
-            className="w-5 h-5 accent-primary cursor-pointer"
-            checked={formData.sameAddress || false}
-            onChange={(e) => updateData({ sameAddress: e.target.checked })}
-          />
-          <label htmlFor="sameAddress" className="font-semibold cursor-pointer text-primary">
-            ที่อยู่สำหรับจัดส่งเอกสารเหมือนกับที่อยู่ตามบัตรประชาชน
-          </label>
-        </div>
-
-        {!formData.sameAddress && (
+        {formData.sameAddress === false && (
           <div className="p-4 border border-border bg-gray-50 rounded-lg animate-[fadeIn_0.3s]">
             <h4 className="font-semibold mb-4 text-textMain">ที่อยู่สำหรับจัดส่งเอกสาร</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

@@ -62,6 +62,49 @@ namespace backend.Controllers
             return Ok(data);
         }
 
+        [HttpGet("renew-courses")]
+        public async Task<IActionResult> GetRenewCourses([FromQuery] string? agentType)
+        {
+            var query = _context.RenewBasics.Where(c => c.Status == "active");
+
+            if (!string.IsNullOrEmpty(agentType))
+            {
+                query = query.Where(c => c.AgentType == agentType || c.AgentType == null);
+            }
+
+            var data = await query
+                .GroupJoin(_context.RenewDates, b => b.DateId, d => d.Id, (b, dates) => new { b, dates })
+                .SelectMany(x => x.dates.DefaultIfEmpty(), (x, d) => new {
+                    id = x.b.Id,
+                    courseName = x.b.CourseName,
+                    agentType = x.b.AgentType,
+                    dateId = x.b.DateId,
+                    dateDisplay = d != null ? d.CourseDateDisplay : null
+                })
+                .OrderBy(c => c.id)
+                .ToListAsync();
+
+            return Ok(data);
+        }
+
+        [HttpGet("renew-other-courses")]
+        public async Task<IActionResult> GetRenewOtherCourses()
+        {
+            var query = from o in _context.RenewOthers
+                        join p in _context.RenewPillars on o.PillarId equals p.Id
+                        join d in _context.RenewDates on o.DateId equals d.Id
+                        join c in _context.RenewCourses on o.SubjectId equals c.Id
+                        where o.Status == "active"
+                        orderby o.DisplayOrder
+                        select new {
+                            id = o.Id,
+                            displayName = $"[{p.Name}] [{d.CourseDateDisplay}] : {c.Name}"
+                        };
+
+            var data = await query.ToListAsync();
+            return Ok(data);
+        }
+
         // Generic Master Data DTO
         public class MasterDataDto
         {
