@@ -30,8 +30,7 @@ export default function Tab6Confirm() {
     e.preventDefault();
     const newErrors = {};
 
-    if (!formData.occupation?.trim()) newErrors.occupation = 'กรุณาระบุอาชีพหลัก';
-    if (!formData.insuranceExperienceYears?.trim()) newErrors.insuranceExperienceYears = 'กรุณาระบุประสบการณ์ทำงาน (ปี)';
+
     if (!formData.certifyTrue) newErrors.certifyTrue = 'กรุณายืนยันคำรับรองผู้สมัคร';
 
     if (Object.keys(newErrors).length > 0) {
@@ -76,32 +75,28 @@ export default function Tab6Confirm() {
       
       <form onSubmit={submitForm} noValidate>
         <div className="mb-6" id="occupation">
-          <label htmlFor="occupation" className="block text-sm font-medium text-textMain mb-1 after:content-['_*'] after:text-error">อาชีพหลักปัจจุบัน</label>
-          <p className="text-[13px] text-gray-500 mb-2 mt-[-4px]">กรุณาระบุอาชีพหลัก</p>
+          <label htmlFor="occupation" className="block text-sm font-medium text-textMain mb-1">ธุรกิจอื่นที่ท่านทำ</label>
+          <p className="text-[13px] text-gray-500 mb-2 mt-[-4px]">กรุณาระบุประเภทธุรกิจ</p>
           <input
             type="text"
-            className={`w-full px-4 py-3 border rounded-md focus:outline-none focus:ring-4 transition-colors ${errors.occupation ? 'border-error focus:border-error focus:ring-error/10' : 'border-border focus:border-primary focus:ring-primary/10'}`}
-            placeholder="คุณระบุ"
+            className="w-full px-4 py-3 border rounded-md focus:outline-none focus:ring-4 transition-colors border-border focus:border-primary focus:ring-primary/10"
+            placeholder="กรุณาระบุ"
             value={formData.occupation || ''}
             onChange={handleChange}
-            required
           />
-          {errors.occupation && <p className="text-error text-sm mt-1">{errors.occupation}</p>}
         </div>
         
         <div className="mb-6" id="insuranceExperienceYears">
-          <label htmlFor="insuranceExperienceYears" className="block text-sm font-medium text-textMain mb-1 after:content-['_*'] after:text-error">ประสบการณ์ในธุรกิจประกันภัย</label>
+          <label htmlFor="insuranceExperienceYears" className="block text-sm font-medium text-textMain mb-1">ประสบการณ์ในธุรกิจประกันภัย</label>
           <p className="text-[13px] text-gray-500 mb-2 mt-[-4px]">จำนวนปี เช่น 3</p>
           <input
             type="number"
             min="0"
-            className={`w-full px-4 py-3 border rounded-md focus:outline-none focus:ring-4 transition-colors ${errors.insuranceExperienceYears ? 'border-error focus:border-error focus:ring-error/10' : 'border-border focus:border-primary focus:ring-primary/10'}`}
+            className="w-full px-4 py-3 border rounded-md focus:outline-none focus:ring-4 transition-colors border-border focus:border-primary focus:ring-primary/10"
             placeholder="ต้องระบุเป็นตัวเลข"
             value={formData.insuranceExperienceYears || ''}
             onChange={handleChange}
-            required
           />
-          {errors.insuranceExperienceYears && <p className="text-error text-sm mt-1">{errors.insuranceExperienceYears}</p>}
         </div>
 
         <div className="mb-6">
