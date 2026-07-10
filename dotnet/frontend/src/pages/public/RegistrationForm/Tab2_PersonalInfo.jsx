@@ -257,23 +257,7 @@ export default function Tab2PersonalInfo() {
           </div>
         )}
 
-        <div className="border border-border rounded-md overflow-hidden mb-8 bg-white">
-          <div className="bg-[#243d7c] text-white p-3 font-medium flex items-center gap-2">
-            <i className="fa-solid fa-phone"></i> ข้อมูลการติดต่อ
-          </div>
-          <div className="p-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-              <Input label="โทรศัพท์ (บ้าน/ที่ทำงาน)" id="phone" value={formData.phone || ''} onChange={handleChange} error={errors.phone} />
-              <Input label="มือถือ" id="mobile" required value={formData.mobile || ''} onChange={handleChange} error={errors.mobile} />
-              <Input label="E-mail" id="email" type="email" value={formData.email || ''} onChange={handleChange} error={errors.email} />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Line ID" id="lineId" value={formData.lineId || ''} onChange={handleChange} />
-              <Input label="Facebook" id="facebook" value={formData.facebook || ''} onChange={handleChange} />
-            </div>
-          </div>
-        </div>
+
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
           <ThaiDatePicker label="วัน/เดือน/ปี เกิด" id="birthDate" value={formData.birthDate || ''} onChange={handleChange} error={errors.birthDate} />

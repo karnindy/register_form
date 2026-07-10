@@ -210,6 +210,7 @@ export default function Tab4License() {
               </div>
             )}
           </div>
+          {errors.agentType && <p className="text-error text-sm mt-2">{errors.agentType}</p>}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">

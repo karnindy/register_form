@@ -49,8 +49,15 @@ export function RegistrationProvider({ children }) {
     fetchMasterData();
   }, []);
 
-  const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 6));
-  const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
+  const nextStep = () => {
+    setCurrentStep((prev) => Math.min(prev + 1, 6));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  
+  const prevStep = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   
   const updateData = (newData) => {
     setFormData((prev) => ({ ...prev, ...newData }));

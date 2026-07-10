@@ -73,7 +73,7 @@ namespace backend.Controllers
             }
 
             var data = await query
-                .GroupJoin(_context.RenewDates, b => b.DateId, d => d.Id, (b, dates) => new { b, dates })
+                .GroupJoin(_context.RenewDates.Where(d => d.Status == "active"), b => b.DateId, d => d.Id, (b, dates) => new { b, dates })
                 .SelectMany(x => x.dates.DefaultIfEmpty(), (x, d) => new {
                     id = x.b.Id,
                     courseName = x.b.CourseName,
@@ -95,6 +95,9 @@ namespace backend.Controllers
                         join d in _context.RenewDates on o.DateId equals d.Id
                         join c in _context.RenewCourses on o.SubjectId equals c.Id
                         where o.Status == "active"
+                           && p.Status == "active"
+                           && d.Status == "active"
+                           && c.Status == "active"
                         orderby o.DisplayOrder
                         select new {
                             id = o.Id,

@@ -120,7 +120,7 @@ export default function Tab5Course() {
 
   const selectedCourseObj = courseOptions.find(c => c.courseName === formData.courseType);
   const isComplexCourse = selectedCourseObj && selectedCourseObj.dateId === null;
-  const showDeductionPrivilege = formData.courseType && formData.courseType.includes('ขอรับใบอนุญาต');
+  const showDeductionPrivilege = formData.courseType === 'ขอต่อใบอนุญาตเป็นตัวแทน/นายหน้าประกันวินาศภัย 4 เป็นต้นไป';
 
   return (
     <div className="bg-white p-6 md:p-8 rounded-lg shadow-sm border border-border">
@@ -154,47 +154,60 @@ export default function Tab5Course() {
 
         {isComplexCourse && (
           <div className="mb-6 animate-[fadeIn_0.3s]">
-            <label className="block mb-3 font-medium text-primary text-lg">{selectedCourseObj.courseName} <span className="text-error">*</span></label>
-            <div className="mb-4">
-              <span className="text-error text-sm block mb-1">* เลือกได้มากกว่า 1 วิชา *</span>
-              <span className="text-error text-sm block mb-2">* หากเลือกวิชาที่เคยอบรม จะไม่นับรวมรอบปัจจุบัน (5 ปี) *</span>
-              <div className="flex flex-col gap-3">
-                {renewOtherOptions.map((course, idx) => (
-                  <label key={idx} className="flex items-start gap-3 cursor-pointer p-3 border rounded-md bg-white hover:bg-gray-50">
-                    <input
-                      type="checkbox"
-                      name="selectedSubjects"
-                      className="mt-1 w-4 h-4 accent-primary"
-                      value={course}
-                      checked={(formData.selectedSubjects || []).includes(course)}
-                      onChange={(e) => handleCheckboxChange('selectedSubjects', course, e.target.checked)}
-                    />
-                    <span className="text-sm">{course}</span>
-                  </label>
-                ))}
-              </div>
-              {errors.selectedSubjects && <p className="text-error text-sm mt-2">{errors.selectedSubjects}</p>}
-            </div>
-
-            <label className="block mb-2 font-medium text-textMain mt-6">
+            
+            <label className="block mb-2 font-medium text-textMain mt-2">
               หากท่านถือใบอนุญาตเป็นตัวแทนหรือนายหน้าประกันวินาศภัยที่ต่ออายุครั้งที่ 4 เป็นต้นไป โปรดระบุวิชาที่ท่านเคยเข้าอบรมในรอบการสะสมชั่วโมงอบรมปัจจุบัน (5 ปี)<br/>
               <span className="text-error text-sm font-normal">* สำคัญ * : เพื่อท่านจะต้องไม่อบรมวิชาที่เคยเข้าอบรมซ้ำอีก ตามข้อกำหนดของ สำนักงาน คปภ.</span>
             </label>
-            <div className="p-4 border border-border rounded-md bg-gray-50 flex flex-col gap-3">
+            <div className="p-4 border border-border rounded-md bg-gray-50 flex flex-col gap-3 mb-6">
               {renewCourseCheckboxes.map((course, idx) => (
                 <label key={idx} className="flex items-start gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     name="previousCourses"
-                    className="mt-1 w-4 h-4 accent-primary"
+                    className="mt-1 w-4 h-4 accent-primary cursor-pointer"
                     value={course}
                     checked={(formData.previousCourses || []).includes(course)}
-                    onChange={(e) => handleCheckboxChange('previousCourses', course, e.target.checked)}
+                    onChange={(e) => {
+                      const isChecked = e.target.checked;
+                      handleCheckboxChange('previousCourses', course, isChecked);
+                      if (isChecked) {
+                        const newSelectedSubjects = (formData.selectedSubjects || []).filter(s => !s.includes(course));
+                        updateData({ selectedSubjects: newSelectedSubjects });
+                      }
+                    }}
                   />
                   <span className="text-sm">{course}</span>
                 </label>
               ))}
             </div>
+
+            <label className="block mb-3 font-medium text-primary text-lg">{selectedCourseObj.courseName} <span className="text-error">*</span></label>
+            <div className="mb-4">
+              <span className="text-error text-sm block mb-1">* เลือกได้มากกว่า 1 วิชา *</span>
+              <span className="text-error text-sm block mb-2">* หากเลือกวิชาที่เคยอบรม จะไม่นับรวมรอบปัจจุบัน (5 ปี) *</span>
+              <div className="flex flex-col gap-3">
+                {renewOtherOptions.map((course, idx) => {
+                  const isDisabled = (formData.previousCourses || []).some(prev => course.includes(prev));
+                  return (
+                    <label key={idx} className={`flex items-start gap-3 p-3 border rounded-md ${isDisabled ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-white hover:bg-gray-50 cursor-pointer'}`}>
+                      <input
+                        type="checkbox"
+                        name="selectedSubjects"
+                        className={`mt-1 w-4 h-4 ${isDisabled ? '' : 'accent-primary cursor-pointer'}`}
+                        value={course}
+                        checked={(formData.selectedSubjects || []).includes(course)}
+                        disabled={isDisabled}
+                        onChange={(e) => handleCheckboxChange('selectedSubjects', course, e.target.checked)}
+                      />
+                      <span className="text-sm">{course}</span>
+                    </label>
+                  );
+                })}
+              </div>
+              {errors.selectedSubjects && <p className="text-error text-sm mt-2">{errors.selectedSubjects}</p>}
+            </div>
+
           </div>
         )}
 
