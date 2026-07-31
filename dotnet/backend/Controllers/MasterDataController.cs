@@ -147,11 +147,35 @@ namespace backend.Controllers
                         .OrderBy(t => t.DisplayOrder)
                         .Select(t => new MasterDataDto { Id = t.Id, Name = t.Name, Status = t.Status, DisplayOrder = t.DisplayOrder })
                         .ToListAsync());
+                case "territory":
+                    return Ok(await _context.Territories
+                        .Where(t => queryStatus == null || t.Status == queryStatus)
+                        .OrderBy(t => t.DisplayOrder)
+                        .Select(t => new MasterDataDto { Id = t.Id, Name = t.Name, Status = t.Status, DisplayOrder = t.DisplayOrder })
+                        .ToListAsync());
+                case "expertise":
+                    return Ok(await _context.Expertises
+                        .Where(e => queryStatus == null || e.Status == queryStatus)
+                        .OrderBy(e => e.DisplayOrder)
+                        .Select(e => new MasterDataDto { Id = e.Id, Name = e.Name, Status = e.Status, DisplayOrder = e.DisplayOrder })
+                        .ToListAsync());
+                case "company":
+                    return Ok(await _context.Companies
+                        .Where(c => queryStatus == null || c.Status == queryStatus)
+                        .OrderBy(c => c.DisplayOrder)
+                        .Select(c => new MasterDataDto { Id = c.Id, Name = c.Name, Status = c.Status, DisplayOrder = c.DisplayOrder })
+                        .ToListAsync());
                 case "renewcourse":
                     return Ok(await _context.RenewCourses
                         .Where(c => queryStatus == null || c.Status == queryStatus)
                         .OrderBy(c => c.DisplayOrder)
                         .Select(c => new MasterDataDto { Id = c.Id, Name = c.Name, Status = c.Status, DisplayOrder = c.DisplayOrder })
+                        .ToListAsync());
+                case "pillars":
+                    return Ok(await _context.RenewPillars
+                        .Where(p => queryStatus == null || p.Status == queryStatus)
+                        .OrderBy(p => p.DisplayOrder)
+                        .Select(p => new MasterDataDto { Id = p.Id, Name = p.Name, Status = p.Status, DisplayOrder = p.DisplayOrder })
                         .ToListAsync());
                 default:
                     return NotFound(new { message = $"Master data type '{type}' not found or not supported for generic API." });
@@ -178,6 +202,18 @@ namespace backend.Controllers
                 case "renewcourse":
                     var c = new Models.MstRenewCourse { Name = dto.Name, Status = dto.Status, DisplayOrder = dto.DisplayOrder };
                     _context.RenewCourses.Add(c); break;
+                case "territory":
+                    var territory = new Models.MstTerritory { Name = dto.Name, Status = dto.Status, DisplayOrder = dto.DisplayOrder };
+                    _context.Territories.Add(territory); break;
+                case "expertise":
+                    var expertise = new Models.MstExpertise { Name = dto.Name, Status = dto.Status, DisplayOrder = dto.DisplayOrder };
+                    _context.Expertises.Add(expertise); break;
+                case "company":
+                    var company = new Models.MstCompany { Name = dto.Name, Status = dto.Status, DisplayOrder = dto.DisplayOrder };
+                    _context.Companies.Add(company); break;
+                case "pillars":
+                    var pillar = new Models.MstRenewPillar { Name = dto.Name, Status = dto.Status, DisplayOrder = dto.DisplayOrder };
+                    _context.RenewPillars.Add(pillar); break;
                 default:
                     return BadRequest("Invalid type");
             }
@@ -215,6 +251,26 @@ namespace backend.Controllers
                     if (c == null) return NotFound();
                     c.Name = dto.Name; c.Status = dto.Status; c.DisplayOrder = dto.DisplayOrder;
                     break;
+                case "territory":
+                    var territory = await _context.Territories.FindAsync(id);
+                    if (territory == null) return NotFound();
+                    territory.Name = dto.Name; territory.Status = dto.Status; territory.DisplayOrder = dto.DisplayOrder;
+                    break;
+                case "expertise":
+                    var expertise = await _context.Expertises.FindAsync(id);
+                    if (expertise == null) return NotFound();
+                    expertise.Name = dto.Name; expertise.Status = dto.Status; expertise.DisplayOrder = dto.DisplayOrder;
+                    break;
+                case "company":
+                    var company = await _context.Companies.FindAsync(id);
+                    if (company == null) return NotFound();
+                    company.Name = dto.Name; company.Status = dto.Status; company.DisplayOrder = dto.DisplayOrder;
+                    break;
+                case "pillars":
+                    var pillar = await _context.RenewPillars.FindAsync(id);
+                    if (pillar == null) return NotFound();
+                    pillar.Name = dto.Name; pillar.Status = dto.Status; pillar.DisplayOrder = dto.DisplayOrder;
+                    break;
                 default:
                     return BadRequest("Invalid type");
             }
@@ -243,6 +299,18 @@ namespace backend.Controllers
                 case "renewcourse":
                     var c = await _context.RenewCourses.FindAsync(id);
                     if (c != null) { c.Status = "inactive"; } break;
+                case "territory":
+                    var territory = await _context.Territories.FindAsync(id);
+                    if (territory != null) { territory.Status = "inactive"; } break;
+                case "expertise":
+                    var expertise = await _context.Expertises.FindAsync(id);
+                    if (expertise != null) { expertise.Status = "inactive"; } break;
+                case "company":
+                    var company = await _context.Companies.FindAsync(id);
+                    if (company != null) { company.Status = "inactive"; } break;
+                case "pillars":
+                    var pillar = await _context.RenewPillars.FindAsync(id);
+                    if (pillar != null) { pillar.Status = "inactive"; } break;
                 default:
                     return BadRequest("Invalid type");
             }

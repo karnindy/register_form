@@ -10,8 +10,12 @@ export function RegistrationProvider({ children }) {
     blood: [],
     gender: [],
     religion: [],
-    agentBranches: []
+    agentBranches: [],
+    territories: [],
+    expertises: [],
+    companies: []
   });
+  const [sysConfig, setSysConfig] = useState({});
   const [formData, setFormData] = useState({
     pdpaConsent: false,
     idCard: '',
@@ -24,13 +28,17 @@ export function RegistrationProvider({ children }) {
     // Fetch master data on load
     const fetchMasterData = async () => {
       try {
-        const [provRes, titlesRes, bloodRes, genderRes, religionRes, branchesRes] = await Promise.all([
+        const [provRes, titlesRes, bloodRes, genderRes, religionRes, branchesRes, territoriesRes, expertisesRes, companiesRes, configRes] = await Promise.all([
           fetch('http://localhost:8085/api/masterdata/provinces'),
           fetch('http://localhost:8085/api/masterdata/titles'),
           fetch('http://localhost:8085/api/masterdata/blood'),
           fetch('http://localhost:8085/api/masterdata/gender'),
           fetch('http://localhost:8085/api/masterdata/religion'),
-          fetch('http://localhost:8085/api/masterdata/agent-branches')
+          fetch('http://localhost:8085/api/masterdata/agent-branches'),
+          fetch('http://localhost:8085/api/masterdata/territory'),
+          fetch('http://localhost:8085/api/masterdata/expertise'),
+          fetch('http://localhost:8085/api/masterdata/company'),
+          fetch('http://localhost:8085/api/config')
         ]);
         
         const provinces = provRes.ok ? await provRes.json() : [];
@@ -39,8 +47,33 @@ export function RegistrationProvider({ children }) {
         const gender = genderRes.ok ? await genderRes.json() : [];
         const religion = religionRes.ok ? await religionRes.json() : [];
         const agentBranches = branchesRes.ok ? await branchesRes.json() : [];
+        const territories = territoriesRes.ok ? await territoriesRes.json() : [];
+        const expertises = expertisesRes.ok ? await expertisesRes.json() : [];
+        const companies = companiesRes.ok ? await companiesRes.json() : [];
+        const configArray = configRes.ok ? await configRes.json() : [];
+        const configData = {};
+        if (Array.isArray(configArray)) {
+          configArray.forEach(item => {
+            configData[item.key] = item.value;
+          });
+        } else {
+          Object.assign(configData, configArray); // Fallback in case backend is changed
+        }
         
-        setMasterData(prev => ({ ...prev, provinces, titles, blood, gender, religion, agentBranches }));
+        setMasterData(prev => ({ ...prev, provinces, titles, blood, gender, religion, agentBranches, territories, expertises, companies }));
+        setSysConfig(configData);
+
+        // Set Tab 4 default values if not already present
+        setFormData(prev => {
+          let updates = {};
+          if (!prev.agentBranch && configData['tab4_default_branch']) updates.agentBranch = configData['tab4_default_branch'];
+          if (!prev.viriyahCode && configData['tab4_default_agentcode']) updates.viriyahCode = configData['tab4_default_agentcode'];
+          
+          if (configData['tab4_allowed_agent_types'] === 'agent' && prev.agentType !== 'agent') updates.agentType = 'agent';
+          if (configData['tab4_allowed_agent_types'] === 'broker' && prev.agentType !== 'broker') updates.agentType = 'broker';
+          
+          return Object.keys(updates).length > 0 ? { ...prev, ...updates } : prev;
+        });
       } catch (err) {
         console.error("Failed to load master data", err);
       }
@@ -64,7 +97,7 @@ export function RegistrationProvider({ children }) {
   };
 
   return (
-    <RegistrationContext.Provider value={{ currentStep, formData, updateData, nextStep, prevStep, setStep: setCurrentStep, masterData }}>
+    <RegistrationContext.Provider value={{ currentStep, formData, updateData, nextStep, prevStep, setStep: setCurrentStep, masterData, sysConfig }}>
       {children}
     </RegistrationContext.Provider>
   );

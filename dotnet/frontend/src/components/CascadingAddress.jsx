@@ -116,7 +116,7 @@ export default function CascadingAddress({ prefix = "", errors = {} }) {
         <label className="block mb-2 font-medium text-textMain after:content-['_*'] after:text-error">จังหวัด</label>
         <Select
           options={provinceOptions}
-          value={provinceOptions.find(o => o.value === formData[provinceIdField]) || null}
+          value={provinceOptions.find(o => String(o.value) === String(formData[provinceIdField])) || null}
           onChange={handleProvinceChange}
           placeholder="-- ค้นหา/เลือกจังหวัด --"
           isClearable
@@ -130,7 +130,7 @@ export default function CascadingAddress({ prefix = "", errors = {} }) {
           <label className="block mb-2 font-medium text-textMain after:content-['_*'] after:text-error">อำเภอ/เขต</label>
           <Select
             options={districts}
-            value={districts.find(o => o.value === formData[districtIdField]) || null}
+            value={districts.find(o => String(o.value) === String(formData[districtIdField])) || null}
             onChange={handleDistrictChange}
             placeholder="-- ค้นหา/เลือกอำเภอ --"
             isDisabled={!formData[provinceIdField]}
@@ -145,7 +145,7 @@ export default function CascadingAddress({ prefix = "", errors = {} }) {
           <label className="block mb-2 font-medium text-textMain after:content-['_*'] after:text-error">ตำบล/แขวง</label>
           <Select
             options={subDistricts}
-            value={subDistricts.find(o => o.value === formData[subDistrictIdField]) || null}
+            value={subDistricts.find(o => String(o.value) === String(formData[subDistrictIdField])) || null}
             onChange={handleSubDistrictChange}
             placeholder="-- ค้นหา/เลือกตำบล --"
             isDisabled={!formData[districtIdField]}

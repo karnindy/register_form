@@ -193,6 +193,9 @@ namespace backend.Models
         [Column("course_type")]
         public string? CourseType { get; set; }
         
+        [Column("course_type_code")]
+        public string? CourseTypeCode { get; set; }
+        
         [Column("agent_level")]
         public string? AgentLevel { get; set; }
         
@@ -330,5 +333,43 @@ namespace backend.Models
         
         [Column("remark")]
         public string? Remark { get; set; }
+
+        [NotMapped]
+        public string? SelectedSubjects { get; set; }
+        
+        [NotMapped]
+        public string? Phone { get; set; }
+        
+        [NotMapped] public string? HouseNo { get; set; }
+        [NotMapped] public string? Moo { get; set; }
+        [NotMapped] public string? Village { get; set; }
+        [NotMapped] public string? Soi { get; set; }
+        [NotMapped] public string? Road { get; set; }
+        [NotMapped] public int? ProvinceId { get; set; }
+        [NotMapped] public int? DistrictId { get; set; }
+        [NotMapped] public int? SubDistrictId { get; set; }
+        [NotMapped] public string? Zipcode { get; set; }
+
+        [NotMapped] public System.Text.Json.JsonElement? SameAddress { get; set; }
+
+        [NotMapped] public string? ShipHouseNo { get; set; }
+        [NotMapped] public string? ShipMoo { get; set; }
+        [NotMapped] public string? ShipVillage { get; set; }
+        [NotMapped] public string? ShipSoi { get; set; }
+        [NotMapped] public string? ShipRoad { get; set; }
+        [NotMapped] public int? ShipProvinceId { get; set; }
+        [NotMapped] public int? ShipDistrictId { get; set; }
+        [NotMapped] public int? ShipSubDistrictId { get; set; }
+        [NotMapped] public string? ShipZipcode { get; set; }
+
+        [NotMapped] public string? AgentRegion { get; set; }
+        [NotMapped] public string? AgentType { get; set; }
+        [NotMapped] public string? BrokerType { get; set; }
+        [NotMapped] public string? ViriyaContractCode { get; set; }
+        [NotMapped] public string? BrokerAffiliation { get; set; }
+        [NotMapped] public string? BranchRecommender { get; set; }
+        
+        [NotMapped] public DateTime? LicenseIssue { get; set; }
+        [NotMapped] public DateTime? LicenseExpire { get; set; }
     }
 }

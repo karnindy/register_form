@@ -10,9 +10,15 @@ import Dashboard from './pages/admin/Dashboard';
 import TraineesList from './pages/admin/TraineesList';
 import AuditLogs from './pages/admin/AuditLogs';
 import SystemLogs from './pages/admin/SystemLogs';
+import ConfigPage from './pages/admin/ConfigPage';
 
 import MasterDataDashboard from './pages/admin/MasterDataDashboard';
 import MasterDataCrud from './pages/admin/MasterDataCrud';
+import LocationMasterCrud from './pages/admin/LocationMasterCrud';
+import AgentMasterCrud from './pages/admin/AgentMasterCrud';
+import RenewDateCrud from './pages/admin/RenewDateCrud';
+import RenewBasicCrud from './pages/admin/RenewBasicCrud';
+import RenewMappingCrud from './pages/admin/RenewMappingCrud';
 import ReportsDashboard from './pages/admin/ReportsDashboard';
 import ReportRemarks from './pages/admin/ReportRemarks';
 
@@ -39,6 +45,7 @@ export default function App() {
           <Route path="trainees" element={<TraineesList />} />
           <Route path="audit-logs" element={<AuditLogs />} />
           <Route path="system-logs" element={<SystemLogs />} />
+          <Route path="config" element={<ConfigPage />} />
           
           {/* Reports Routes */}
           <Route path="reports" element={<ReportsDashboard />} />
@@ -46,6 +53,14 @@ export default function App() {
           
           {/* Master Data Routes */}
           <Route path="master-data" element={<MasterDataDashboard />} />
+          <Route path="master-data/provinces" element={<LocationMasterCrud type="provinces" />} />
+          <Route path="master-data/districts" element={<LocationMasterCrud type="districts" />} />
+          <Route path="master-data/subdistricts" element={<LocationMasterCrud type="subdistricts" />} />
+          <Route path="master-data/agent-regions" element={<AgentMasterCrud type="agent-regions" />} />
+          <Route path="master-data/agent-branches" element={<AgentMasterCrud type="agent-branches" />} />
+          <Route path="master-data/renewdates" element={<RenewDateCrud />} />
+          <Route path="master-data/renewbasic" element={<RenewBasicCrud />} />
+          <Route path="master-data/renewmappings" element={<RenewMappingCrud />} />
           <Route path="master-data/:type" element={<MasterDataCrud />} />
         </Route>
       </Routes>

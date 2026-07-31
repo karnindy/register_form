@@ -6,7 +6,22 @@ export default function MasterDataDashboard() {
     { type: 'religion', title: 'จัดการศาสนา', icon: 'fa-praying-hands', color: 'text-primary' },
     { type: 'gender', title: 'จัดการเพศ', icon: 'fa-venus-mars', color: 'text-primary' },
     { type: 'blood', title: 'จัดการกรุ๊ปเลือด', icon: 'fa-droplet', color: 'text-primary' },
-    { type: 'renewcourse', title: 'จัดการชื่อวิชา (Subjects)', icon: 'fa-book-open', color: 'text-warning' }
+    { type: 'provinces', title: 'จัดการจังหวัด', icon: 'fa-map-location-dot', color: 'text-info', custom: true },
+    { type: 'districts', title: 'จัดการอำเภอ', icon: 'fa-map', color: 'text-info', custom: true },
+    { type: 'subdistricts', title: 'จัดการตำบล', icon: 'fa-location-crosshairs', color: 'text-info', custom: true },
+    { type: 'territory', title: 'จัดการเขตพื้นที่ขาย', icon: 'fa-map-pin', color: 'text-info' },
+    { type: 'agent-regions', title: 'จัดการภูมิภาคตัวแทน', icon: 'fa-earth-asia', color: 'text-primary', custom: true },
+    { type: 'agent-branches', title: 'จัดการสาขาตัวแทน', icon: 'fa-code-branch', color: 'text-primary', custom: true },
+    { type: 'expertise', title: 'จัดการความเชี่ยวชาญ', icon: 'fa-star', color: 'text-success' },
+    { type: 'company', title: 'จัดการบริษัทประกันภัย', icon: 'fa-building', color: 'text-success' }
+  ];
+
+  const renewDataLinks = [
+    { type: 'pillars', title: 'Pillars', icon: 'fa-layer-group', color: 'text-warning' },
+    { type: 'renewdates', title: 'วันที่เปิดอบรม', icon: 'fa-calendar-alt', color: 'text-warning', custom: true },
+    { type: 'renewbasic', title: 'หลักสูตรพื้นฐาน', icon: 'fa-book', color: 'text-warning', custom: true },
+    { type: 'renewcourse', title: 'ชื่อวิชา (Subjects)', icon: 'fa-book-open', color: 'text-warning' },
+    { type: 'renewmappings', title: 'จับคู่วิชาต่ออายุ', icon: 'fa-link', color: 'text-warning', custom: true }
   ];
 
   return (
@@ -21,13 +36,29 @@ export default function MasterDataDashboard() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
         {masterDataLinks.map((link) => (
           <div key={link.type} className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 flex flex-col items-center text-center transition-shadow hover:shadow-md h-full">
             <i className={`fas ${link.icon} text-5xl ${link.color} mb-4`}></i>
             <h4 className="text-lg font-bold text-gray-800 mb-2">{link.title}</h4>
             <p className="text-gray-500 text-xs mb-6 flex-1">เพิ่ม ลบ หรือแก้ไขข้อมูลในระบบ</p>
-            <Link to={`/admin/master-data/${link.type}`} className="px-6 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition-colors text-sm w-full">
+            <Link to={link.custom ? `/admin/master-data/${link.type}` : `/admin/master-data/${link.type}`} className={`px-6 py-2 border rounded transition-colors text-sm w-full ${link.custom ? 'border-info text-info hover:bg-info hover:text-white' : 'border-primary text-primary hover:bg-primary hover:text-white'}`}>
+              จัดการข้อมูล
+            </Link>
+          </div>
+        ))}
+      </div>
+
+      <div className="mb-6 border-b-2 border-warning pb-2">
+        <h3 className="text-2xl font-bold text-warning">จัดการวิชาต่ออายุ (Renew Other & Past Training)</h3>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {renewDataLinks.map((link) => (
+          <div key={link.type} className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 flex flex-col items-center text-center transition-shadow hover:shadow-md h-full">
+            <i className={`fas ${link.icon} text-5xl ${link.color} mb-4`}></i>
+            <h4 className="text-lg font-bold text-gray-800 mb-2">{link.title}</h4>
+            <p className="text-gray-500 text-xs mb-6 flex-1">เพิ่ม ลบ หรือแก้ไขข้อมูลในระบบ</p>
+            <Link to={`/admin/master-data/${link.type}`} className="px-6 py-2 border border-warning text-warning rounded hover:bg-warning hover:text-white transition-colors text-sm w-full">
               จัดการข้อมูล
             </Link>
           </div>

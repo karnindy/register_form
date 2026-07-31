@@ -21,6 +21,9 @@ export default {
         border: '#DDDDDD',
         error: '#D32F2F',
         success: '#388E3C',
+        info: { DEFAULT: '#0288D1' }, // Bootstrap-like info blue
+        warning: { DEFAULT: '#F57C00' }, // Deep orange warning
+        danger: { DEFAULT: '#D32F2F' }, // Same as error
       },
       fontFamily: {
         sarabun: ['Sarabun', 'sans-serif'],

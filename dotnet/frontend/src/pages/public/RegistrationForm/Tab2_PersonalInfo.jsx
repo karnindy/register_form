@@ -8,33 +8,43 @@ import ThaiDatePicker from '../../../components/ThaiDatePicker';
 export default function Tab2PersonalInfo() {
   const { nextStep, prevStep, formData, updateData, masterData } = useRegistration();
 
-  const titleOptions = masterData.titles?.length > 0 ? masterData.titles.map(t => ({ value: t.name, label: t.name })) : [
+  const titleOptions = masterData.titles?.length > 0 ? masterData.titles.map(t => ({ value: t.id.toString(), label: t.name })) : [
+    { value: '1', label: 'นาย' },
+    { value: '2', label: 'นาง' },
+    { value: '3', label: 'นางสาว' },
+    { value: '4', label: 'อื่นๆ' },
+  ];
+
+  const titleNameOptions = masterData.titles?.length > 0 ? masterData.titles.map(t => ({ value: t.name, label: t.name })) : [
     { value: 'นาย', label: 'นาย' },
     { value: 'นาง', label: 'นาง' },
     { value: 'นางสาว', label: 'นางสาว' },
     { value: 'อื่นๆ', label: 'อื่นๆ' },
   ];
 
-  const religionOptions = masterData.religion?.length > 0 ? masterData.religion.map(r => ({ value: r.name, label: r.name })) : [
-    { value: 'พุทธ', label: 'พุทธ' },
-    { value: 'คริสต์', label: 'คริสต์' },
-    { value: 'อิสลาม', label: 'อิสลาม' },
-    { value: 'อื่นๆ', label: 'อื่นๆ' },
+  const otherTitleId = masterData.titles?.find(t => t.name === 'อื่นๆ')?.id?.toString() || '4';
+
+  const religionOptions = masterData.religion?.length > 0 ? masterData.religion.map(r => ({ value: r.id.toString(), label: r.name })) : [
+    { value: '1', label: 'พุทธ' },
+    { value: '2', label: 'คริสต์' },
+    { value: '3', label: 'อิสลาม' },
+    { value: '6', label: 'อื่นๆ' },
   ];
 
-  const genderOptions = masterData.gender?.length > 0 ? masterData.gender.map(g => ({ value: g.name, label: g.name })) : [
-    { value: 'ชาย', label: 'ชาย' },
-    { value: 'หญิง', label: 'หญิง' },
+  const genderOptions = masterData.gender?.length > 0 ? masterData.gender.map(g => ({ value: g.id.toString(), label: g.name })) : [
+    { value: '1', label: 'ชาย' },
+    { value: '2', label: 'หญิง' },
   ];
 
-  const bloodOptions = masterData.blood?.length > 0 ? masterData.blood.map(b => ({ value: b.name, label: b.name })) : [
-    { value: 'A', label: 'A' },
-    { value: 'B', label: 'B' },
-    { value: 'O', label: 'O' },
-    { value: 'AB', label: 'AB' },
+  const bloodOptions = masterData.blood?.length > 0 ? masterData.blood.map(b => ({ value: b.id.toString(), label: b.name })) : [
+    { value: '1', label: 'A' },
+    { value: '2', label: 'B' },
+    { value: '3', label: 'O' },
+    { value: '4', label: 'AB' },
   ];
 
   const [errors, setErrors] = useState({});
+  const [isFetchingPerson, setIsFetchingPerson] = useState(false);
 
   const handleChange = (e) => {
     updateData({ [e.target.id || e.target.name]: e.target.value });
@@ -44,7 +54,7 @@ export default function Tab2PersonalInfo() {
     }
   };
 
-  const handleNationalIdChange = (e) => {
+  const handleNationalIdChange = async (e) => {
     let val = e.target.value.replace(/\D/g, ''); // Remove non-digits
     if (val.length > 13) val = val.slice(0, 13);
     
@@ -58,6 +68,23 @@ export default function Tab2PersonalInfo() {
     updateData({ nationalId: formatted });
     if (errors.nationalId) {
       setErrors(prev => ({ ...prev, nationalId: '' }));
+    }
+
+    // Auto-fill logic
+    if (val.length === 13) {
+      setIsFetchingPerson(true);
+      try {
+        const res = await fetch(`http://localhost:8085/api/person/${val}`);
+        if (res.ok) {
+          const personData = await res.json();
+          // Merge fetched data, preserving nationalId formatting
+          updateData({ ...personData, nationalId: formatted });
+        }
+      } catch (err) {
+        console.error("Failed to auto-fill person data", err);
+      } finally {
+        setIsFetchingPerson(false);
+      }
     }
   };
 
@@ -86,12 +113,13 @@ export default function Tab2PersonalInfo() {
       }
     });
 
-    if (formData.titleTh === 'อื่นๆ' && !formData.titleCustom) {
+    if (formData.titleTh === otherTitleId && !formData.titleCustom) {
       newErrors.titleCustom = 'กรุณาระบุคำนำหน้าชื่อ';
     }
 
     if (formData.hasChangedName === 'yes') {
       if (!formData.titlePrev) newErrors.titlePrev = 'กรุณาระบุคำนำหน้าชื่อเดิม';
+      if (formData.titlePrev === otherTitleId && !formData.titleCustomPrev) newErrors.titleCustomPrev = 'กรุณาระบุคำนำหน้าชื่อเดิม';
       if (!formData.firstNameOldTh) newErrors.firstNameOldTh = 'กรุณากรอกชื่อเดิม';
       if (!formData.lastNameOldTh) newErrors.lastNameOldTh = 'กรุณากรอกนามสกุลเดิม';
     }
@@ -169,16 +197,18 @@ export default function Tab2PersonalInfo() {
       
       <form onSubmit={handleNext} noValidate>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-          <Input 
-            label="เลขประจำตัวประชาชน (13 หลัก)" 
-            id="nationalId" 
-            required 
-            maxLength={17} // 13 digits + 4 hyphens
-            placeholder="x-xxxx-xxxxx-xx-x"
-            value={formData.nationalId || ''} 
-            onChange={handleNationalIdChange}
-            error={errors.nationalId}
-          />
+          <div className="relative">
+            <Input 
+              label={<>เลขประจำตัวประชาชน (13 หลัก) {isFetchingPerson && <i className="fas fa-spinner fa-spin text-primary ml-2"></i>}</>}
+              id="nationalId" 
+              required 
+              maxLength={17} // 13 digits + 4 hyphens
+              placeholder="x-xxxx-xxxxx-xx-x"
+              value={formData.nationalId || ''} 
+              onChange={handleNationalIdChange}
+              error={errors.nationalId}
+            />
+          </div>
           <div>
             <ThaiDatePicker 
               label="วันหมดอายุบัตรประชาชน" 
@@ -208,7 +238,7 @@ export default function Tab2PersonalInfo() {
             onChange={handleChange}
             error={errors.titleTh}
           />
-          {formData.titleTh === 'อื่นๆ' && (
+          {formData.titleTh === otherTitleId && (
             <div className="mt-3">
               <Input label="คำนำหน้าตามบัตรประชาชน (โปรดระบุ)" id="titleCustom" required value={formData.titleCustom || ''} onChange={handleChange} placeholder="ใส่คำตอบ" error={errors.titleCustom} />
             </div>
@@ -246,6 +276,11 @@ export default function Tab2PersonalInfo() {
             <div className="p-5">
               <div className="mb-5 md:w-1/2 pr-2.5">
                 <Select label="คำนำหน้าชื่อ" id="titlePrev" required options={titleOptions} value={formData.titlePrev || ''} onChange={handleChange} error={errors.titlePrev} />
+                {formData.titlePrev === otherTitleId && (
+                  <div className="mt-3">
+                    <Input label="คำนำหน้าเดิม (โปรดระบุ)" id="titleCustomPrev" required value={formData.titleCustomPrev || ''} onChange={handleChange} placeholder="ใส่คำตอบ" error={errors.titleCustomPrev} />
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
@@ -296,6 +331,17 @@ export default function Tab2PersonalInfo() {
               id="instagram" value={formData.instagram || ''} onChange={handleChange} placeholder="ชื่อบัญชี Instagram" 
             />
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-6 border-t border-gray-100">
+          <Input 
+            label="คุณเคยมีประวัติแพ้อาหารหรือไม่ (โปรดระบุ)" 
+            id="foodAllergy" value={formData.foodAllergy || ''} onChange={handleChange} placeholder="เช่น แพ้อาหารทะเล, ถั่ว หรือ ไม่มี" 
+          />
+          <Input 
+            label="โรคประจำตัว (โปรดระบุ)" 
+            id="medicalCondition" value={formData.medicalCondition || ''} onChange={handleChange} placeholder="เช่น เบาหวาน, ความดัน หรือ ไม่มี" 
+          />
         </div>
 
         <div className="border border-border rounded-md overflow-hidden mb-8 bg-white">

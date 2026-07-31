@@ -1,0 +1,16 @@
+[21-Jul-2026 06:02:55 UTC] PHP Warning:  mysqli::__construct(): The server requested authentication method unknown to the client [caching_sha2_password] in D:\git_kraken\register_form\index.php on line 11
+[21-Jul-2026 06:02:55 UTC] PHP Warning:  mysqli::__construct(): (HY000/2054): The server requested authentication method unknown to the client in D:\git_kraken\register_form\index.php on line 11
+[21-Jul-2026 06:02:55 UTC] PHP Warning:  mysqli::set_charset(): Couldn't fetch mysqli in D:\git_kraken\register_form\index.php on line 12
+[21-Jul-2026 06:02:55 UTC] PHP Warning:  mysqli::query(): Couldn't fetch mysqli in D:\git_kraken\register_form\index.php on line 33
+[21-Jul-2026 06:02:55 UTC] PHP Warning:  mysqli::query(): Couldn't fetch mysqli in D:\git_kraken\register_form\index.php on line 54
+[21-Jul-2026 13:02:55 Asia/Bangkok] PHP Warning:  mysqli::query(): Couldn't fetch mysqli in D:\git_kraken\register_form\index.php on line 16
+[21-Jul-2026 13:02:55 Asia/Bangkok] PHP Warning:  mysqli::query(): Couldn't fetch mysqli in D:\git_kraken\register_form\index.php on line 16
+[21-Jul-2026 13:02:55 Asia/Bangkok] PHP Warning:  mysqli::query(): Couldn't fetch mysqli in D:\git_kraken\register_form\index.php on line 16
+[21-Jul-2026 13:02:55 Asia/Bangkok] PHP Warning:  mysqli::query(): Couldn't fetch mysqli in D:\git_kraken\register_form\index.php on line 16
+[21-Jul-2026 13:02:55 Asia/Bangkok] PHP Warning:  mysqli::query(): Couldn't fetch mysqli in D:\git_kraken\register_form\index.php on line 16
+[21-Jul-2026 06:02:56 UTC] PHP Warning:  mysqli::__construct(): The server requested authentication method unknown to the client [caching_sha2_password] in D:\git_kraken\register_form\api_locations.php on line 7
+[21-Jul-2026 06:02:56 UTC] PHP Warning:  mysqli::__construct(): (HY000/2054): The server requested authentication method unknown to the client in D:\git_kraken\register_form\api_locations.php on line 7
+[21-Jul-2026 06:02:56 UTC] PHP Warning:  mysqli::__construct(): The server requested authentication method unknown to the client [caching_sha2_password] in D:\git_kraken\register_form\api_locations.php on line 7
+[21-Jul-2026 06:02:56 UTC] PHP Warning:  mysqli::__construct(): (HY000/2054): The server requested authentication method unknown to the client in D:\git_kraken\register_form\api_locations.php on line 7
+[21-Jul-2026 06:02:56 UTC] PHP Warning:  mysqli::__construct(): The server requested authentication method unknown to the client [caching_sha2_password] in D:\git_kraken\register_form\api_locations.php on line 7
+[21-Jul-2026 06:02:56 UTC] PHP Warning:  mysqli::__construct(): (HY000/2054): The server requested authentication method unknown to the client in D:\git_kraken\register_form\api_locations.php on line 7

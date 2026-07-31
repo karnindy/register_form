@@ -1,6 +1,48 @@
 import { Outlet } from 'react-router-dom';
+import { useRegistration } from '../context/RegistrationContext';
+import SystemClosed from '../pages/public/SystemClosed';
 
 export default function PublicLayout() {
+  const { sysConfig } = useRegistration();
+
+  // Check system status
+  let isSystemOpen = true;
+  
+  if (sysConfig) {
+    if (sysConfig['SYSTEM_IS_ONLINE'] === 'false') {
+      isSystemOpen = false;
+    } else if (sysConfig['SYSTEM_OPEN_PERIODS']) {
+      try {
+        const periods = JSON.parse(sysConfig['SYSTEM_OPEN_PERIODS']);
+        if (Array.isArray(periods) && periods.length > 0) {
+          const now = new Date();
+          let withinPeriod = false;
+          
+          for (const period of periods) {
+            const openTime = period.open ? new Date(period.open) : null;
+            const closeTime = period.close ? new Date(period.close) : null;
+            
+            if (openTime && closeTime) {
+              if (now >= openTime && now <= closeTime) withinPeriod = true;
+            } else if (openTime && !closeTime) {
+              if (now >= openTime) withinPeriod = true;
+            } else if (!openTime && closeTime) {
+              if (now <= closeTime) withinPeriod = true;
+            }
+          }
+          
+          isSystemOpen = withinPeriod;
+        }
+      } catch (e) {
+        console.error("Invalid SYSTEM_OPEN_PERIODS JSON", e);
+      }
+    }
+  }
+
+  if (!isSystemOpen) {
+    return <SystemClosed />;
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="relative bg-gradient-to-br from-primary to-[#003B6F] text-white py-10 px-5 text-center shadow-md border-b-[5px] border-secondary">

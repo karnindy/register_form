@@ -29,7 +29,7 @@ export default function Tab5Course() {
       newErrors.courseType = 'กรุณาเลือกระดับคอร์สที่ต้องการอบรม';
     }
 
-    const selectedCourseObj = courseOptions.find(c => c.courseName === formData.courseType);
+    const selectedCourseObj = courseOptions.find(c => c.id?.toString() === formData.courseType);
     const isComplex = selectedCourseObj && selectedCourseObj.dateId === null;
 
     if (formData.courseType && !isComplex && !formData.trainingDate) {
@@ -46,7 +46,8 @@ export default function Tab5Course() {
       newErrors.masterDegreeStatus = 'กรุณาระบุสถานะการยื่นเอกสาร';
     }
 
-    if (formData.courseType?.includes('ต่อใบอนุญาต')) {
+    // We check if it is a renewal course (IDs 2, 3, 4, 9 for agent, and 6, 7, 8, 10 for broker)
+    if (['2', '3', '4', '9', '6', '7', '8', '10'].includes(formData.courseType)) {
       if (!formData.licenseNo?.trim() || !formData.licenseExpire) {
         newErrors.courseType = 'กรุณาย้อนกลับไปกรอก "เลขที่ใบอนุญาต" และ "วันที่บัตรหมดอายุ" ในส่วนที่ 4';
       }
@@ -94,7 +95,7 @@ export default function Tab5Course() {
         const res = await fetch(`http://localhost:8085/api/masterdata/renewcourse`);
         if (res.ok) {
           const data = await res.json();
-          setRenewCourseCheckboxes(data.map(item => item.name));
+          setRenewCourseCheckboxes(data.map(item => ({ id: item.id.toString(), name: item.name })));
         }
       } catch (err) {
         console.error("Failed to load renew courses", err);
@@ -109,7 +110,7 @@ export default function Tab5Course() {
         const res = await fetch(`http://localhost:8085/api/masterdata/renew-other-courses`);
         if (res.ok) {
           const data = await res.json();
-          setRenewOtherOptions(data.map(item => item.displayName));
+          setRenewOtherOptions(data.map(item => ({ id: item.id.toString(), name: item.displayName })));
         }
       } catch (err) {
         console.error("Failed to load renew other courses", err);
@@ -118,9 +119,9 @@ export default function Tab5Course() {
     fetchRenewOtherOptions();
   }, []);
 
-  const selectedCourseObj = courseOptions.find(c => c.courseName === formData.courseType);
+  const selectedCourseObj = courseOptions.find(c => c.id?.toString() === formData.courseType);
   const isComplexCourse = selectedCourseObj && selectedCourseObj.dateId === null;
-  const showDeductionPrivilege = formData.courseType === 'ขอต่อใบอนุญาตเป็นตัวแทน/นายหน้าประกันวินาศภัย 4 เป็นต้นไป';
+  const showDeductionPrivilege = formData.courseType === '9' || formData.courseType === '10';
 
   return (
     <div className="bg-white p-6 md:p-8 rounded-lg shadow-sm border border-border">
@@ -138,10 +139,10 @@ export default function Tab5Course() {
                   type="radio"
                   name="courseType"
                   className="w-4 h-4 accent-primary"
-                  value={course.courseName}
-                  checked={formData.courseType === course.courseName}
+                  value={course.id?.toString()}
+                  checked={formData.courseType === course.id?.toString()}
                   onChange={() => {
-                    updateData({ courseType: course.courseName, trainingDate: '', previousCourses: [], selectedSubjects: [] });
+                    updateData({ courseType: course.id?.toString(), trainingDate: '', previousCourses: [], selectedSubjects: [] });
                     if (errors.courseType) setErrors(prev => ({ ...prev, courseType: '' }));
                   }}
                 />
@@ -166,18 +167,20 @@ export default function Tab5Course() {
                     type="checkbox"
                     name="previousCourses"
                     className="mt-1 w-4 h-4 accent-primary cursor-pointer"
-                    value={course}
-                    checked={(formData.previousCourses || []).includes(course)}
+                    value={course.id}
+                    checked={(formData.previousCourses || []).includes(course.id)}
                     onChange={(e) => {
                       const isChecked = e.target.checked;
-                      handleCheckboxChange('previousCourses', course, isChecked);
-                      if (isChecked) {
-                        const newSelectedSubjects = (formData.selectedSubjects || []).filter(s => !s.includes(course));
-                        updateData({ selectedSubjects: newSelectedSubjects });
-                      }
+                      handleCheckboxChange('previousCourses', course.id, isChecked);
+                      // Reset selectedSubjects if they overlap?
+                      // The overlap check in the old logic relied on names. For IDs, we check if they are the same ID (if they match).
+                      // However, previousCourses (renewCourse) and selectedSubjects (renewOtherOptions) might not share the same ID space.
+                      // Wait, renewOtherOptions has `course.id` which is `id` of `PersonTraining5y`? No, renewOtherOptions are from `renew-other-courses` which are `MstRenewOther` IDs.
+                      // The old logic disabled selectedSubjects if `course.includes(prev)`. Since they are IDs, this might be tricky if the IDs don't match.
+                      // We will let the next block handle it based on names for disable logic.
                     }}
                   />
-                  <span className="text-sm">{course}</span>
+                  <span className="text-sm">{course.name}</span>
                 </label>
               ))}
             </div>
@@ -187,20 +190,22 @@ export default function Tab5Course() {
               <span className="text-error text-sm block mb-1">* เลือกได้มากกว่า 1 วิชา *</span>
               <span className="text-error text-sm block mb-2">* หากเลือกวิชาที่เคยอบรม จะไม่นับรวมรอบปัจจุบัน (5 ปี) *</span>
               <div className="flex flex-col gap-3">
-                {renewOtherOptions.map((course, idx) => {
-                  const isDisabled = (formData.previousCourses || []).some(prev => course.includes(prev));
+                {renewOtherOptions.map((otherCourse, idx) => {
+                  // Replicate the previous string-based includes check to disable options
+                  const prevCourseNames = (formData.previousCourses || []).map(pId => renewCourseCheckboxes.find(c => c.id === pId)?.name || '');
+                  const isDisabled = prevCourseNames.some(prevName => prevName && otherCourse.name.includes(prevName));
                   return (
                     <label key={idx} className={`flex items-start gap-3 p-3 border rounded-md ${isDisabled ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-white hover:bg-gray-50 cursor-pointer'}`}>
                       <input
                         type="checkbox"
                         name="selectedSubjects"
                         className={`mt-1 w-4 h-4 ${isDisabled ? '' : 'accent-primary cursor-pointer'}`}
-                        value={course}
-                        checked={(formData.selectedSubjects || []).includes(course)}
+                        value={otherCourse.id}
+                        checked={(formData.selectedSubjects || []).includes(otherCourse.id)}
                         disabled={isDisabled}
-                        onChange={(e) => handleCheckboxChange('selectedSubjects', course, e.target.checked)}
+                        onChange={(e) => handleCheckboxChange('selectedSubjects', otherCourse.id, e.target.checked)}
                       />
-                      <span className="text-sm">{course}</span>
+                      <span className="text-sm">{otherCourse.name}</span>
                     </label>
                   );
                 })}
@@ -216,7 +221,7 @@ export default function Tab5Course() {
             <label className="block mb-3 font-medium text-primary after:content-['_*'] after:text-error text-lg">{selectedCourseObj.courseName}</label>
             <div className="flex flex-col gap-3">
               <label className={`flex items-center gap-3 cursor-pointer p-3 border rounded-md bg-white ${errors.trainingDate ? 'border-error' : 'hover:bg-gray-50'}`}>
-                <input type="radio" name="trainingDate" className="w-4 h-4 accent-primary" value={selectedCourseObj.dateDisplay} checked={formData.trainingDate === selectedCourseObj.dateDisplay} onChange={(e) => { updateData({ trainingDate: e.target.value }); if (errors.trainingDate) setErrors(prev => ({ ...prev, trainingDate: '' })); }} />
+                <input type="radio" name="trainingDate" className="w-4 h-4 accent-primary" value={selectedCourseObj.dateId?.toString()} checked={formData.trainingDate === selectedCourseObj.dateId?.toString()} onChange={(e) => { updateData({ trainingDate: e.target.value }); if (errors.trainingDate) setErrors(prev => ({ ...prev, trainingDate: '' })); }} />
                 {selectedCourseObj.dateDisplay}
               </label>
             </div>

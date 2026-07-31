@@ -5,18 +5,14 @@ import { useEffect, useState } from 'react';
 import Select from 'react-select';
 
 export default function Tab4License() {
-  const { nextStep, prevStep, formData, updateData, masterData } = useRegistration();
+  const { nextStep, prevStep, formData, updateData, masterData, sysConfig } = useRegistration();
   const [errors, setErrors] = useState({});
-  const [urlParams, setUrlParams] = useState({
-    agentBranchHint: 'พิมพ์เพื่อค้นหาสาขา',
-    agentRegionHint: 'ระบบจะเติมให้อัตโนมัติ',
-    viriyahCodeHint: 'ถ้าไม่ทราบ สอบถามสาขา หรือตัวแทน/นายหน้าที่ท่านสังกัด, ถ้าเป็นขอรับใบอนุญาต และยังไม่มีรหัส ให้กรอก 00000'
-  });
 
   const branchOptions = (masterData?.agentBranches || []).map(b => ({
-    value: b.branchName,
+    value: b.branchId?.toString(),
     label: b.branchName,
-    region: b.regionName
+    regionId: b.regionId?.toString(),
+    regionName: b.regionName
   }));
 
   const selectedBranch = branchOptions.find(o => o.value === formData.agentBranch) || null;
@@ -25,7 +21,8 @@ export default function Tab4License() {
   const handleBranchChange = (selectedOption) => {
     updateData({ 
       agentBranch: selectedOption ? selectedOption.value : '',
-      agentRegion: selectedOption ? selectedOption.region : ''
+      agentRegion: selectedOption ? selectedOption.regionId : '',
+      agentRegionName: selectedOption ? selectedOption.regionName : ''
     });
     if (errors.agentBranch) {
       setErrors(prev => ({ ...prev, agentBranch: '' }));
@@ -36,17 +33,6 @@ export default function Tab4License() {
     // Parse URL query parameters similar to legacy appconfig.php
     const params = new URLSearchParams(window.location.search);
     
-    // Set hints from URL if provided
-    const bHint = params.get('agent_branch_hint');
-    const rHint = params.get('agent_region_hint');
-    const vHint = params.get('viriyah_code_hint');
-    
-    setUrlParams(prev => ({
-      agentBranchHint: bHint || prev.agentBranchHint,
-      agentRegionHint: rHint || prev.agentRegionHint,
-      viriyahCodeHint: vHint || prev.viriyahCodeHint
-    }));
-
     // Initialize default values if not already set in formData
     const updates = {};
     if (!formData.agentType && params.get('agent_type')) {
@@ -63,6 +49,16 @@ export default function Tab4License() {
       updateData(updates);
     }
   }, []); // Run once on mount
+
+  // Auto-fill region if branch is pre-selected (e.g. from OIC mock data)
+  useEffect(() => {
+    if (selectedBranch && (!formData.agentRegion || !formData.agentRegionName)) {
+      updateData({
+        agentRegion: selectedBranch.regionId,
+        agentRegionName: selectedBranch.regionName
+      });
+    }
+  }, [selectedBranch?.value, formData.agentRegion, formData.agentRegionName]);
 
   const handleChange = (e) => {
     let value = e.target.value;
@@ -154,32 +150,35 @@ export default function Tab4License() {
         <div className="mb-6">
           <label className="block mb-2 font-medium text-textMain after:content-['_*'] after:text-error">ประเภทใบอนุญาต</label>
           
-          <div className="border border-border rounded-md p-3 mb-2 flex items-center gap-3 bg-white hover:bg-gray-50 cursor-pointer" onClick={() => updateData({ agentType: 'agent', brokerType: '' })}>
-            <input 
-              type="radio" 
-              name="agentType" 
-              id="agentType_agent" 
-              className="w-5 h-5 accent-primary" 
-              checked={formData.agentType === 'agent'}
-              onChange={() => updateData({ agentType: 'agent', brokerType: '' })}
-            />
-            <label htmlFor="agentType_agent" className="cursor-pointer font-medium">ตัวแทนประกันวินาศภัย</label>
-          </div>
-
-          <div className={`border rounded-md p-3 flex flex-col gap-3 bg-white transition-all ${formData.agentType === 'broker' ? 'border-primary' : 'border-border'}`}>
-            <div className="flex items-center gap-3 cursor-pointer" onClick={() => updateData({ agentType: 'broker' })}>
+          {true && (
+            <div className="border border-border rounded-md p-3 mb-2 flex items-center gap-3 bg-white hover:bg-gray-50 cursor-pointer" onClick={() => updateData({ agentType: 'agent', brokerType: '' })}>
               <input 
                 type="radio" 
                 name="agentType" 
-                id="agentType_broker" 
+                id="agentType_agent" 
                 className="w-5 h-5 accent-primary" 
-                checked={formData.agentType === 'broker'}
-                onChange={() => updateData({ agentType: 'broker' })}
+                checked={formData.agentType === 'agent'}
+                onChange={() => updateData({ agentType: 'agent', brokerType: '' })}
               />
-              <label htmlFor="agentType_broker" className="cursor-pointer font-medium">นายหน้าประกันวินาศภัย</label>
+              <label htmlFor="agentType_agent" className="cursor-pointer font-medium">ตัวแทนประกันวินาศภัย</label>
             </div>
+          )}
 
-            {formData.agentType === 'broker' && (
+          {true && (
+            <div className={`border rounded-md p-3 flex flex-col gap-3 bg-white transition-all ${formData.agentType === 'broker' ? 'border-primary' : 'border-border'}`}>
+              <div className="flex items-center gap-3 cursor-pointer" onClick={() => updateData({ agentType: 'broker' })}>
+                <input 
+                  type="radio" 
+                  name="agentType" 
+                  id="agentType_broker" 
+                  className="w-5 h-5 accent-primary" 
+                  checked={formData.agentType === 'broker'}
+                  onChange={() => updateData({ agentType: 'broker' })}
+                />
+                <label htmlFor="agentType_broker" className="cursor-pointer font-medium">นายหน้าประกันวินาศภัย</label>
+              </div>
+
+              {formData.agentType === 'broker' && (
               <div className="pl-8 pt-3 pb-2 border-t border-gray-100 flex flex-col gap-4 animate-[fadeIn_0.3s]">
                 <label className="block font-medium text-textMain after:content-['_*'] after:text-error">ประเภทนายหน้า</label>
                 
@@ -210,13 +209,14 @@ export default function Tab4License() {
               </div>
             )}
           </div>
+          )}
           {errors.agentType && <p className="text-error text-sm mt-2">{errors.agentType}</p>}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
           <div id="agentBranch">
-            <label htmlFor="agentBranch" className="block text-sm font-medium text-textMain mb-1 after:content-['_*'] after:text-error">สาขา</label>
-            <p className="text-[13px] text-gray-500 mb-2 mt-[-4px]">{urlParams.agentBranchHint}</p>
+            <label htmlFor="agentBranch" className="block text-sm font-medium text-textMain mb-1">{sysConfig?.tab4_label_branch || 'สาขา *'}</label>
+            <p className="text-[13px] text-gray-500 mb-2 mt-[-4px]">{sysConfig?.tab4_hint_branch || 'พิมพ์เพื่อค้นหาสาขา'}</p>
             <Select
               options={branchOptions}
               value={selectedBranch}
@@ -243,14 +243,14 @@ export default function Tab4License() {
           </div>
           
           <div>
-            <label htmlFor="agentRegion" className="block text-sm font-medium text-textMain mb-1 after:content-['_*'] after:text-error">ภาค</label>
-            <p className="text-[13px] text-gray-500 mb-2 mt-[-4px]">{urlParams.agentRegionHint}</p>
+            <label htmlFor="agentRegion" className="block text-sm font-medium text-textMain mb-1">{sysConfig?.tab4_label_region || 'ภาค *'}</label>
+            <p className="text-[13px] text-gray-500 mb-2 mt-[-4px]">{sysConfig?.tab4_hint_region || 'ระบบจะเติมให้อัตโนมัติ'}</p>
             <input
               type="text"
               id="agentRegion"
               className="w-full px-4 py-[11px] border border-border rounded-md bg-gray-100 cursor-not-allowed text-gray-600 focus:outline-none h-[42px] mt-[1px]"
               placeholder="ระบบจะเติมให้อัตโนมัติ"
-              value={formData.agentRegion || ''}
+              value={selectedBranch ? selectedBranch.regionName : (formData.agentRegionName || '')}
               readOnly
               required
             />
@@ -258,8 +258,8 @@ export default function Tab4License() {
         </div>
 
         <div className="mt-4 mb-6">
-          <label htmlFor="viriyaContractCode" className="block mb-1 font-medium text-textMain after:content-['_*'] after:text-error">รหัสที่มีสัญญากับ บมจ.วิริยะประกันภัย</label>
-          <span className="text-sm text-gray-500 block mb-2">{urlParams.viriyahCodeHint}</span>
+          <label htmlFor="viriyaContractCode" className="block mb-1 font-medium text-textMain">{sysConfig?.tab4_label_agentcode || 'รหัสที่มีสัญญากับ บมจ.วิริยะประกันภัย *'}</label>
+          <span className="text-sm text-gray-500 block mb-2">{sysConfig?.tab4_hint_agentcode || 'ถ้าไม่ทราบ สอบถามสาขา หรือตัวแทน/นายหน้าที่ท่านสังกัด, ถ้าเป็นขอรับใบอนุญาต และยังไม่มีรหัส ให้กรอก 00000'}</span>
           <input 
             type="text"
             id="viriyaContractCode"

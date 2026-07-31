@@ -103,19 +103,45 @@ namespace backend.Models
     {
     }
 
+    [Table("mst_territories")]
+    public class MstTerritory : BaseMasterData
+    {
+    }
+
+    [Table("mst_expertises")]
+    public class MstExpertise : BaseMasterData
+    {
+    }
+
+    [Table("mst_companies")]
+    public class MstCompany : BaseMasterData
+    {
+    }
+
     [Table("mst_renew_course")]
     public class MstRenewCourse : BaseMasterData
     {
     }
 
     [Table("mst_renew_dates")]
-    public class MstRenewDate : BaseMasterData
+    public class MstRenewDate
     {
+        [Key]
+        [Column("id")]
+        public int Id { get; set; }
+
         [Column("course_date_display")]
         public string CourseDateDisplay { get; set; } = null!;
-        
+
         [Column("course_date")]
         public DateTime CourseDate { get; set; }
+        
+        [Column("status")]
+        [MaxLength(20)]
+        public string Status { get; set; } = "active";
+        
+        [Column("display_order")]
+        public int DisplayOrder { get; set; } = 0;
     }
 
     [Table("mst_agent_regions")]
