@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRegistration } from '../../../context/RegistrationContext';
 import Button from '../../../components/Button';
 import { useNavigate } from 'react-router-dom';
@@ -25,6 +25,41 @@ export default function Tab6Confirm() {
     }
     updateData({ [name]: newArray });
   };
+
+  // Auto-normalize array fields matching by name
+  useEffect(() => {
+    let updates = {};
+    if (masterData?.territories && formData.salesTerritories?.length > 0) {
+      const normalized = formData.salesTerritories.map(val => {
+        const found = masterData.territories.find(t => t.id.toString() === val || t.name === val);
+        return found ? found.id.toString() : val;
+      });
+      if (JSON.stringify(normalized) !== JSON.stringify(formData.salesTerritories)) {
+        updates.salesTerritories = normalized;
+      }
+    }
+    if (masterData?.expertises && formData.insuranceSpecialty?.length > 0) {
+      const normalized = formData.insuranceSpecialty.map(val => {
+        const found = masterData.expertises.find(t => t.id.toString() === val || t.name === val);
+        return found ? found.id.toString() : val;
+      });
+      if (JSON.stringify(normalized) !== JSON.stringify(formData.insuranceSpecialty)) {
+        updates.insuranceSpecialty = normalized;
+      }
+    }
+    if (masterData?.companies && formData.otherInsuranceCompanies?.length > 0) {
+      const normalized = formData.otherInsuranceCompanies.map(val => {
+        const found = masterData.companies.find(t => t.id.toString() === val || t.name === val);
+        return found ? found.id.toString() : val;
+      });
+      if (JSON.stringify(normalized) !== JSON.stringify(formData.otherInsuranceCompanies)) {
+        updates.otherInsuranceCompanies = normalized;
+      }
+    }
+    if (Object.keys(updates).length > 0) {
+      updateData(updates);
+    }
+  }, [formData.salesTerritories, formData.insuranceSpecialty, formData.otherInsuranceCompanies, masterData]);
 
   const submitForm = async (e) => {
     e.preventDefault();

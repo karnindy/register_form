@@ -1,0 +1,76 @@
+﻿{
+    "cis_profile":  {
+                        "cis_id":  "8392598827204",
+                        "title_th":  "นาย.",
+                        "first_name_th":  "อาทิตย์",
+                        "last_name_th":  "ปปงปานกลาง",
+                        "person_status":  "ACTIVE",
+                        "aml_risk_level":  "MEDIUM",
+                        "pep_status":  false,
+                        "birth_date":  "1988-08-08",
+                        "gender":  "Male",
+                        "religion":  "Buddhism",
+                        "blood_group":  "AB",
+                        "highest_education":  "Bachelor",
+                        "phone":  "0844445555",
+                        "email":  "artit@test.com",
+                        "line_id":  "",
+                        "facebook":  "",
+                        "instagram":  "",
+                        "food_allergy":  "",
+                        "medical_condition":  "",
+                        "emergency_contact_name":  "",
+                        "emergency_contact_phone":  ""
+                    },
+    "address":  {
+                    "house_no":  "33/3",
+                    "moo":  "",
+                    "village":  "",
+                    "soi":  "",
+                    "road":  "รัชดาภิเษก",
+                    "province":  "กรุงเทพมหานคร",
+                    "district":  "ห้วยขวาง",
+                    "subdistrict":  "ห้วยขวาง",
+                    "postcode":  "10310"
+                },
+    "training":  {
+                     "course_type":  "1",
+                     "training_date":  "1",
+                     "selected_subjects":  [
+                                               "2"
+                                           ],
+                     "previous_courses":  [
+
+                                          ]
+                 },
+    "experience":  {
+                       "insurance_experience_years":  "4",
+                       "occupation":  "พนักงาน",
+                       "broker_branch":  "ห้วยขวาง",
+                       "extra_training_interest":  "การขาย",
+                       "sales_territories":  [
+                                                 "2"
+                                             ],
+                       "other_insurance_companies":  [
+                                                         "2"
+                                                     ]
+                   },
+    "licenses":  [
+                     {
+                         "license_number":  "BR-65050444",
+                         "issue_date":  "2022-05-04",
+                         "expire_date":  "2027-05-03",
+                         "type":  "BROKER_LIFE",
+                         "broker_type":  "INDIVIDUAL",
+                         "status":  "ACTIVE"
+                     }
+                 ],
+    "affiliation":  {
+                        "branch_id":  "2",
+                        "contract_code":  "22222",
+                        "broker_company":  "บริษัท รัชดา จำกัด"
+                    },
+    "specialties":  [
+
+                    ]
+}

@@ -1,0 +1,76 @@
+﻿{
+    "cis_profile":  {
+                        "cis_id":  "5395944994612",
+                        "title_th":  "นาง.",
+                        "first_name_th":  "ดวงใจ",
+                        "last_name_th":  "เสียชีวิต",
+                        "person_status":  "DECEASED",
+                        "aml_risk_level":  "LOW",
+                        "pep_status":  false,
+                        "birth_date":  "1965-05-05",
+                        "gender":  "Female",
+                        "religion":  "Buddhism",
+                        "blood_group":  "A",
+                        "highest_education":  "Bachelor",
+                        "phone":  "0822223333",
+                        "email":  "duangjai@test.com",
+                        "line_id":  "",
+                        "facebook":  "",
+                        "instagram":  "",
+                        "food_allergy":  "",
+                        "medical_condition":  "",
+                        "emergency_contact_name":  "",
+                        "emergency_contact_phone":  ""
+                    },
+    "address":  {
+                    "house_no":  "22",
+                    "moo":  "",
+                    "village":  "",
+                    "soi":  "",
+                    "road":  "พระราม 9",
+                    "province":  "กรุงเทพมหานคร",
+                    "district":  "ห้วยขวาง",
+                    "subdistrict":  "บางกะปิ",
+                    "postcode":  "10310"
+                },
+    "training":  {
+                     "course_type":  "",
+                     "training_date":  "",
+                     "selected_subjects":  [
+
+                                           ],
+                     "previous_courses":  [
+
+                                          ]
+                 },
+    "experience":  {
+                       "insurance_experience_years":  "30",
+                       "occupation":  "เกษียณ",
+                       "broker_branch":  "",
+                       "extra_training_interest":  "",
+                       "sales_territories":  [
+
+                                             ],
+                       "other_insurance_companies":  [
+
+                                                     ]
+                   },
+    "licenses":  [
+                     {
+                         "license_number":  "AG-50010111",
+                         "issue_date":  "2007-01-11",
+                         "expire_date":  "2012-01-10",
+                         "type":  "AGENT_LIFE",
+                         "broker_type":  "",
+                         "status":  "ACTIVE"
+                     }
+                 ],
+    "affiliation":  {
+                        "branch_id":  "",
+                        "contract_code":  "",
+                        "broker_company":  ""
+                    },
+    "specialties":  [
+
+                    ]
+}

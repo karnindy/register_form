@@ -1,0 +1,80 @@
+﻿{
+    "cis_profile":  {
+                        "cis_id":  "7489236817860",
+                        "title_th":  "นาย.",
+                        "first_name_th":  "สมชาย",
+                        "last_name_th":  "รักประกัน",
+                        "person_status":  "ACTIVE",
+                        "aml_risk_level":  "LOW",
+                        "pep_status":  false,
+                        "birth_date":  "1990-05-15",
+                        "gender":  "Male",
+                        "religion":  "Buddhism",
+                        "blood_group":  "O",
+                        "highest_education":  "Bachelor",
+                        "phone":  "0812345678",
+                        "email":  "somchai@test.com",
+                        "line_id":  "somchai.line",
+                        "facebook":  "Somchai FB",
+                        "instagram":  "@somchai.ig",
+                        "food_allergy":  "Seafood",
+                        "medical_condition":  "None",
+                        "emergency_contact_name":  "สมศรี รักประกัน",
+                        "emergency_contact_phone":  "0899999999"
+                    },
+    "address":  {
+                    "house_no":  "123/45",
+                    "moo":  "9",
+                    "village":  "หมู่บ้านสุขสันต์",
+                    "soi":  "ซอย 5",
+                    "road":  "สุขุมวิท",
+                    "province":  "กรุงเทพมหานคร",
+                    "district":  "วัฒนา",
+                    "subdistrict":  "คลองเตยเหนือ",
+                    "postcode":  "10110"
+                },
+    "training":  {
+                     "course_type":  "หลักสูตรผู้บริหาร",
+                     "training_date":  "2",
+                     "selected_subjects":  [
+                                               "วิชาประกันชีวิต",
+                                               "วิชาประกันวินาศภัย"
+                                           ],
+                     "previous_courses":  [
+                                              "หลักสูตรขอรับใบอนุญาต",
+                                              "หลักสูตรต่ออายุครั้งที่ 1"
+                                          ]
+                 },
+    "experience":  {
+                       "insurance_experience_years":  "5",
+                       "occupation":  "พนักงานบริษัท",
+                       "broker_branch":  "สาขาหลัก",
+                       "extra_training_interest":  "การบริหารความเสี่ยง",
+                       "sales_territories":  [
+                                                 "1",
+                                                 "2"
+                                             ],
+                       "other_insurance_companies":  [
+                                                         "3"
+                                                     ]
+                   },
+    "licenses":  [
+                     {
+                         "license_number":  "BR-66010012",
+                         "issue_date":  "2019-10-10",
+                         "expire_date":  "2024-10-09",
+                         "type":  "BROKER_LIFE",
+                         "broker_type":  "INDIVIDUAL",
+                         "status":  "ACTIVE"
+                     }
+                 ],
+    "affiliation":  {
+                        "branch_id":  "2",
+                        "contract_code":  "99999",
+                        "broker_company":  "บริษัท โบรคเกอร์ดี จำกัด"
+                    },
+    "specialties":  [
+                        "ประกันต่อ",
+                        "ประกันภัยรถยนต์"
+                    ]
+}

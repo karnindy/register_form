@@ -1,0 +1,78 @@
+﻿{
+    "cis_profile":  {
+                        "cis_id":  "9672187095213",
+                        "title_th":  "นาย.",
+                        "first_name_th":  "กานต์",
+                        "middle_name_th":  "ศ",
+                        "last_name_th":  "ศรีชำนาญ",
+                        "person_status":  "ACTIVE",
+                        "aml_risk_level":  "HIGH",
+                        "pep_status":  true,
+                        "id_card_expiry":  "2030-02-28",
+                        "birth_date":  "1975-02-28",
+                        "gender":  "Male",
+                        "religion":  "Islam",
+                        "blood_group":  "O",
+                        "highest_education":  "High School",
+                        "phone":  "0891234567",
+                        "email":  "karn@test.com",
+                        "line_id":  "karn",
+                        "facebook":  "karnindy",
+                        "instagram":  "",
+                        "food_allergy":  "Peanuts",
+                        "medical_condition":  "Diabetes",
+                        "emergency_contact_name":  "รวย ทรัพย์",
+                        "emergency_contact_phone":  "0811112222"
+                    },
+    "address":  {
+                    "house_no":  "11/1",
+                    "moo":  "2",
+                    "village":  "คาซ่า",
+                    "soi":  "19",
+                    "road":  "กำนันแม้น",
+                    "province":  "กรุงเทพมหานคร",
+                    "district":  "จตุจักร",
+                    "subdistrict":  "ลาดยาว",
+                    "postcode":  "10240"
+                },
+    "training":  {
+                     "course_type":  "ขอรับใบอนุญาตเป็นนายหน้าประกันวินาศภัย",
+                     "training_date":  "1",
+                     "selected_subjects":  [
+                                               "วิชาจรรยาบรรณนายหน้า"
+                                           ],
+                     "previous_courses":  [
+                                              "หลักสูตรนายหน้า 1"
+                                          ]
+                 },
+    "experience":  {
+                       "insurance_experience_years":  "2",
+                       "occupation":  "นักธุรกิจ",
+                       "broker_branch":  "พัทยา",
+                       "extra_training_interest":  "ประกันความรับผิด",
+                       "sales_territories": [
+                            "กรุงเทพมหานครและปริมณฑล"
+                            ],
+                        "other_insurance_companies": [
+                            "บริษัท เมืองไทยประกันชีวิต จำกัด (มหาชน)"
+                        ]
+                   },
+    "licenses":  [
+                     {
+                         "license_number":  "6401055599",
+                         "issue_date":  "2020-05-15",
+                         "expire_date":  "2030-05-14",
+                         "type":  "BROKER_NON_LIFE",
+                         "broker_type":  "INDIVIDUAL",
+                         "status":  "ACTIVE"
+                     }
+                 ],
+    "affiliation": {
+                        "branch_name": "สาขาบางกะปิ",
+                        "contract_code": "12345",
+                        "broker_company": "บริษัท นายหน้าดีเด่น จำกัด"
+                    },
+    "specialties":  [
+                        "อัคคีภัย"
+                    ]
+}

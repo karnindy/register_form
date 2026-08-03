@@ -1,0 +1,76 @@
+﻿{
+    "cis_profile":  {
+                        "cis_id":  "1259511589853",
+                        "title_th":  "นาง.",
+                        "first_name_th":  "ลัดดา",
+                        "last_name_th":  "ถูกเพิกถอน",
+                        "person_status":  "BLACKLISTED",
+                        "aml_risk_level":  "HIGH",
+                        "pep_status":  false,
+                        "birth_date":  "1970-01-01",
+                        "gender":  "Female",
+                        "religion":  "Buddhism",
+                        "blood_group":  "O",
+                        "highest_education":  "High School",
+                        "phone":  "0811112222",
+                        "email":  "ladda@test.com",
+                        "line_id":  "",
+                        "facebook":  "",
+                        "instagram":  "",
+                        "food_allergy":  "",
+                        "medical_condition":  "",
+                        "emergency_contact_name":  "",
+                        "emergency_contact_phone":  ""
+                    },
+    "address":  {
+                    "house_no":  "44",
+                    "moo":  "",
+                    "village":  "",
+                    "soi":  "",
+                    "road":  "พหลโยธิน",
+                    "province":  "กรุงเทพมหานคร",
+                    "district":  "พญาไท",
+                    "subdistrict":  "สามเสนใน",
+                    "postcode":  "10400"
+                },
+    "training":  {
+                     "course_type":  "",
+                     "training_date":  "",
+                     "selected_subjects":  [
+
+                                           ],
+                     "previous_courses":  [
+
+                                          ]
+                 },
+    "experience":  {
+                       "insurance_experience_years":  "20",
+                       "occupation":  "ว่างงาน",
+                       "broker_branch":  "",
+                       "extra_training_interest":  "",
+                       "sales_territories":  [
+
+                                             ],
+                       "other_insurance_companies":  [
+
+                                                     ]
+                   },
+    "licenses":  [
+                     {
+                         "license_number":  "AG-55010222",
+                         "issue_date":  "2012-01-02",
+                         "expire_date":  "2017-01-01",
+                         "type":  "AGENT_NON_LIFE",
+                         "broker_type":  "",
+                         "status":  "REVOKED"
+                     }
+                 ],
+    "affiliation":  {
+                        "branch_id":  "",
+                        "contract_code":  "",
+                        "broker_company":  ""
+                    },
+    "specialties":  [
+
+                    ]
+}

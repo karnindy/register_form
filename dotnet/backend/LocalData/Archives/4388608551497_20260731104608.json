@@ -1,0 +1,76 @@
+﻿{
+    "cis_profile":  {
+                        "cis_id":  "4388608551497",
+                        "title_th":  "นาย.",
+                        "first_name_th":  "ธนพล",
+                        "last_name_th":  "พักใบอนุญาต",
+                        "person_status":  "ACTIVE",
+                        "aml_risk_level":  "MEDIUM",
+                        "pep_status":  false,
+                        "birth_date":  "1992-07-07",
+                        "gender":  "Male",
+                        "religion":  "Buddhism",
+                        "blood_group":  "O",
+                        "highest_education":  "Bachelor",
+                        "phone":  "0833334444",
+                        "email":  "tanapol@test.com",
+                        "line_id":  "",
+                        "facebook":  "",
+                        "instagram":  "",
+                        "food_allergy":  "",
+                        "medical_condition":  "",
+                        "emergency_contact_name":  "",
+                        "emergency_contact_phone":  ""
+                    },
+    "address":  {
+                    "house_no":  "77",
+                    "moo":  "3",
+                    "village":  "",
+                    "soi":  "แจ้งวัฒนะ 10",
+                    "road":  "แจ้งวัฒนะ",
+                    "province":  "กรุงเทพมหานคร",
+                    "district":  "หลักสี่",
+                    "subdistrict":  "ทุ่งสองห้อง",
+                    "postcode":  "10210"
+                },
+    "training":  {
+                     "course_type":  "3",
+                     "training_date":  "2",
+                     "selected_subjects":  [
+                                               "1"
+                                           ],
+                     "previous_courses":  [
+
+                                          ]
+                 },
+    "experience":  {
+                       "insurance_experience_years":  "8",
+                       "occupation":  "อิสระ",
+                       "broker_branch":  "",
+                       "extra_training_interest":  "",
+                       "sales_territories":  [
+
+                                             ],
+                       "other_insurance_companies":  [
+
+                                                     ]
+                   },
+    "licenses":  [
+                     {
+                         "license_number":  "BR-63040777",
+                         "issue_date":  "2020-04-07",
+                         "expire_date":  "2025-04-06",
+                         "type":  "BROKER_LIFE",
+                         "broker_type":  "INDIVIDUAL",
+                         "status":  "SUSPENDED"
+                     }
+                 ],
+    "affiliation":  {
+                        "branch_id":  "3",
+                        "contract_code":  "88888",
+                        "broker_company":  "บริษัท หยุดทำการ จำกัด"
+                    },
+    "specialties":  [
+
+                    ]
+}

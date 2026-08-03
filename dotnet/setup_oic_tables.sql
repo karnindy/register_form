@@ -87,11 +87,16 @@ INSERT INTO dbo.oic_field_mapping (source_json_path, target_field_name, data_typ
 ('$.address.postcode', 'addrPostcode', 'string', N'รหัสไปรษณีย์', 1),
 ('$.training.previous_courses', 'previousCourses', 'array', N'วิชาที่เคยเรียน', 1),
 ('$.licenses[0].license_number', 'licenseNo', 'string', N'เลขที่ใบอนุญาต', 1),
+('$.licenses[0].issue_date', 'licenseIssue', 'string', N'วันที่ออกใบอนุญาต', 1),
+('$.licenses[0].expire_date', 'licenseExpire', 'string', N'วันที่บัตรหมดอายุ', 1),
 ('$.licenses[0].type', 'agentType', 'string', N'ประเภทตัวแทน/นายหน้า', 1),
 ('$.licenses[0].broker_type', 'brokerType', 'string', N'ประเภทนายหน้า (INDIVIDUAL, CORPORATE)', 1),
 ('$.licenses[0].level', 'licenseLevel', 'string', N'ระดับใบอนุญาต', 1),
 ('$.licenses[0].status', 'licenseStatus', 'string', N'สถานะใบอนุญาต', 1),
-('$.specialties', 'insuranceSpecialty', 'array', N'ความเชี่ยวชาญพิเศษด้านการประกันภัย', 1);
+('$.specialties', 'insuranceSpecialty', 'array', N'ความเชี่ยวชาญพิเศษด้านการประกันภัย', 1),
+('$.affiliation.branch_id', 'agentBranch', 'string', N'สาขา', 1),
+('$.experience.broker_branch', 'agentBranch', 'string', N'สาขานายหน้า', 1),
+('$.affiliation.contract_code', 'viriyaContractCode', 'string', N'รหัสที่มีสัญญากับวิริยะ', 1);
 PRINT 'Seeded oic_field_mapping';
 GO
 

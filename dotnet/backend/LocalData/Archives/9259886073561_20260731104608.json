@@ -1,0 +1,69 @@
+﻿{
+    "cis_profile":  {
+                        "cis_id":  "9259886073561",
+                        "title_th":  "น.ส.",
+                        "first_name_th":  "นารี",
+                        "last_name_th":  "อบรมไม่ผ่าน",
+                        "person_status":  "ACTIVE",
+                        "aml_risk_level":  "LOW",
+                        "pep_status":  false,
+                        "birth_date":  "1995-09-09",
+                        "gender":  "Female",
+                        "religion":  "Buddhism",
+                        "blood_group":  "A",
+                        "highest_education":  "Bachelor",
+                        "phone":  "0888889999",
+                        "email":  "naree@test.com",
+                        "line_id":  "",
+                        "facebook":  "",
+                        "instagram":  "",
+                        "food_allergy":  "",
+                        "medical_condition":  "",
+                        "emergency_contact_name":  "",
+                        "emergency_contact_phone":  ""
+                    },
+    "address":  {
+                    "house_no":  "88",
+                    "moo":  "",
+                    "village":  "",
+                    "soi":  "",
+                    "road":  "เพชรเกษม",
+                    "province":  "กรุงเทพมหานคร",
+                    "district":  "บางแค",
+                    "subdistrict":  "บางแค",
+                    "postcode":  "10160"
+                },
+    "training":  {
+                     "course_type":  "",
+                     "training_date":  "",
+                     "selected_subjects":  [
+
+                                           ],
+                     "previous_courses":  [
+
+                                          ]
+                 },
+    "experience":  {
+                       "insurance_experience_years":  "",
+                       "occupation":  "",
+                       "broker_branch":  "",
+                       "extra_training_interest":  "",
+                       "sales_territories":  [
+
+                                             ],
+                       "other_insurance_companies":  [
+
+                                                     ]
+                   },
+    "licenses":  [
+
+                 ],
+    "affiliation":  {
+                        "branch_id":  "",
+                        "contract_code":  "",
+                        "broker_company":  ""
+                    },
+    "specialties":  [
+
+                    ]
+}

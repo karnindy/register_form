@@ -15,7 +15,7 @@ export default function Tab4License() {
     regionName: b.regionName
   }));
 
-  const selectedBranch = branchOptions.find(o => o.value === formData.agentBranch) || null;
+  const selectedBranch = branchOptions.find(o => o.value === formData.agentBranch || o.label === formData.agentBranch) || null;
   const isRenewal = formData.courseType && formData.courseType.includes('ต่อใบอนุญาต');
 
   const handleBranchChange = (selectedOption) => {
@@ -50,15 +50,22 @@ export default function Tab4License() {
     }
   }, []); // Run once on mount
 
-  // Auto-fill region if branch is pre-selected (e.g. from OIC mock data)
+  // Auto-fill region and fix branch ID if branch is pre-selected (e.g. from OIC mock data matching by name)
   useEffect(() => {
-    if (selectedBranch && (!formData.agentRegion || !formData.agentRegionName)) {
-      updateData({
-        agentRegion: selectedBranch.regionId,
-        agentRegionName: selectedBranch.regionName
-      });
+    if (selectedBranch) {
+      let updates = {};
+      if (formData.agentBranch !== selectedBranch.value) {
+        updates.agentBranch = selectedBranch.value;
+      }
+      if (!formData.agentRegion || !formData.agentRegionName) {
+        updates.agentRegion = selectedBranch.regionId;
+        updates.agentRegionName = selectedBranch.regionName;
+      }
+      if (Object.keys(updates).length > 0) {
+        updateData(updates);
+      }
     }
-  }, [selectedBranch?.value, formData.agentRegion, formData.agentRegionName]);
+  }, [selectedBranch, formData.agentBranch, formData.agentRegion, formData.agentRegionName]);
 
   const handleChange = (e) => {
     let value = e.target.value;

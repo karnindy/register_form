@@ -38,6 +38,7 @@ builder.Services.AddDbContext<MySqlDbContext>(options =>
 builder.Services.AddScoped<IRegisterRepository, RegisterRepository>();
 builder.Services.AddScoped<IRegisterHistoryRepository, RegisterHistoryRepository>();
 builder.Services.AddHttpClient<backend.Services.OicApiService>();
+builder.Services.AddHostedService<backend.Services.OicFileWatcherService>();
 
 builder.Services.AddControllers()
     .ConfigureApiBehaviorOptions(options =>

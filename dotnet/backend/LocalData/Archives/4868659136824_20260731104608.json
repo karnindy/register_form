@@ -1,0 +1,83 @@
+﻿{
+    "cis_profile":  {
+                        "cis_id":  "4868659136824",
+                        "title_th":  "นาย.",
+                        "first_name_th":  "ประเสริฐ",
+                        "last_name_th":  "ชั้นแนวหน้า",
+                        "person_status":  "ACTIVE",
+                        "aml_risk_level":  "LOW",
+                        "pep_status":  false,
+                        "birth_date":  "1980-04-04",
+                        "gender":  "Male",
+                        "religion":  "Buddhism",
+                        "blood_group":  "B",
+                        "highest_education":  "Master",
+                        "phone":  "0899998888",
+                        "email":  "prasert@test.com",
+                        "line_id":  "prasert.top",
+                        "facebook":  "Prasert Top",
+                        "instagram":  "",
+                        "food_allergy":  "",
+                        "medical_condition":  "",
+                        "emergency_contact_name":  "วิไล ชั้นแนวหน้า",
+                        "emergency_contact_phone":  "0877776666"
+                    },
+    "address":  {
+                    "house_no":  "999/9",
+                    "moo":  "",
+                    "village":  "หมู่บ้านไฮโซ",
+                    "soi":  "",
+                    "road":  "สุขุมวิท 55",
+                    "province":  "กรุงเทพมหานคร",
+                    "district":  "วัฒนา",
+                    "subdistrict":  "คลองตันเหนือ",
+                    "postcode":  "10110"
+                },
+    "training":  {
+                     "course_type":  "1",
+                     "training_date":  "3",
+                     "selected_subjects":  [
+                                               "1",
+                                               "2",
+                                               "3"
+                                           ],
+                     "previous_courses":  [
+                                              "หลักสูตรผู้บริหาร"
+                                          ]
+                 },
+    "experience":  {
+                       "insurance_experience_years":  "15",
+                       "occupation":  "ผู้บริหาร",
+                       "broker_branch":  "สำนักงานใหญ่",
+                       "extra_training_interest":  "Cyber Security",
+                       "sales_territories":  [
+                                                 "1",
+                                                 "2",
+                                                 "3"
+                                             ],
+                       "other_insurance_companies":  [
+                                                         "1",
+                                                         "2"
+                                                     ]
+                   },
+    "licenses":  [
+                     {
+                         "license_number":  "BR-60010888",
+                         "issue_date":  "2017-01-08",
+                         "expire_date":  "2027-01-07",
+                         "type":  "BROKER_LIFE",
+                         "broker_type":  "INDIVIDUAL",
+                         "status":  "ACTIVE"
+                     }
+                 ],
+    "affiliation":  {
+                        "branch_id":  "1",
+                        "contract_code":  "11111",
+                        "broker_company":  "บริษัท อันดับหนึ่ง จำกัด"
+                    },
+    "specialties":  [
+                        "ประกันต่อ",
+                        "ประกันภัยรถยนต์",
+                        "สุขภาพ"
+                    ]
+}

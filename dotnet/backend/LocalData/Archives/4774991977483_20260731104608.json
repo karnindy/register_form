@@ -1,0 +1,76 @@
+﻿{
+    "cis_profile":  {
+                        "cis_id":  "4774991977483",
+                        "title_th":  "นาง.",
+                        "first_name_th":  "กานดา",
+                        "last_name_th":  "หมดอายุ",
+                        "person_status":  "ACTIVE",
+                        "aml_risk_level":  "LOW",
+                        "pep_status":  false,
+                        "birth_date":  "1982-12-12",
+                        "gender":  "Female",
+                        "religion":  "Buddhism",
+                        "blood_group":  "AB",
+                        "highest_education":  "Bachelor",
+                        "phone":  "0859876543",
+                        "email":  "kanda@test.com",
+                        "line_id":  "",
+                        "facebook":  "",
+                        "instagram":  "",
+                        "food_allergy":  "",
+                        "medical_condition":  "",
+                        "emergency_contact_name":  "ประวิทย์ หมดอายุ",
+                        "emergency_contact_phone":  "0844445555"
+                    },
+    "address":  {
+                    "house_no":  "55/5",
+                    "moo":  "",
+                    "village":  "",
+                    "soi":  "",
+                    "road":  "ลาดพร้าว",
+                    "province":  "กรุงเทพมหานคร",
+                    "district":  "จตุจักร",
+                    "subdistrict":  "จอมพล",
+                    "postcode":  "10900"
+                },
+    "training":  {
+                     "course_type":  "",
+                     "training_date":  "",
+                     "selected_subjects":  [
+
+                                           ],
+                     "previous_courses":  [
+
+                                          ]
+                 },
+    "experience":  {
+                       "insurance_experience_years":  "",
+                       "occupation":  "",
+                       "broker_branch":  "",
+                       "extra_training_interest":  "",
+                       "sales_territories":  [
+
+                                             ],
+                       "other_insurance_companies":  [
+
+                                                     ]
+                   },
+    "licenses":  [
+                     {
+                         "license_number":  "AG-61020333",
+                         "issue_date":  "2018-02-03",
+                         "expire_date":  "2023-02-02",
+                         "type":  "AGENT_LIFE",
+                         "broker_type":  "",
+                         "status":  "EXPIRED"
+                     }
+                 ],
+    "affiliation":  {
+                        "branch_id":  "",
+                        "contract_code":  "",
+                        "broker_company":  ""
+                    },
+    "specialties":  [
+
+                    ]
+}

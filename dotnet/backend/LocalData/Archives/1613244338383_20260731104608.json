@@ -1,0 +1,76 @@
+﻿{
+    "cis_profile":  {
+                        "cis_id":  "1613244338383",
+                        "title_th":  "น.ส.",
+                        "first_name_th":  "สมหญิง",
+                        "last_name_th":  "บริการดี",
+                        "person_status":  "ACTIVE",
+                        "aml_risk_level":  "LOW",
+                        "pep_status":  false,
+                        "birth_date":  "1985-10-20",
+                        "gender":  "Female",
+                        "religion":  "Christianity",
+                        "blood_group":  "A",
+                        "highest_education":  "Master",
+                        "phone":  "0823334444",
+                        "email":  "somying@test.com",
+                        "line_id":  "",
+                        "facebook":  "",
+                        "instagram":  "",
+                        "food_allergy":  "",
+                        "medical_condition":  "",
+                        "emergency_contact_name":  "",
+                        "emergency_contact_phone":  ""
+                    },
+    "address":  {
+                    "house_no":  "99",
+                    "moo":  "",
+                    "village":  "",
+                    "soi":  "",
+                    "road":  "สีลม",
+                    "province":  "กรุงเทพมหานคร",
+                    "district":  "บางรัก",
+                    "subdistrict":  "สีลม",
+                    "postcode":  "10500"
+                },
+    "training":  {
+                     "course_type":  "ต่ออายุใบอนุญาต",
+                     "training_date":  "1",
+                     "selected_subjects":  [
+
+                                           ],
+                     "previous_courses":  [
+
+                                          ]
+                 },
+    "experience":  {
+                       "insurance_experience_years":  "10",
+                       "occupation":  "ตัวแทนอิสระ",
+                       "broker_branch":  "",
+                       "extra_training_interest":  "",
+                       "sales_territories":  [
+                                                 "3"
+                                             ],
+                       "other_insurance_companies":  [
+
+                                                     ]
+                   },
+    "licenses":  [
+                     {
+                         "license_number":  "AG-65030111",
+                         "issue_date":  "2022-03-01",
+                         "expire_date":  "2027-02-28",
+                         "type":  "AGENT_LIFE",
+                         "broker_type":  "",
+                         "status":  "ACTIVE"
+                     }
+                 ],
+    "affiliation":  {
+                        "branch_id":  "",
+                        "contract_code":  "",
+                        "broker_company":  ""
+                    },
+    "specialties":  [
+                        "สุขภาพ"
+                    ]
+}

@@ -21,6 +21,8 @@ export default function Tab5Course() {
     }
   };
 
+
+
   const handleNext = (e) => {
     e.preventDefault();
     const newErrors = {};
@@ -37,7 +39,8 @@ export default function Tab5Course() {
     }
 
     if (isComplex) {
-      if (!formData.selectedSubjects || formData.selectedSubjects.length === 0) {
+      const validSelected = (formData.selectedSubjects || []).filter(val => renewOtherOptions.some(opt => opt.id.toString() === val || opt.name === val));
+      if (validSelected.length === 0) {
         newErrors.selectedSubjects = 'กรุณาเลือกวิชาที่ประสงค์จะเข้าอบรมอย่างน้อย 1 วิชา';
       }
     }
@@ -117,7 +120,47 @@ export default function Tab5Course() {
       }
     };
     fetchRenewOtherOptions();
-  }, []);
+    }, []);
+
+  // Auto-normalize array fields matching by name
+  useEffect(() => {
+    let updates = {};
+    if (courseOptions?.length > 0 && formData.courseType) {
+      const found = courseOptions.find(c => c.id?.toString() === formData.courseType || c.courseName === formData.courseType);
+      if (found) {
+        if (found.id?.toString() !== formData.courseType) {
+          updates.courseType = found.id.toString();
+        }
+        // Normalize trainingDate if it matches dateDisplay
+        if (formData.trainingDate && found.dateDisplay && formData.trainingDate === found.dateDisplay) {
+            updates.trainingDate = found.dateId.toString();
+        } else if (formData.trainingDate && found.dateId && formData.trainingDate === found.dateId.toString()) {
+          // Do nothing
+        }
+      }
+    }
+    if (renewCourseCheckboxes?.length > 0 && formData.previousCourses?.length > 0) {
+      const normalized = formData.previousCourses.map(val => {
+        const found = renewCourseCheckboxes.find(t => t.id.toString() === val || t.name === val);
+        return found ? found.id.toString() : val;
+      });
+      if (JSON.stringify(normalized) !== JSON.stringify(formData.previousCourses)) {
+        updates.previousCourses = normalized;
+      }
+    }
+    if (renewOtherOptions?.length > 0 && formData.selectedSubjects?.length > 0) {
+      const normalized = formData.selectedSubjects.map(val => {
+        const found = renewOtherOptions.find(t => t.id.toString() === val || t.name === val);
+        return found ? found.id.toString() : val;
+      });
+      if (JSON.stringify(normalized) !== JSON.stringify(formData.selectedSubjects)) {
+        updates.selectedSubjects = normalized;
+      }
+    }
+    if (Object.keys(updates).length > 0) {
+      updateData(updates);
+    }
+  }, [formData.courseType, formData.trainingDate, formData.previousCourses, formData.selectedSubjects, courseOptions, renewCourseCheckboxes, renewOtherOptions]);
 
   const selectedCourseObj = courseOptions.find(c => c.id?.toString() === formData.courseType);
   const isComplexCourse = selectedCourseObj && selectedCourseObj.dateId === null;
