@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using backend.Data;
 using backend.Repositories;
 using Serilog;
+using Microsoft.Extensions.FileProviders;
+using System.IO;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -41,6 +43,10 @@ builder.Services.AddHttpClient<backend.Services.OicApiService>();
 builder.Services.AddHostedService<backend.Services.OicFileWatcherService>();
 
 builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    })
     .ConfigureApiBehaviorOptions(options =>
     {
         options.InvalidModelStateResponseFactory = context =>
@@ -81,6 +87,18 @@ using (var scope = app.Services.CreateScope())
     // Instead, we get the create script and run it command by command, ignoring "Table already exists" errors.
     // Ensure DB exists (without running schema scripts which contain GO)
     context.Database.EnsureCreated();
+
+    // Ensure new columns exist
+    try
+    {
+        context.Database.ExecuteSqlRaw("IF COL_LENGTH('personregistration', 'DeductionPrivilege') IS NULL BEGIN ALTER TABLE personregistration ADD DeductionPrivilege NVARCHAR(MAX) NULL; END");
+        context.Database.ExecuteSqlRaw("IF COL_LENGTH('personregistration', 'MasterDegreeStatus') IS NULL BEGIN ALTER TABLE personregistration ADD MasterDegreeStatus NVARCHAR(MAX) NULL; END");
+        context.Database.ExecuteSqlRaw("IF COL_LENGTH('registrations', 'master_degree_status') IS NULL BEGIN ALTER TABLE registrations ADD master_degree_status NVARCHAR(MAX) NULL; END");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Warning: Could not add columns: " + ex.Message);
+    }
 
     try 
     {
@@ -193,6 +211,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowFrontend");
 
+var localDataPath = Path.Combine(app.Environment.ContentRootPath, "LocalData");
+if (!Directory.Exists(localDataPath)) Directory.CreateDirectory(localDataPath);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(localDataPath),
+    RequestPath = "/LocalData"
+});
+
 app.UseAuthorization();
 
 app.MapControllers();
@@ -201,6 +227,18 @@ app.MapPost("/api/migrate-db", async (MySqlDbContext mysqlDb, AppDbContext sqlDb
 {
     // Ensure SQL Server database is created
     await sqlDb.Database.MigrateAsync();
+    
+    // Ensure new columns exist
+    try
+    {
+        await sqlDb.Database.ExecuteSqlRawAsync("IF COL_LENGTH('personregistration', 'DeductionPrivilege') IS NULL BEGIN ALTER TABLE personregistration ADD DeductionPrivilege NVARCHAR(MAX) NULL; END");
+        await sqlDb.Database.ExecuteSqlRawAsync("IF COL_LENGTH('personregistration', 'MasterDegreeStatus') IS NULL BEGIN ALTER TABLE personregistration ADD MasterDegreeStatus NVARCHAR(MAX) NULL; END");
+        await sqlDb.Database.ExecuteSqlRawAsync("IF COL_LENGTH('registrations', 'master_degree_status') IS NULL BEGIN ALTER TABLE registrations ADD master_degree_status NVARCHAR(MAX) NULL; END");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Warning: Could not add columns: " + ex.Message);
+    }
 
     // Note: To insert explicit IDs, we need to enable IDENTITY_INSERT.
     // For simplicity, we just use raw SQL to insert them to bypass IDENTITY constraints in EF Core.

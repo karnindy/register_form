@@ -2,6 +2,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import PublicLayout from './layouts/PublicLayout';
 import AdminLayout from './layouts/AdminLayout';
 import RegistrationForm from './pages/public/RegistrationForm';
+import SuccessPage from './pages/public/SuccessPage';
+import UploadPage from './pages/public/UploadPage';
+import EnquiryPage from './pages/public/EnquiryPage';
 import { RegistrationProvider } from './context/RegistrationContext';
 
 // Admin Pages
@@ -33,7 +36,9 @@ export default function App() {
           </RegistrationProvider>
         }>
           <Route index element={<RegistrationForm />} />
-          <Route path="success" element={<div className="p-10 text-center font-bold text-success text-2xl">ลงทะเบียนสำเร็จ!</div>} />
+          <Route path="success" element={<SuccessPage />} />
+          <Route path="upload" element={<UploadPage />} />
+          <Route path="enquiry" element={<EnquiryPage />} />
         </Route>
 
         {/* Admin Login Route */}

@@ -46,6 +46,8 @@ namespace backend.Models
         public ICollection<PersonCourse> Courses { get; set; } = new List<PersonCourse>();
         public ICollection<PersonTraining5y> Trainings { get; set; } = new List<PersonTraining5y>();
         public ICollection<PersonOther> Others { get; set; } = new List<PersonOther>();
+        public ICollection<PersonDocument> Documents { get; set; } = new List<PersonDocument>();
+        public ICollection<RegistrationHistoryModel> RegistrationHistories { get; set; } = new List<RegistrationHistoryModel>();
     }
 
     [Table("personregistration")]
@@ -60,6 +62,8 @@ namespace backend.Models
         public DateTime? start_time { get; set; }
         public DateTime? completion_time { get; set; }
         public bool? confirmed { get; set; }
+        public string? DeductionPrivilege { get; set; }
+        public string? MasterDegreeStatus { get; set; }
 
         [ForeignKey("NationId")]
         public Person Person { get; set; }
@@ -245,6 +249,22 @@ namespace backend.Models
 
         [ForeignKey("RegisterId")]
         public PersonRegistration PersonRegistration { get; set; }
+        [ForeignKey("NationId")]
+        public Person Person { get; set; }
+    }
+
+    [Table("persondocument")]
+    public class PersonDocument
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+        [StringLength(13)]
+        public string NationId { get; set; }
+        public string? DocumentType { get; set; } // e.g. "Profile", "IDCard", "IDCardFace"
+        public string? FilePath { get; set; }
+        public DateTime? UploadedAt { get; set; }
+
         [ForeignKey("NationId")]
         public Person Person { get; set; }
     }

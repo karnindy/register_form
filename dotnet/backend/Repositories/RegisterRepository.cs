@@ -108,7 +108,9 @@ namespace backend.Repositories
                 PdpaConsent = register.PdpaConsent == "true" || register.PdpaConsent == "1" || register.PdpaConsent?.ToLower() == "yes",
                 start_time = DateTime.Now,
                 completion_time = DateTime.Now,
-                confirmed = true
+                confirmed = false,
+                DeductionPrivilege = register.DeductionPrivilege,
+                MasterDegreeStatus = register.MasterDegreeStatus
             };
             _context.PersonRegistrations.Add(personReg);
 

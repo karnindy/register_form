@@ -31,6 +31,7 @@ namespace backend.Data
         public DbSet<PersonOtherSalesArea> PersonOtherSalesAreas { get; set; }
         public DbSet<PersonOtherCompanies> PersonOtherCompanies { get; set; }
         public DbSet<PersonOtherSpecialty> PersonOtherSpecialties { get; set; }
+        public DbSet<PersonDocument> PersonDocuments { get; set; }
         public DbSet<RegistrationHistoryModel> RegistrationHistoriesNew { get; set; }
         
         // Master Data

@@ -286,6 +286,9 @@ namespace backend.Models
         [Column("deduction_privilege")]
         public string? DeductionPrivilege { get; set; }
         
+        [Column("master_degree_status")]
+        public string? MasterDegreeStatus { get; set; }
+        
         [Column("previous_courses")]
         public string? PreviousCourses { get; set; }
         

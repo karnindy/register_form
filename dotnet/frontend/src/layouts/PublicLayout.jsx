@@ -54,7 +54,7 @@ export default function PublicLayout() {
       </header>
       
       <main className="flex-1">
-        <div className="max-w-[800px] mx-auto -mt-[30px] mb-[50px] bg-white p-10 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] relative z-10">
+        <div className="max-w-[1100px] mx-auto -mt-[30px] mb-[50px] bg-white p-6 md:p-10 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] relative z-10">
           <Outlet />
         </div>
       </main>
