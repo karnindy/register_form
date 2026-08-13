@@ -2571,13 +2571,7 @@ function updateCourseTypeOptions(selectedType) {
                 el.classList.remove('invalid');
                 removeErrorMsg(el);
             });
-            if (isMultiple) {
-                let checkedCount = container.querySelectorAll('input[type="checkbox"]:checked').length;
-                if (checkedCount > 5) {
-                    alert("คุณสามารถเลือกได้สูงสุด 5 วิชา");
-                    this.checked = false;
-                }
-            }
+            
         });
         
         labelEl.appendChild(input);
