@@ -68,13 +68,48 @@ namespace backend.Controllers
 
             if (!string.IsNullOrEmpty(request.SearchTerm))
             {
-                var s = request.SearchTerm.ToLower();
+                var s = request.SearchTerm.ToLower().Trim();
+                
+                int? minAge = null;
+                int? maxAge = null;
+                var parts = s.Split('-');
+                if (parts.Length == 2 && int.TryParse(parts[0].Trim(), out int min) && int.TryParse(parts[1].Trim(), out int max))
+                {
+                    minAge = min;
+                    maxAge = max;
+                }
+
                 query = query.Where(p => 
                     (p.FirstNameTh != null && p.FirstNameTh.ToLower().Contains(s)) ||
                     (p.LastNameTh != null && p.LastNameTh.ToLower().Contains(s)) ||
-                    (p.NationId != null && p.NationId.ToLower().Contains(s)) ||
-                    (p.PhoneOtp != null && p.PhoneOtp.ToLower().Contains(s)) ||
-                    p.Licenses.Any(l => l.LicenseNo != null && l.LicenseNo.ToLower().Contains(s))
+                    (p.NationId != null && p.NationId.Contains(s)) ||
+                    (p.PhoneOtp != null && p.PhoneOtp.Contains(s)) ||
+                    (p.EmailAlt != null && p.EmailAlt.ToLower().Contains(s)) ||
+                    (p.LineId != null && p.LineId.ToLower().Contains(s)) ||
+                    
+                    (s == "ชาย" && p.GenderId == 1) ||
+                    (s == "หญิง" && p.GenderId == 2) ||
+
+                    (minAge.HasValue && maxAge.HasValue && p.BirthDate.HasValue && 
+                     (DateTime.Now.Year - p.BirthDate.Value.Year) >= minAge.Value && 
+                     (DateTime.Now.Year - p.BirthDate.Value.Year) <= maxAge.Value) ||
+
+                    p.Licenses.Any(l => (l.LicenseNo != null && l.LicenseNo.ToLower().Contains(s)) || (l.CourseType != null && l.CourseType.ToLower().Contains(s))) ||
+                    
+                    p.Affiliations.Any(a => 
+                        (a.BrokerBranch != null && a.BrokerBranch.ToLower().Contains(s)) || 
+                        (a.BrokerType != null && a.BrokerType.ToLower().Contains(s))
+                    ) ||
+                    
+                    _context.Provinces.Any(pv => p.Addresses.Any(a => a.AddressType == "A" && a.ProvinceId == pv.Id) && pv.ProvinceThai != null && pv.ProvinceThai.ToLower().Contains(s)) ||
+                    
+                    _context.AgentRegions.Any(r => p.Affiliations.Any(a => a.RegionId == r.Id) && r.Name != null && r.Name.ToLower().Contains(s)) ||
+                    
+                    _context.AgentBranches.Any(ab => p.Affiliations.Any(a => a.BranchId == ab.Id) && ab.Name != null && ab.Name.ToLower().Contains(s)) ||
+
+                    _context.RenewBasics.Any(rb => p.Courses.Any(c => c.CourseId == rb.Id) && rb.CourseName != null && rb.CourseName.ToLower().Contains(s)) ||
+                    
+                    _context.RenewDates.Any(rd => p.Courses.Any(c => c.CourseDateId == rd.Id) && rd.CourseDateDisplay != null && rd.CourseDateDisplay.ToLower().Contains(s))
                 );
             }
 

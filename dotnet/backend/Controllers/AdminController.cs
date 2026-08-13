@@ -38,7 +38,17 @@ namespace backend.Controllers
 
             if (!string.IsNullOrEmpty(search))
             {
-                var s = search.ToLower();
+                var s = search.ToLower().Trim();
+                
+                int? minAge = null;
+                int? maxAge = null;
+                var parts = s.Split('-');
+                if (parts.Length == 2 && int.TryParse(parts[0].Trim(), out int min) && int.TryParse(parts[1].Trim(), out int max))
+                {
+                    minAge = min;
+                    maxAge = max;
+                }
+
                 query = query.Where(p => 
                     (p.FirstNameTh != null && p.FirstNameTh.ToLower().Contains(s)) ||
                     (p.LastNameTh != null && p.LastNameTh.ToLower().Contains(s)) ||
@@ -49,6 +59,10 @@ namespace backend.Controllers
                     
                     (s == "ชาย" && p.GenderId == 1) ||
                     (s == "หญิง" && p.GenderId == 2) ||
+
+                    (minAge.HasValue && maxAge.HasValue && p.BirthDate.HasValue && 
+                     (DateTime.Now.Year - p.BirthDate.Value.Year) >= minAge.Value && 
+                     (DateTime.Now.Year - p.BirthDate.Value.Year) <= maxAge.Value) ||
 
                     p.Licenses.Any(l => (l.LicenseNo != null && l.LicenseNo.ToLower().Contains(s)) || (l.CourseType != null && l.CourseType.ToLower().Contains(s))) ||
                     

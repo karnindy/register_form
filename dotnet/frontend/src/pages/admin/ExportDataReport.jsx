@@ -21,6 +21,7 @@ export default function ExportDataReport() {
   const [exportType, setExportType] = useState('all');
   const [loading, setLoading] = useState(false);
   const [expandedCourses, setExpandedCourses] = useState({});
+  const [courseTypeFilter, setCourseTypeFilter] = useState('ทั้งหมด');
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/masterdata/renew-courses`)
@@ -237,12 +238,15 @@ export default function ExportDataReport() {
         <h3 className="text-lg font-semibold text-blue-800 mb-4">
           <i className="fas fa-search mr-2"></i> ค้นหาและระบุตัวบุคคล
         </h3>
-        <p className="text-xs text-gray-500 mb-4">หากเลือกระบุบุคคลในส่วนนี้ ระบบจะทำการส่งออกเฉพาะบุคคลที่อยู่ในรายชื่อ (ข้ามการกรองตามหลักสูตร)</p>
+        <p className="text-xs text-gray-500 mb-4">
+          หากเลือกระบุบุคคลในส่วนนี้ ระบบจะทำการส่งออกเฉพาะบุคคลที่อยู่ในรายชื่อ (ข้ามการกรองตามหลักสูตร)<br/>
+          <span className="font-semibold">สามารถค้นหาได้จาก:</span> ชื่อ (เช่น สมชาย), นามสกุล (เช่น ใจดี), บัตรประชาชน (เช่น 1111111111111), เลขใบอนุญาต (เช่น 6304000000), เพศ (เช่น ชาย), ภาค (เช่น ภาค 1 (ภาคเหนือ)), สาขา (เช่น ชลบุรี), ช่วงอายุ (เช่น 20-30)
+        </p>
         
         <div className="flex gap-2 mb-4">
           <input 
             type="text" 
-            placeholder="ค้นหา ชื่อ, นามสกุล, บัตรประชาชน, เลขใบอนุญาต, เพศ, ภาค, สาขา..." 
+            placeholder="ค้นหา ชื่อ, นามสกุล, บัตรฯ, ใบอนุญาต, เพศ, ภาค, สาขา, ช่วงอายุ (เช่น 20-30)..." 
             className="flex-1 border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-primary focus:outline-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -323,8 +327,28 @@ export default function ExportDataReport() {
       <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-8">
         <label className="block text-sm font-semibold text-gray-700 mb-3">เลือกระดับและวันที่ (ส่งออกแยกไฟล์หากเลือกหลายรายการ)</label>
         
-        <div className="bg-white border border-gray-300 rounded overflow-y-auto max-h-64 mb-6">
-          {groupedCourses.map((c) => (
+        <div className="flex gap-4 mb-4">
+          <label className="flex items-center cursor-pointer">
+            <input type="radio" value="ทั้งหมด" checked={courseTypeFilter === 'ทั้งหมด'} onChange={(e) => setCourseTypeFilter(e.target.value)} className="w-4 h-4 mr-2 accent-primary" />
+            <span className="text-sm text-gray-700">ทั้งหมด</span>
+          </label>
+          <label className="flex items-center cursor-pointer">
+            <input type="radio" value="ตัวแทน" checked={courseTypeFilter === 'ตัวแทน'} onChange={(e) => setCourseTypeFilter(e.target.value)} className="w-4 h-4 mr-2 accent-primary" />
+            <span className="text-sm text-gray-700">ตัวแทน</span>
+          </label>
+          <label className="flex items-center cursor-pointer">
+            <input type="radio" value="นายหน้า" checked={courseTypeFilter === 'นายหน้า'} onChange={(e) => setCourseTypeFilter(e.target.value)} className="w-4 h-4 mr-2 accent-primary" />
+            <span className="text-sm text-gray-700">นายหน้า</span>
+          </label>
+        </div>
+
+        <div className="bg-white border border-gray-300 rounded mb-6">
+          {groupedCourses
+            .filter(c => {
+              if (courseTypeFilter === 'ทั้งหมด') return true;
+              return c.courseName.includes(courseTypeFilter);
+            })
+            .map((c) => (
             <div key={c.courseId} className="border-b last:border-b-0">
               <div className="flex items-center p-3 hover:bg-gray-50">
                 <button 
