@@ -11,17 +11,26 @@ export default function Tab5Course() {
     const currentArray = formData[name] || [];
     let newArray;
     if (isChecked) {
-      newArray = [...currentArray, value];
+      newArray = [...currentArray, value.toString()];
     } else {
-      newArray = currentArray.filter(item => item !== value);
+      newArray = currentArray.filter(item => {
+        if (item.toString() === value.toString()) return false;
+        if (name === 'selectedSubjects') {
+          const match = renewOtherOptions.find(o => o.id.toString() === value.toString());
+          if (match && (match.name === item || match.name.includes(item.toString().trim()))) return false;
+        }
+        if (name === 'previousCourses') {
+          const match = renewCourseCheckboxes.find(o => o.id.toString() === value.toString());
+          if (match && (match.name === item || match.name.includes(item.toString().trim()))) return false;
+        }
+        return true;
+      });
     }
     updateData({ [name]: newArray });
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
-
-
 
   const handleNext = (e) => {
     e.preventDefault();
@@ -39,7 +48,10 @@ export default function Tab5Course() {
     }
 
     if (isComplex) {
-      const validSelected = (formData.selectedSubjects || []).filter(val => renewOtherOptions.some(opt => opt.id.toString() === val || opt.name === val));
+      const validSelected = (formData.selectedSubjects || []).filter(val => {
+        const cleanVal = val.toString().trim();
+        return renewOtherOptions.some(opt => opt.id.toString() === cleanVal || opt.name === cleanVal || opt.name.includes(cleanVal));
+      });
       if (validSelected.length === 0) {
         newErrors.selectedSubjects = 'กรุณาเลือกวิชาที่ประสงค์จะเข้าอบรมอย่างน้อย 1 วิชา';
       }
@@ -141,8 +153,10 @@ export default function Tab5Course() {
     }
     if (renewCourseCheckboxes?.length > 0 && formData.previousCourses?.length > 0) {
       const normalized = formData.previousCourses.map(val => {
-        const found = renewCourseCheckboxes.find(t => t.id.toString() === val || t.name === val);
-        return found ? found.id.toString() : val;
+        const cleanVal = val.toString().trim();
+        const isNum = /^\d+$/.test(cleanVal);
+        const found = renewCourseCheckboxes.find(t => t.id.toString() === cleanVal || t.name === cleanVal || (!isNum && t.name.includes(cleanVal)));
+        return found ? found.id.toString() : cleanVal;
       });
       if (JSON.stringify(normalized) !== JSON.stringify(formData.previousCourses)) {
         updates.previousCourses = normalized;
@@ -150,8 +164,10 @@ export default function Tab5Course() {
     }
     if (renewOtherOptions?.length > 0 && formData.selectedSubjects?.length > 0) {
       const normalized = formData.selectedSubjects.map(val => {
-        const found = renewOtherOptions.find(t => t.id.toString() === val || t.name === val);
-        return found ? found.id.toString() : val;
+        const cleanVal = val.toString().trim();
+        const isNum = /^\d+$/.test(cleanVal);
+        const found = renewOtherOptions.find(t => t.id.toString() === cleanVal || t.name === cleanVal || (!isNum && t.name.includes(cleanVal)));
+        return found ? found.id.toString() : cleanVal;
       });
       if (JSON.stringify(normalized) !== JSON.stringify(formData.selectedSubjects)) {
         updates.selectedSubjects = normalized;
@@ -165,6 +181,9 @@ export default function Tab5Course() {
   const selectedCourseObj = courseOptions.find(c => c.id?.toString() === formData.courseType);
   const isComplexCourse = selectedCourseObj && selectedCourseObj.dateId === null;
   const showDeductionPrivilege = formData.courseType === '9' || formData.courseType === '10';
+
+  console.log("Tab5 Render! selectedSubjects:", formData.selectedSubjects);
+  console.log("Tab5 Render! renewOtherOptions:", renewOtherOptions.map(o => ({id: o.id, name: o.name})));
 
   return (
     <div className="bg-white p-6 md:p-8 rounded-lg shadow-sm border border-border">
@@ -211,7 +230,14 @@ export default function Tab5Course() {
                     name="previousCourses"
                     className="mt-1 w-4 h-4 accent-primary cursor-pointer"
                     value={course.id}
-                    checked={(formData.previousCourses || []).includes(course.id)}
+                    checked={(formData.previousCourses || []).some(val => {
+                      const strVal = val.toString().trim();
+                      if (strVal === course.id.toString()) return true;
+                      if (course.name === strVal) return true;
+                      // Only do substring match if it's NOT a numeric ID
+                      if (!/^\d+$/.test(strVal) && course.name.includes(strVal)) return true;
+                      return false;
+                    })}
                     onChange={(e) => {
                       const isChecked = e.target.checked;
                       handleCheckboxChange('previousCourses', course.id, isChecked);
@@ -244,7 +270,14 @@ export default function Tab5Course() {
                         name="selectedSubjects"
                         className={`mt-1 w-4 h-4 ${isDisabled ? '' : 'accent-primary cursor-pointer'}`}
                         value={otherCourse.id}
-                        checked={(formData.selectedSubjects || []).includes(otherCourse.id)}
+                        checked={(formData.selectedSubjects || []).some(val => {
+                          const strVal = val.toString().trim();
+                          if (strVal === otherCourse.id.toString()) return true;
+                          if (otherCourse.name === strVal) return true;
+                          // Only do substring match if it's NOT a numeric ID, to prevent '6' matching year '2569'
+                          if (!/^\d+$/.test(strVal) && otherCourse.name.includes(strVal)) return true;
+                          return false;
+                        })}
                         disabled={isDisabled}
                         onChange={(e) => handleCheckboxChange('selectedSubjects', otherCourse.id, e.target.checked)}
                       />
@@ -276,33 +309,48 @@ export default function Tab5Course() {
           <>
             <hr className="border-t border-border my-8" />
             <div className="mb-6 animate-[fadeIn_0.3s]">
-              <label className="block mb-3 font-medium text-textMain">สิทธิ์ลดหย่อนชั่วโมงอบรม</label>
-              <div className="p-4 border border-primary rounded-md bg-white">
-                <label className="flex items-start gap-3 cursor-pointer">
+              <label className="block mb-3 font-medium text-textMain after:content-['_*'] after:text-error">สำเร็จการศึกษาตั้งแต่ระดับปริญญาโทขึ้นไป หรือ ไม่</label>
+              <div className="flex flex-col gap-3 p-4 border border-border rounded-md bg-white">
+                <label className="flex items-center gap-3 cursor-pointer">
                   <input
-                    type="checkbox"
+                    type="radio"
                     name="deductionPrivilege"
-                    className="mt-1 w-4 h-4 accent-primary"
+                    className="w-4 h-4 accent-primary"
                     value="MasterDegree"
                     checked={(formData.deductionPrivilege || []).includes('MasterDegree')}
-                    onChange={(e) => handleCheckboxChange('deductionPrivilege', 'MasterDegree', e.target.checked)}
+                    onChange={(e) => {
+                      updateData({ deductionPrivilege: ['MasterDegree'] });
+                    }}
                   />
-                  <span>สำเร็จการศึกษาตั้งแต่ระดับปริญญาโทขึ้นไป จากสถาบันอุดมศึกษาหรือสถาบันการศึกษาในต่างประเทศที่สำนักงานคณะกรรมการข้าราชการพลเรือนรับรอง</span>
+                  <span>ใช่ (สำเร็จการศึกษาตั้งแต่ระดับปริญญาโทขึ้นไป)</span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="deductionPrivilege"
+                    className="w-4 h-4 accent-primary"
+                    value="None"
+                    checked={!(formData.deductionPrivilege || []).includes('MasterDegree')}
+                    onChange={(e) => {
+                      updateData({ deductionPrivilege: [], masterDegreeStatus: '' });
+                    }}
+                  />
+                  <span>ไม่ใช่</span>
                 </label>
               </div>
 
               {(formData.deductionPrivilege || []).includes('MasterDegree') && (
                 <div className="mt-6 animate-[fadeIn_0.3s]" id="masterDegreeStatus">
-                  <label className="block mb-1 font-medium text-textMain after:content-['_*'] after:text-error">กรุณาระบุสถานะการยื่นเอกสาร</label>
+                  <label className="block mb-1 font-medium text-textMain after:content-['_*'] after:text-error">สถานะการยื่นเอกสาร</label>
                   <span className="text-error text-sm block mb-4">* หากท่านเคยยื่นเอกสารและบันทึกในระบบของสำนักงาน คปภ. แล้วไม่ต้องยื่นซ้ำ</span>
                   <div className="flex flex-col gap-3">
                     <label className="flex items-center gap-3 cursor-pointer p-3 border rounded-md bg-white hover:bg-gray-50">
-                      <input type="radio" name="masterDegreeStatus" className="w-4 h-4 accent-primary" value="เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว" checked={formData.masterDegreeStatus === "เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว"} onChange={(e) => { updateData({ masterDegreeStatus: e.target.value }); if (errors.masterDegreeStatus) setErrors(prev => ({ ...prev, masterDegreeStatus: '' })); }} />
-                      เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว
+                      <input type="radio" name="masterDegreeStatus" className="w-4 h-4 accent-primary" value="เคยยื่นเอกสาร" checked={formData.masterDegreeStatus === "เคยยื่นเอกสาร" || formData.masterDegreeStatus === "เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว"} onChange={(e) => { updateData({ masterDegreeStatus: "เคยยื่นเอกสาร" }); if (errors.masterDegreeStatus) setErrors(prev => ({ ...prev, masterDegreeStatus: '' })); }} />
+                      เคยยื่นเอกสาร
                     </label>
                     <label className="flex items-center gap-3 cursor-pointer p-3 border rounded-md bg-white hover:bg-gray-50">
-                      <input type="radio" name="masterDegreeStatus" className="w-4 h-4 accent-primary" value="ไม่เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว" checked={formData.masterDegreeStatus === "ไม่เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว"} onChange={(e) => { updateData({ masterDegreeStatus: e.target.value }); if (errors.masterDegreeStatus) setErrors(prev => ({ ...prev, masterDegreeStatus: '' })); }} />
-                      ไม่เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว
+                      <input type="radio" name="masterDegreeStatus" className="w-4 h-4 accent-primary" value="ไม่เคยยื่นเอกสาร" checked={formData.masterDegreeStatus === "ไม่เคยยื่นเอกสาร" || formData.masterDegreeStatus === "ไม่เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว"} onChange={(e) => { updateData({ masterDegreeStatus: "ไม่เคยยื่นเอกสาร" }); if (errors.masterDegreeStatus) setErrors(prev => ({ ...prev, masterDegreeStatus: '' })); }} />
+                      ไม่เคยยื่นเอกสาร
                     </label>
                   </div>
                   {errors.masterDegreeStatus && <p className="text-error text-sm mt-2">{errors.masterDegreeStatus}</p>}

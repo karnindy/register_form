@@ -20,7 +20,12 @@ namespace backend.Controllers
         }
 
         [HttpGet("trainees")]
-        public async Task<IActionResult> GetTrainees([FromServices] AppDbContext context, [FromQuery] string search = "", [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetTrainees(
+            [FromServices] AppDbContext context,
+            [FromQuery] string? search,
+            [FromQuery] string? idRanges,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
         {
             var query = context.Persons
                 .Include(p => p.Registrations)
@@ -42,24 +47,66 @@ namespace backend.Controllers
                     (p.EmailAlt != null && p.EmailAlt.ToLower().Contains(s)) ||
                     (p.LineId != null && p.LineId.ToLower().Contains(s)) ||
                     
+                    (s == "ชาย" && p.GenderId == 1) ||
+                    (s == "หญิง" && p.GenderId == 2) ||
+
                     p.Licenses.Any(l => (l.LicenseNo != null && l.LicenseNo.ToLower().Contains(s)) || (l.CourseType != null && l.CourseType.ToLower().Contains(s))) ||
                     
-                    p.Affiliations.Any(a => (a.BrokerBranch != null && a.BrokerBranch.ToLower().Contains(s)) || (a.BrokerType != null && a.BrokerType.ToLower().Contains(s))) ||
+                    p.Affiliations.Any(a => 
+                        (a.BrokerBranch != null && a.BrokerBranch.ToLower().Contains(s)) || 
+                        (a.BrokerType != null && a.BrokerType.ToLower().Contains(s))
+                    ) ||
                     
                     context.Provinces.Any(pv => p.Addresses.Any(a => a.AddressType == "A" && a.ProvinceId == pv.Id) && pv.ProvinceThai != null && pv.ProvinceThai.ToLower().Contains(s)) ||
                     
+                    context.AgentRegions.Any(r => p.Affiliations.Any(a => a.RegionId == r.Id) && r.Name != null && r.Name.ToLower().Contains(s)) ||
+                    
+                    context.AgentBranches.Any(ab => p.Affiliations.Any(a => a.BranchId == ab.Id) && ab.Name != null && ab.Name.ToLower().Contains(s)) ||
+
                     context.RenewBasics.Any(rb => p.Courses.Any(c => c.CourseId == rb.Id) && rb.CourseName != null && rb.CourseName.ToLower().Contains(s)) ||
                     
                     context.RenewDates.Any(rd => p.Courses.Any(c => c.CourseDateId == rd.Id) && rd.CourseDateDisplay != null && rd.CourseDateDisplay.ToLower().Contains(s))
                 );
             }
 
-            var total = await query.CountAsync();
-            
-            var pagedData = await query.OrderByDescending(p => p.NationId)
+            var personsList = await query.ToListAsync();
+
+            if (!string.IsNullOrEmpty(idRanges))
+            {
+                var ranges = idRanges.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                var validRecords = new List<Person>();
+                foreach (var person in personsList)
+                {
+                    bool match = false;
+                    foreach (var rangeStr in ranges)
+                    {
+                        var cleanStr = rangeStr.Replace("{", "").Replace("}", "").Trim();
+                        var subParts = cleanStr.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        
+                        foreach (var subPart in subParts)
+                        {
+                            var parts = subPart.Split('-');
+                            if (parts.Length == 2 && int.TryParse(parts[0], out int min) && int.TryParse(parts[1], out int max))
+                            {
+                                if (person.Registrations.Any(r => r.Id >= min && r.Id <= max)) { match = true; break; }
+                            }
+                            else if (parts.Length == 1 && int.TryParse(parts[0], out int eq))
+                            {
+                                if (person.Registrations.Any(r => r.Id == eq)) { match = true; break; }
+                            }
+                        }
+                        if (match) break;
+                    }
+                    if (match) validRecords.Add(person);
+                }
+                personsList = validRecords;
+            }
+
+            var total = personsList.Count;
+            var pagedData = personsList.OrderByDescending(p => p.NationId)
                 .Skip(pageSize > 0 ? (page - 1) * pageSize : 0)
                 .Take(pageSize > 0 ? pageSize : Math.Max(1, total))
-                .ToListAsync();
+                .ToList();
 
             var data = pagedData.Select(p => {
                 var latestRegistration = p.Registrations.OrderByDescending(r => r.Id).FirstOrDefault();

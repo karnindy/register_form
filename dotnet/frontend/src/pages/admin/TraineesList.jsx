@@ -14,6 +14,60 @@ export default function TraineesList() {
   const [isUploading, setIsUploading] = useState(false);
   const [expandedRows, setExpandedRows] = useState({});
   const [editingTraineeId, setEditingTraineeId] = useState(null);
+  
+  const [masterMap, setMasterMap] = useState({});
+
+  useEffect(() => {
+    const fetchMasterData = async () => {
+      try {
+        const [
+          provinces, districts, subdistricts, 
+          branches, renewcourses, companies, territories, expertises, renewother
+        ] = await Promise.all([
+          fetch('http://localhost:8085/api/masterdata/provinces').then(r => r.json()),
+          fetch('http://localhost:8085/api/masterdata/districts').then(r => r.json()),
+          fetch('http://localhost:8085/api/masterdata/subdistricts').then(r => r.json()),
+          fetch('http://localhost:8085/api/masterdata/agent-branches').then(r => r.json()),
+          fetch('http://localhost:8085/api/masterdata/renewcourse').then(r => r.json()),
+          fetch('http://localhost:8085/api/masterdata/company').then(r => r.json()),
+          fetch('http://localhost:8085/api/masterdata/territory').then(r => r.json()),
+          fetch('http://localhost:8085/api/masterdata/expertise').then(r => r.json()),
+          fetch('http://localhost:8085/api/masterdata/renew-other-courses').then(r => r.json())
+        ]);
+        
+        const map = {
+          ProvinceId: provinces.reduce((a,c) => ({...a, [c.provinceId]: c.provinceThai}), {}),
+          DistrictId: districts.reduce((a,c) => ({...a, [c.districtId]: c.districtThai}), {}),
+          SubDistrictId: subdistricts.reduce((a,c) => ({...a, [c.subDistrictId]: c.subDistrictThai}), {}),
+          BrokerBranch: branches.reduce((a,c) => ({...a, [c.branchId]: c.branchName}), {}),
+          AgentBranch: branches.reduce((a,c) => ({...a, [c.branchId]: c.branchName}), {}),
+          PreviousCourses: renewcourses.reduce((a,c) => ({...a, [c.id]: c.name || c.courseName}), {}),
+          OtherInsuranceCompanies: companies.reduce((a,c) => ({...a, [c.id]: c.name}), {}),
+          SalesArea: territories.reduce((a,c) => ({...a, [c.id]: c.name}), {}),
+          InsuranceSpecialty: expertises.reduce((a,c) => ({...a, [c.id]: c.name}), {}),
+          ExtraTrainingInterest: renewother.reduce((a,c) => ({...a, [c.id]: c.displayName || c.name || c.courseName}), {})
+        };
+        
+        map.provinceId = map.ProvinceId;
+        map.districtId = map.DistrictId;
+        map.subDistrictId = map.SubDistrictId;
+        map.brokerBranch = map.BrokerBranch;
+        map.agentBranch = map.AgentBranch;
+        map.previousCourses = map.PreviousCourses;
+        map.otherInsuranceCompanies = map.OtherInsuranceCompanies;
+        map.salesArea = map.SalesArea;
+        map.insuranceSpecialty = map.InsuranceSpecialty;
+        map.extraTrainingInterest = map.ExtraTrainingInterest;
+        map.additionalCourseRequirement = map.ExtraTrainingInterest;
+        map.AdditionalCourseRequirement = map.ExtraTrainingInterest;
+        map.SelectedSubjects = map.ExtraTrainingInterest;
+        map.selectedSubjects = map.ExtraTrainingInterest;
+
+        setMasterMap(map);
+      } catch (e) { console.error('Failed to load master data for mapping', e); }
+    };
+    fetchMasterData();
+  }, []);
 
   const toggleRow = (id) => {
     setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
@@ -150,6 +204,8 @@ export default function TraineesList() {
             <option value={20}>20</option>
             <option value={50}>50</option>
             <option value={100}>100</option>
+            <option value={200}>200</option>
+            <option value={500}>500</option>
             <option value={1000}>1000</option>
             <option value="All">ทั้งหมด</option>
           </select>
@@ -244,11 +300,13 @@ export default function TraineesList() {
                                         'PhoneOtp', 'phone', 'EmailAlt', 'email', 'LineId', 'lineId', 
                                         'EmergencyContactName', 'EmergencyContactPhone',
                                         'HouseNo', 'Moo', 'Village', 'Soi', 'ProvinceId', 'DistrictId', 'SubDistrictId', 'Postcode', 'zipCode',
-                                        'BrokerBranch', 'AgentBranch', 'courseType', 'trainingDate',
+                                        'BrokerBranch', 'AgentBranch', 'courseType', 'CourseType', 'trainingDate',
+                                        'SelectedSubjects', 'selectedSubjects',
                                         'PreviousCourses', 'previousCourses', 'ExtraTrainingInterest', 'extraTrainingInterest',
                                         'AdditionalCourseRequirement', 'additionalCourseRequirement', 'MainBusiness', 'mainBusiness',
                                         'HasExperience', 'hasExperience', 'InsuranceExperienceYears', 'insuranceExperienceYears',
-                                        'SalesArea', 'salesArea', 'InsuranceSpecialty', 'insuranceSpecialty', 'OtherInsuranceCompanies', 'otherInsuranceCompanies'
+                                        'SalesArea', 'salesArea', 'InsuranceSpecialty', 'insuranceSpecialty', 'OtherInsuranceCompanies', 'otherInsuranceCompanies',
+                                        'agentType', 'AgentType', 'deductionPrivilege', 'DeductionPrivilege', 'masterDegreeStatus', 'MasterDegreeStatus'
                                       ];
                                       const keyMap = {
                                         TitleTh: 'คำนำหน้า', titleTh: 'คำนำหน้า', 
@@ -263,7 +321,8 @@ export default function TraineesList() {
                                         ProvinceId: 'จังหวัด', DistrictId: 'อำเภอ/เขต', SubDistrictId: 'ตำบล/แขวง', 
                                         Postcode: 'รหัสไปรษณีย์', zipCode: 'รหัสไปรษณีย์',
                                         BrokerBranch: 'สาขา', AgentBranch: 'สาขา',
-                                        courseType: 'หลักสูตร', trainingDate: 'วันที่อบรม',
+                                        courseType: 'ระดับคอร์ส', CourseType: 'ระดับคอร์ส', trainingDate: 'วันที่อบรม',
+                                        SelectedSubjects: 'วิชาลงทะเบียน', selectedSubjects: 'วิชาลงทะเบียน',
                                         PreviousCourses: 'วิชาที่เคยอบรม', previousCourses: 'วิชาที่เคยอบรม',
                                         ExtraTrainingInterest: 'วิชาที่ประสงค์จะอบรม', extraTrainingInterest: 'วิชาที่ประสงค์จะอบรม',
                                         AdditionalCourseRequirement: 'วิชาที่ประสงค์จะอบรม', additionalCourseRequirement: 'วิชาที่ประสงค์จะอบรม',
@@ -272,7 +331,10 @@ export default function TraineesList() {
                                         InsuranceExperienceYears: 'ปีประสบการณ์', insuranceExperienceYears: 'ปีประสบการณ์',
                                         SalesArea: 'พื้นที่ขาย', salesArea: 'พื้นที่ขาย',
                                         InsuranceSpecialty: 'ความเชี่ยวชาญ', insuranceSpecialty: 'ความเชี่ยวชาญ',
-                                        OtherInsuranceCompanies: 'บริษัทประกันอื่น', otherInsuranceCompanies: 'บริษัทประกันอื่น'
+                                        OtherInsuranceCompanies: 'บริษัทประกันอื่น', otherInsuranceCompanies: 'บริษัทประกันอื่น',
+                                        agentType: 'ประเภทใบอนุญาต', AgentType: 'ประเภทใบอนุญาต',
+                                        deductionPrivilege: 'สำเร็จการศึกษาตั้งแต่ระดับปริญญาโทขึ้นไป หรือ ไม่', DeductionPrivilege: 'สำเร็จการศึกษาตั้งแต่ระดับปริญญาโทขึ้นไป หรือ ไม่',
+                                        masterDegreeStatus: 'สถานะการยื่นเอกสาร', MasterDegreeStatus: 'สถานะการยื่นเอกสาร'
                                       };
                                       
                                       let checkedMappedKeys = new Set();
@@ -281,12 +343,50 @@ export default function TraineesList() {
                                         if (checkedMappedKeys.has(mappedKey)) return; // Don't duplicate if both TitleTh and titleTh changed
                                         
                                         if (currentData[k] !== undefined && prevData[k] !== undefined && currentData[k] !== prevData[k]) {
-                                          diffs.push(mappedKey);
+                                          let oldVal = prevData[k];
+                                          let newVal = currentData[k];
+                                          
+                                          const resolveValue = (key, val) => {
+                                            if (key === 'deductionPrivilege' || key === 'DeductionPrivilege') {
+                                              if (!val || val === '') return 'ไม่ใช่';
+                                              if (Array.isArray(val)) return val.includes('MasterDegree') ? 'ใช่' : 'ไม่ใช่';
+                                              if (typeof val === 'string') return val.includes('MasterDegree') ? 'ใช่' : 'ไม่ใช่';
+                                              return 'ไม่ใช่';
+                                            }
+                                            if (val === null || val === undefined || val === '') return val;
+                                            if (key === 'TitleTh' || key === 'titleTh') {
+                                              return [1, "1", 1].includes(val) ? 'นาย' : [2, "2", 2].includes(val) ? 'นาง' : [3, "3", 3].includes(val) ? 'นางสาว' : val;
+                                            }
+                                            if (key === 'masterDegreeStatus' || key === 'MasterDegreeStatus') {
+                                              if (val === 'เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว') return 'เคยยื่นเอกสาร';
+                                              if (val === 'ไม่เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว') return 'ไม่เคยยื่นเอกสาร';
+                                              return val;
+                                            }
+                                            const mapObj = masterMap[key];
+                                            if (mapObj) {
+                                              if (typeof val === 'string' && val.includes(',')) {
+                                                return val.split(',').map(id => mapObj[id.trim()] || id).join(', ');
+                                              }
+                                              return mapObj[val] || val;
+                                            }
+                                            return val;
+                                          };
+
+                                          oldVal = resolveValue(k, oldVal);
+                                          newVal = resolveValue(k, newVal);
+                                          
+                                          diffs.push(
+                                            <div key={k} className="mb-1 text-xs">
+                                              <span className="font-semibold text-gray-700">{mappedKey}:</span>{' '}
+                                              <span className="text-gray-400 line-through">{oldVal || '-'}</span>{' '}
+                                              <span className="text-green-600 font-medium">&rarr; {newVal || '-'}</span>
+                                            </div>
+                                          );
                                           checkedMappedKeys.add(mappedKey);
                                         }
                                       });
                                     } else {
-                                      diffs.push('ลงทะเบียนครั้งแรก');
+                                      diffs.push(<div key="first" className="text-blue-500 font-medium text-xs">ลงทะเบียนครั้งแรก</div>);
                                     }
 
                                     return (
@@ -302,8 +402,8 @@ export default function TraineesList() {
                                         <td className="px-4 py-2 border">{currentData.courseType || currentData.CourseType || 'ไม่ระบุ'}</td>
                                         <td className="px-4 py-2 border">{trans.createdAt}</td>
                                         <td className="px-4 py-2 border">บันทึกระบบ</td>
-                                        <td className="px-4 py-2 border text-red-500 text-xs">
-                                          {diffs.length > 0 ? diffs.join(', ') : '-'}
+                                        <td className="px-4 py-2 border text-left">
+                                          {diffs.length > 0 ? diffs : <span className="text-gray-400">-</span>}
                                         </td>
                                       </tr>
                                     );

@@ -22,8 +22,11 @@ import AgentMasterCrud from './pages/admin/AgentMasterCrud';
 import RenewDateCrud from './pages/admin/RenewDateCrud';
 import RenewBasicCrud from './pages/admin/RenewBasicCrud';
 import RenewMappingCrud from './pages/admin/RenewMappingCrud';
+import OicFieldMappingCrud from './pages/admin/OicFieldMappingCrud';
+import OicValueMappingCrud from './pages/admin/OicValueMappingCrud';
 import ReportsDashboard from './pages/admin/ReportsDashboard';
 import ReportRemarks from './pages/admin/ReportRemarks';
+import ExportDataReport from './pages/admin/ExportDataReport';
 
 export default function App() {
   return (
@@ -55,6 +58,7 @@ export default function App() {
           {/* Reports Routes */}
           <Route path="reports" element={<ReportsDashboard />} />
           <Route path="reports/remarks" element={<ReportRemarks />} />
+          <Route path="reports/export" element={<ExportDataReport />} />
           
           {/* Master Data Routes */}
           <Route path="master-data" element={<MasterDataDashboard />} />
@@ -66,6 +70,8 @@ export default function App() {
           <Route path="master-data/renewdates" element={<RenewDateCrud />} />
           <Route path="master-data/renewbasic" element={<RenewBasicCrud />} />
           <Route path="master-data/renewmappings" element={<RenewMappingCrud />} />
+          <Route path="master-data/oic-field-mapping" element={<OicFieldMappingCrud />} />
+          <Route path="master-data/oic-value-mapping" element={<OicValueMappingCrud />} />
           <Route path="master-data/:type" element={<MasterDataCrud />} />
         </Route>
       </Routes>

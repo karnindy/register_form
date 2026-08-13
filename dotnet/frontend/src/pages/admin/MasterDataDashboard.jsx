@@ -24,6 +24,11 @@ export default function MasterDataDashboard() {
     { type: 'renewmappings', title: 'จับคู่วิชาต่ออายุ', icon: 'fa-link', color: 'text-warning', custom: true }
   ];
 
+  const oicDataLinks = [
+    { type: 'oic-field-mapping', title: 'OIC Field Mapping', icon: 'fa-code-branch', color: 'text-danger', custom: true },
+    { type: 'oic-value-mapping', title: 'OIC Value Mapping', icon: 'fa-exchange-alt', color: 'text-danger', custom: true }
+  ];
+
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-8 border-b-2 border-primary pb-4 flex justify-between items-center">
@@ -60,6 +65,22 @@ export default function MasterDataDashboard() {
             <p className="text-gray-500 text-xs mb-6 flex-1">เพิ่ม ลบ หรือแก้ไขข้อมูลในระบบ</p>
             <Link to={`/admin/master-data/${link.type}`} className="px-6 py-2 border border-warning text-warning rounded hover:bg-warning hover:text-white transition-colors text-sm w-full">
               จัดการข้อมูล
+            </Link>
+          </div>
+        ))}
+      </div>
+
+      <div className="mb-6 border-b-2 border-danger pb-2">
+        <h3 className="text-2xl font-bold text-danger">ตั้งค่าระบบ OIC (OIC Settings)</h3>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
+        {oicDataLinks.map((link) => (
+          <div key={link.type} className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 flex flex-col items-center text-center transition-shadow hover:shadow-md h-full">
+            <i className={`fas ${link.icon} text-5xl ${link.color} mb-4`}></i>
+            <h4 className="text-lg font-bold text-gray-800 mb-2">{link.title}</h4>
+            <p className="text-gray-500 text-xs mb-6 flex-1">ตั้งค่ารูปแบบข้อมูลที่รับจากระบบ OIC</p>
+            <Link to={`/admin/master-data/${link.type}`} className={`px-6 py-2 border rounded transition-colors text-sm w-full border-danger text-danger hover:bg-danger hover:text-white`}>
+              จัดการตั้งค่า
             </Link>
           </div>
         ))}

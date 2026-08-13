@@ -61,6 +61,16 @@ export default function Dashboard() {
           </Link>
         </div>
 
+        {/* Card 6 - Reports */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 flex flex-col items-center text-center transition-shadow hover:shadow-md h-full">
+          <i className="fas fa-chart-bar text-5xl text-teal-600 mb-4"></i>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">ระบบรายงาน (Reports)</h2>
+          <p className="text-gray-500 text-xs mb-6 flex-1">เรียกดูรายงานการลงทะเบียน, Export ข้อมูลผู้สมัคร และรายงานข้อสังเกต</p>
+          <Link to="/admin/reports" className="px-6 py-2 border border-teal-600 text-teal-600 rounded hover:bg-teal-600 hover:text-white transition-colors text-sm">
+            ไปที่หน้ารายงาน
+          </Link>
+        </div>
+
       </div>
     </div>
   );

@@ -688,23 +688,43 @@ export default function TraineeEditModal({ nationId, onClose, onSuccess }) {
                           <>
                             <hr className="border-t border-gray-200 my-8" />
                             <div className="mb-6 animate-[fadeIn_0.3s]">
-                              <label className="block mb-3 font-medium text-gray-700">สิทธิ์ลดหย่อนชั่วโมงอบรม</label>
-                              <div className="p-4 border border-primary rounded-md bg-white">
-                                <label className="flex items-start gap-3 cursor-pointer">
+                              <label className="block mb-3 font-medium text-gray-700">สำเร็จการศึกษาตั้งแต่ระดับปริญญาโทขึ้นไป หรือ ไม่</label>
+                              <div className="flex flex-col gap-3 p-4 border border-gray-200 rounded-md bg-white">
+                                <label className="flex items-center gap-3 cursor-pointer">
                                   <input
-                                    type="checkbox"
-                                    className="mt-1 w-4 h-4 accent-primary"
+                                    type="radio"
+                                    name="adminDeductionPrivilege"
+                                    className="w-4 h-4 accent-primary"
                                     value="MasterDegree"
                                     checked={(formData.registrations?.[0]?.DeductionPrivilege || '').includes('MasterDegree')}
-                                    onChange={(e) => handleRegistrationChange(e, 'DeductionPrivilege')}
+                                    onChange={(e) => {
+                                      const syntheticEvent = { target: { name: 'DeductionPrivilege', value: 'MasterDegree', type: 'text' } };
+                                      handleRegistrationChange(syntheticEvent, 'DeductionPrivilege');
+                                    }}
                                   />
-                                  <span className="text-sm">สำเร็จการศึกษาตั้งแต่ระดับปริญญาโทขึ้นไป จากสถาบันอุดมศึกษาหรือสถาบันการศึกษาในต่างประเทศที่สำนักงานคณะกรรมการข้าราชการพลเรือนรับรอง</span>
+                                  <span className="text-sm">ใช่ (สำเร็จการศึกษาตั้งแต่ระดับปริญญาโทขึ้นไป)</span>
+                                </label>
+                                <label className="flex items-center gap-3 cursor-pointer">
+                                  <input
+                                    type="radio"
+                                    name="adminDeductionPrivilege"
+                                    className="w-4 h-4 accent-primary"
+                                    value="None"
+                                    checked={!(formData.registrations?.[0]?.DeductionPrivilege || '').includes('MasterDegree')}
+                                    onChange={(e) => {
+                                      const syntheticEvent = { target: { name: 'DeductionPrivilege', value: '', type: 'text' } };
+                                      handleRegistrationChange(syntheticEvent, 'DeductionPrivilege');
+                                      const syntheticEvent2 = { target: { name: 'MasterDegreeStatus', value: '', type: 'text' } };
+                                      handleRegistrationChange(syntheticEvent2, 'MasterDegreeStatus');
+                                    }}
+                                  />
+                                  <span className="text-sm">ไม่ใช่</span>
                                 </label>
                               </div>
 
                               {(formData.registrations?.[0]?.DeductionPrivilege || '').includes('MasterDegree') && (
                                 <div className="mt-6 animate-[fadeIn_0.3s]">
-                                  <label className="block mb-1 font-medium text-gray-700 after:content-['_*'] after:text-red-500">กรุณาระบุสถานะการยื่นเอกสาร</label>
+                                  <label className="block mb-1 font-medium text-gray-700 after:content-['_*'] after:text-red-500">สถานะการยื่นเอกสาร</label>
                                   <span className="text-red-500 text-sm block mb-4">* หากท่านเคยยื่นเอกสารและบันทึกในระบบของสำนักงาน คปภ. แล้วไม่ต้องยื่นซ้ำ</span>
                                   <div className="flex flex-col gap-3">
                                     <label className="flex items-center gap-3 cursor-pointer p-3 border rounded-md bg-white hover:bg-gray-50">
@@ -712,22 +732,28 @@ export default function TraineeEditModal({ nationId, onClose, onSuccess }) {
                                         type="radio" 
                                         name="masterDegreeStatus"
                                         className="w-4 h-4 accent-primary" 
-                                        value="เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว" 
-                                        checked={formData.registrations?.[0]?.MasterDegreeStatus === "เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว"} 
-                                        onChange={(e) => handleRegistrationChange(e, 'MasterDegreeStatus')} 
+                                        value="เคยยื่นเอกสาร" 
+                                        checked={formData.registrations?.[0]?.MasterDegreeStatus === "เคยยื่นเอกสาร" || formData.registrations?.[0]?.MasterDegreeStatus === "เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว"} 
+                                        onChange={(e) => {
+                                          const syntheticEvent = { target: { name: 'MasterDegreeStatus', value: 'เคยยื่นเอกสาร', type: 'text' } };
+                                          handleRegistrationChange(syntheticEvent, 'MasterDegreeStatus');
+                                        }} 
                                       />
-                                      <span className="text-sm">เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว</span>
+                                      <span className="text-sm">เคยยื่นเอกสาร</span>
                                     </label>
                                     <label className="flex items-center gap-3 cursor-pointer p-3 border rounded-md bg-white hover:bg-gray-50">
                                       <input 
                                         type="radio" 
                                         name="masterDegreeStatus"
                                         className="w-4 h-4 accent-primary" 
-                                        value="ไม่เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว" 
-                                        checked={formData.registrations?.[0]?.MasterDegreeStatus === "ไม่เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว"} 
-                                        onChange={(e) => handleRegistrationChange(e, 'MasterDegreeStatus')} 
+                                        value="ไม่เคยยื่นเอกสาร" 
+                                        checked={formData.registrations?.[0]?.MasterDegreeStatus === "ไม่เคยยื่นเอกสาร" || formData.registrations?.[0]?.MasterDegreeStatus === "ไม่เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว"} 
+                                        onChange={(e) => {
+                                          const syntheticEvent = { target: { name: 'MasterDegreeStatus', value: 'ไม่เคยยื่นเอกสาร', type: 'text' } };
+                                          handleRegistrationChange(syntheticEvent, 'MasterDegreeStatus');
+                                        }} 
                                       />
-                                      <span className="text-sm">ไม่เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว</span>
+                                      <span className="text-sm">ไม่เคยยื่นเอกสาร</span>
                                     </label>
                                   </div>
                                 </div>

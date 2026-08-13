@@ -42,6 +42,20 @@ namespace backend.Controllers
             return Ok(data);
         }
 
+        [HttpGet("districts")]
+        public async Task<IActionResult> GetAllDistricts()
+        {
+            var data = await _context.Districts.ToListAsync();
+            return Ok(data);
+        }
+
+        [HttpGet("subdistricts")]
+        public async Task<IActionResult> GetAllSubDistricts()
+        {
+            var data = await _context.SubDistricts.ToListAsync();
+            return Ok(data);
+        }
+
         [HttpGet("agent-branches")]
         public async Task<IActionResult> GetAgentBranches()
         {

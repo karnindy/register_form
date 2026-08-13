@@ -28,7 +28,7 @@ export default function ReportsDashboard() {
           <i className="fas fa-file-export text-5xl text-primary mb-4"></i>
           <h4 className="text-xl font-bold text-gray-800 mb-2">ข้อมูลการลงทะเบียน (Export Data)</h4>
           <p className="text-gray-500 text-xs mb-6 flex-1">ส่งออกข้อมูลผู้สมัครทั้งหมดแยกตามสาขา หรือรูปแบบที่คุณต้องการ (CSV/Excel)</p>
-          <Link to="/admin/trainees" className="px-6 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition-colors text-sm w-full">
+          <Link to="/admin/reports/export" className="px-6 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition-colors text-sm w-full">
             ไปที่หน้า Export ข้อมูล
           </Link>
         </div>
