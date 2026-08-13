@@ -1,0 +1,1 @@
+<?php if ($key === 'region_affiliation' || $key === 'region_bangkok'): ?><select name="<?= esc($key) ?>" id="<?= esc($key) ?>" class="form-select select2-region" data-selected="<?= esc($value) ?>"></select><?php endif; ?>

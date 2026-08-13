@@ -8,12 +8,44 @@
 include 'appconfig.php';
 
 // Check if system is closed
-if (defined('SYSTEM_CLOSED_START') && defined('SYSTEM_CLOSED_END') && SYSTEM_CLOSED_START !== '' && SYSTEM_CLOSED_END !== '') {
-    date_default_timezone_set('Asia/Bangkok');
-    $now = new DateTime();
-    $start = new DateTime(SYSTEM_CLOSED_START);
-    $end = new DateTime(SYSTEM_CLOSED_END);
-    if (!($now >= $start && $now <= $end)) {
+if (defined('SYSTEM_IS_ONLINE') && SYSTEM_IS_ONLINE === false) {
+    // If always closed, stay on this page
+} elseif (defined('SYSTEM_OPEN_PERIODS')) {
+    $periods = json_decode(SYSTEM_OPEN_PERIODS, true);
+    if (is_array($periods) && count($periods) > 0) {
+        date_default_timezone_set('Asia/Bangkok');
+        $now = new DateTime();
+        $isClosed = true;
+
+        foreach ($periods as $period) {
+            $openValid = true;
+            $closeValid = true;
+
+            if (!empty($period['open'])) {
+                $openDate = new DateTime($period['open']);
+                if ($now < $openDate) {
+                    $openValid = false;
+                }
+            }
+
+            if (!empty($period['close'])) {
+                $closeDate = new DateTime($period['close']);
+                if ($now >= $closeDate) {
+                    $closeValid = false;
+                }
+            }
+
+            if ($openValid && $closeValid) {
+                $isClosed = false;
+                break;
+            }
+        }
+
+        if (!$isClosed) {
+            header("Location: index.php");
+            exit();
+        }
+    } else {
         header("Location: index.php");
         exit();
     }
@@ -292,12 +324,12 @@ function e($val) {
     <style>
         :root {
             /* Viriyah CI Colors */
-            --primary-color: #005A9C;
+            --primary-color: #0033A2;
             /* Deep Blue */
-            --primary-light: #1A73E8;
-            --secondary-color: #E4A025;
+            --primary-light: #1A54D6;
+            --secondary-color: #FCAF17;
             /* Gold/Yellow */
-            --secondary-hover: #C98A1B;
+            --secondary-hover: #D98C04;
             --bg-color: #F4F7F6;
             --text-main: #333333;
             --text-muted: #666666;

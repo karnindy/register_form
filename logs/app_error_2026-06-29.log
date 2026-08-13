@@ -1,0 +1,42 @@
+[29-Jun-2026 03:05:57 UTC] PHP Warning:  mysqli_stmt::bind_param(): Number of elements in type definition string doesn't match number of bind variables in D:\git_kraken\register_form\save_tab5.php on line 152
+[29-Jun-2026 03:05:57 UTC] [JSON Error] เธญเธฑเธเน€เธ”เธ•เธเนเธญเธกเธนเธฅเธเธฒเธฃเธญเธเธฃเธกเนเธกเนเธชเธณเน€เธฃเนเธ: No data supplied for parameters in prepared statement
+[29-Jun-2026 04:00:21 UTC] PHP Warning:  Undefined variable $courseType in D:\git_kraken\register_form\save_tab5.php on line 37
+[29-Jun-2026 04:00:21 UTC] PHP Deprecated:  strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated in D:\git_kraken\register_form\save_tab5.php on line 37
+[29-Jun-2026 04:00:21 UTC] PHP Warning:  Undefined variable $courseType in D:\git_kraken\register_form\save_tab5.php on line 37
+[29-Jun-2026 04:00:21 UTC] PHP Deprecated:  strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated in D:\git_kraken\register_form\save_tab5.php on line 37
+[29-Jun-2026 04:00:21 UTC] PHP Warning:  Undefined variable $courseType in D:\git_kraken\register_form\save_tab5.php on line 37
+[29-Jun-2026 04:00:21 UTC] PHP Deprecated:  strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated in D:\git_kraken\register_form\save_tab5.php on line 37
+[29-Jun-2026 04:00:21 UTC] PHP Warning:  Undefined variable $courseType in D:\git_kraken\register_form\save_tab5.php on line 45
+[29-Jun-2026 04:00:21 UTC] PHP Warning:  Undefined variable $courseType in D:\git_kraken\register_form\save_tab5.php on line 45
+[29-Jun-2026 04:00:21 UTC] PHP Warning:  Undefined variable $courseType in D:\git_kraken\register_form\save_tab5.php on line 47
+[29-Jun-2026 04:00:21 UTC] PHP Warning:  Undefined variable $courseType in D:\git_kraken\register_form\save_tab5.php on line 47
+[29-Jun-2026 04:00:21 UTC] PHP Warning:  Undefined variable $courseType in D:\git_kraken\register_form\save_tab5.php on line 49
+[29-Jun-2026 04:00:21 UTC] PHP Warning:  Undefined variable $courseType in D:\git_kraken\register_form\save_tab5.php on line 49
+[29-Jun-2026 04:00:21 UTC] PHP Warning:  Undefined variable $courseType in D:\git_kraken\register_form\save_tab5.php on line 51
+[29-Jun-2026 04:00:21 UTC] PHP Warning:  Undefined variable $courseType in D:\git_kraken\register_form\save_tab5.php on line 51
+[29-Jun-2026 04:00:21 UTC] PHP Warning:  Undefined variable $courseType in D:\git_kraken\register_form\save_tab5.php on line 53
+[29-Jun-2026 04:00:21 UTC] PHP Warning:  Undefined variable $courseType in D:\git_kraken\register_form\save_tab5.php on line 53
+[29-Jun-2026 04:00:21 UTC] PHP Warning:  Undefined variable $courseType in D:\git_kraken\register_form\save_tab5.php on line 55
+[29-Jun-2026 04:00:21 UTC] PHP Warning:  Undefined variable $courseType in D:\git_kraken\register_form\save_tab5.php on line 55
+[29-Jun-2026 04:00:21 UTC] PHP Warning:  Undefined variable $courseType in D:\git_kraken\register_form\save_tab5.php on line 57
+[29-Jun-2026 04:00:21 UTC] PHP Warning:  Undefined variable $courseType in D:\git_kraken\register_form\save_tab5.php on line 57
+[29-Jun-2026 04:00:21 UTC] PHP Warning:  Undefined variable $courseType in D:\git_kraken\register_form\save_tab5.php on line 59
+[29-Jun-2026 04:00:21 UTC] PHP Warning:  Undefined variable $courseType in D:\git_kraken\register_form\save_tab5.php on line 59
+[29-Jun-2026 04:00:21 UTC] PHP Warning:  Undefined variable $trainingExemption in D:\git_kraken\register_form\save_tab5.php on line 64
+[29-Jun-2026 04:00:21 UTC] PHP Warning:  Undefined variable $trainingExemption in D:\git_kraken\register_form\save_tab5.php on line 69
+[29-Jun-2026 06:34:17 UTC] PHP Warning:  Undefined variable $courseScheduleJson in D:\git_kraken\register_form\index.php on line 2352
+[29-Jun-2026 06:34:17 UTC] PHP Warning:  Undefined variable $courseScheduleJson in D:\git_kraken\register_form\index.php on line 2352
+[29-Jun-2026 06:34:17 UTC] PHP Warning:  Undefined variable $courseScheduleJson in D:\git_kraken\register_form\index.php on line 2352
+[29-Jun-2026 06:34:33 UTC] PHP Warning:  Undefined variable $courseScheduleJson in D:\git_kraken\register_form\index.php on line 2352
+[29-Jun-2026 06:34:34 UTC] PHP Warning:  Undefined variable $courseScheduleJson in D:\git_kraken\register_form\index.php on line 2352
+[29-Jun-2026 06:34:34 UTC] PHP Warning:  Undefined variable $courseScheduleJson in D:\git_kraken\register_form\index.php on line 2352
+[29-Jun-2026 06:53:20 UTC] PHP Warning:  Undefined variable $db in D:\git_kraken\register_form\save_tab5.php on line 43
+[29-Jun-2026 06:53:20 UTC] PHP Fatal error:  Uncaught Error: Call to a member function prepare() on null in D:\git_kraken\register_form\save_tab5.php:43
+Stack trace:
+#0 {main}
+  thrown in D:\git_kraken\register_form\save_tab5.php on line 43
+[29-Jun-2026 07:08:43 UTC] PHP Warning:  Undefined variable $db in D:\git_kraken\register_form\save_tab5.php on line 43
+[29-Jun-2026 07:08:43 UTC] PHP Fatal error:  Uncaught Error: Call to a member function prepare() on null in D:\git_kraken\register_form\save_tab5.php:43
+Stack trace:
+#0 {main}
+  thrown in D:\git_kraken\register_form\save_tab5.php on line 43

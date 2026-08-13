@@ -1441,18 +1441,18 @@
 
                 <div class="grid-3">
                     <div class="form-group">
-                        <label class="required">เลขที่ใบอนุญาต</label>
+                        <label>เลขที่ใบอนุญาต</label>
                         <input type="text" class="form-control" name="licenseNo"
-                            placeholder="กรอกเลขที่ใบอนุญาต 10 หลัก" maxlength="10" minlength="10" pattern="\d{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
+                            placeholder="กรอกเลขที่ใบอนุญาต 10 หลัก" maxlength="10" minlength="10" pattern="\d{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                     </div>
                     <div class="form-group">
                         <label>วันที่ออกใบอนุญาต</label>
                         <input type="text" class="form-control datepicker" name="licenseIssue" placeholder="DD/MM/YYYY">
                     </div>
                     <div class="form-group">
-                        <label class="required">วันหมดอายุใบอนุญาต</label>
+                        <label>วันหมดอายุใบอนุญาต</label>
                         <input type="text" class="form-control datepicker" name="licenseExpire"
-                            placeholder="DD/MM/YYYY" required>
+                            placeholder="DD/MM/YYYY">
                     </div>
                 </div>
             </div>
@@ -2547,8 +2547,37 @@
                 }
             }
 
-            // Custom check for training dates in Step 5 (Index 4)
+            // Custom check for training dates and license requirement in Step 5 (Index 4)
             if (currentTab === 4) {
+                let courseTypeInput = document.getElementById('courseTypeHidden');
+                if (courseTypeInput && courseTypeInput.value.includes('ขอต่อ')) {
+                    let licenseNo = document.querySelector('input[name="licenseNo"]');
+                    let licenseExpire = document.querySelector('input[name="licenseExpire"]');
+                    let missing = false;
+                    
+                    if (!licenseNo || licenseNo.value.trim() === "") {
+                        missing = true;
+                        if (licenseNo) showFieldError(licenseNo, "กรุณาระบุเลขที่ใบอนุญาต (จำเป็นสำหรับหลักสูตรขอต่อ)");
+                    }
+                    if (!licenseExpire || licenseExpire.value.trim() === "") {
+                        missing = true;
+                        if (licenseExpire) showFieldError(licenseExpire, "กรุณาระบุวันหมดอายุใบอนุญาต (จำเป็นสำหรับหลักสูตรขอต่อ)");
+                    }
+
+                    if (missing) {
+                        alert("หลักสูตรที่คุณเลือก จำเป็นต้องระบุ 'เลขที่ใบอนุญาต' และ 'วันหมดอายุใบอนุญาต'\n\nระบบจะพากลับไปที่หน้าที่ 4 เพื่อให้คุณกรอกข้อมูลให้ครบถ้วน");
+                        
+                        // Switch back to Tab 4 (Index 3)
+                        tabs[currentTab].style.display = "none";
+                        currentTab = 3;
+                        showTab(currentTab);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        
+                        valid = false;
+                        return valid;
+                    }
+                }
+
                 let dateGroup = document.getElementById("trainingDateGroup");
                 if (dateGroup && dateGroup.style.display !== "none") {
                     let trainingCheckboxes = dateGroup.querySelectorAll('input[name="trainingDate[]"]');
