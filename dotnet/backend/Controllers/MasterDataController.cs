@@ -98,35 +98,7 @@ namespace backend.Controllers
                 .OrderBy(c => c.id)
                 .ToListAsync();
 
-            var targetCourseName = "ขอต่อใบอนุญาตเป็นตัวแทน/นายหน้าประกันวินาศภัย 4 เป็นต้นไป";
-            var targetCourse = await _context.RenewBasics.FirstOrDefaultAsync(c => c.CourseName.Contains("4 เป็นต้นไป"));
-            int targetCourseId = targetCourse != null ? targetCourse.Id : 9999;
-            string? targetAgentType = targetCourse != null ? targetCourse.AgentType : "ตัวแทน/นายหน้า";
-
-            data.RemoveAll(d => d.courseName != null && d.courseName.Contains("4 เป็นต้นไป"));
-
-            var otherCourses = await (from o in _context.RenewOthers
-                                      join p in _context.RenewPillars on o.PillarId equals p.Id
-                                      join d in _context.RenewDates on o.DateId equals d.Id
-                                      join c in _context.RenewCourses on o.SubjectId equals c.Id
-                                      where o.Status == "active"
-                                      orderby o.DisplayOrder ascending
-                                      select new {
-                                          id = targetCourseId,
-                                          courseName = targetCourseName,
-                                          agentType = targetAgentType,
-                                          dateId = (int?)o.Id,
-                                          dateDisplay = $"[{p.Name}][{d.CourseDateDisplay}] : {c.Name}"
-                                      }).ToListAsync();
-
-            if (!string.IsNullOrEmpty(agentType))
-            {
-                otherCourses = otherCourses.Where(c => c.agentType == agentType || c.agentType == null).ToList();
-            }
-
-            data.AddRange(otherCourses);
-
-            return Ok(data.OrderBy(c => c.id));
+            return Ok(data);
         }
 
         [HttpGet("renew-other-courses")]
@@ -140,10 +112,10 @@ namespace backend.Controllers
                            && p.Status == "active"
                            && d.Status == "active"
                            && c.Status == "active"
-                        orderby o.DisplayOrder
+                        orderby o.DisplayOrder ascending
                         select new {
                             id = o.Id,
-                            displayName = $"[{p.Name}] [{d.CourseDateDisplay}] : {c.Name}"
+                            displayName = $"[{p.Name}][{d.CourseDateDisplay}] : {c.Name}"
                         };
 
             var data = await query.ToListAsync();

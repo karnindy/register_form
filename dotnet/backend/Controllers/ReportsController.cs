@@ -64,11 +64,19 @@ namespace backend.Controllers
                 .Include(p => p.Addresses)
                 .Include(p => p.Affiliations)
                 .Include(p => p.Courses)
+                .Include(p => p.Trainings)
+                .Include(p => p.Others)
+                    .ThenInclude(o => o.SalesAreas)
+                .Include(p => p.Others)
+                    .ThenInclude(o => o.OtherCompanies)
+                .Include(p => p.Others)
+                    .ThenInclude(o => o.Specialties)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(request.SearchTerm))
             {
-                var s = request.SearchTerm.ToLower().Trim();
+                var s = request.SearchTerm.ToLower().Trim().Replace("สาขา ", "สาขา").Replace("ภาค ", "ภาค");
+                var sNoSpace = s.Replace(" ", "");
                 
                 int? minAge = null;
                 int? maxAge = null;
@@ -103,9 +111,9 @@ namespace backend.Controllers
                     
                     _context.Provinces.Any(pv => p.Addresses.Any(a => a.AddressType == "A" && a.ProvinceId == pv.Id) && pv.ProvinceThai != null && pv.ProvinceThai.ToLower().Contains(s)) ||
                     
-                    _context.AgentRegions.Any(r => p.Affiliations.Any(a => a.RegionId == r.Id) && r.Name != null && r.Name.ToLower().Contains(s)) ||
+                    _context.AgentRegions.Any(r => p.Affiliations.Any(a => a.RegionId == r.Id) && r.Name != null && r.Name.ToLower().Replace(" ", "").Contains(sNoSpace)) ||
                     
-                    _context.AgentBranches.Any(ab => p.Affiliations.Any(a => a.BranchId == ab.Id) && ab.Name != null && ab.Name.ToLower().Contains(s)) ||
+                    _context.AgentBranches.Any(ab => p.Affiliations.Any(a => a.BranchId == ab.Id) && ab.Name != null && ("สาขา" + ab.Name.ToLower()).Contains(s)) ||
 
                     _context.RenewBasics.Any(rb => p.Courses.Any(c => c.CourseId == rb.Id) && rb.CourseName != null && rb.CourseName.ToLower().Contains(s)) ||
                     
@@ -131,11 +139,17 @@ namespace backend.Controllers
                     bool hasDateFilter = c.DateIds != null && c.DateIds.Count > 0;
                     if (hasDateFilter)
                     {
-                        coursePredicates.Add(p => p.Courses.Any(pc => pc.CourseId == c.CourseId && pc.CourseDateId != null && c.DateIds.Contains(pc.CourseDateId.Value)));
+                        coursePredicates.Add(p => p.Courses.Any(pc => 
+                            (c.CourseId == 9 || c.CourseId == 10 ? (pc.CourseId == 9 || pc.CourseId == 10) : pc.CourseId == c.CourseId) && 
+                            (
+                                (pc.CourseDateId != null && c.DateIds.Contains(pc.CourseDateId.Value)) || 
+                                (pc.RenewOtherId != null && c.DateIds.Contains(pc.RenewOtherId.Value))
+                            )));
                     }
                     else
                     {
-                        coursePredicates.Add(p => p.Courses.Any(pc => pc.CourseId == c.CourseId));
+                        coursePredicates.Add(p => p.Courses.Any(pc => 
+                            c.CourseId == 9 || c.CourseId == 10 ? (pc.CourseId == 9 || pc.CourseId == 10) : pc.CourseId == c.CourseId));
                     }
                 }
                 
@@ -188,7 +202,9 @@ namespace backend.Controllers
                     bool match = false;
                     foreach (var c in request.SelectedCourses)
                     {
-                        if (person.Courses.Any(pc => pc.CourseId == c.CourseId && (c.DateIds == null || c.DateIds.Count == 0 || c.DateIds.Contains(pc.CourseDateId ?? 0))))
+                        if (person.Courses.Any(pc => 
+                            (c.CourseId == 9 || c.CourseId == 10 ? (pc.CourseId == 9 || pc.CourseId == 10) : pc.CourseId == c.CourseId) && 
+                            (c.DateIds == null || c.DateIds.Count == 0 || c.DateIds.Contains(pc.CourseDateId ?? 0) || c.DateIds.Contains(pc.RenewOtherId ?? 0))))
                         {
                             match = true;
                             break;
@@ -216,6 +232,14 @@ namespace backend.Controllers
             var pillars = await _context.RenewPillars.ToDictionaryAsync(p => p.Id, p => p.Name);
             var dates = await _context.RenewDates.ToDictionaryAsync(d => d.Id, d => d.CourseDateDisplay);
             var subjects = await _context.RenewCourses.ToDictionaryAsync(s => s.Id, s => s.Name);
+
+            var companies = await _context.Companies.ToDictionaryAsync(c => c.Id, c => c.Name);
+            var territories = await _context.Territories.ToDictionaryAsync(t => t.Id, t => t.Name);
+            var expertises = await _context.Expertises.ToDictionaryAsync(e => e.Id, e => e.Name);
+            var renewBasics = await _context.RenewBasics.ToDictionaryAsync(rb => rb.Id.ToString(), rb => rb.CourseName);
+            var titles = await _context.Titles.ToDictionaryAsync(t => t.Id.ToString(), t => t.Name);
+
+            var renewOtherDict = renewOthers.ToDictionary(ro => ro.Id, ro => $"[Pillar {(pillars.ContainsKey(ro.PillarId) ? pillars[ro.PillarId] : "")}] [{(dates.ContainsKey(ro.DateId) ? dates[ro.DateId] : "")}] : {(subjects.ContainsKey(ro.SubjectId) ? subjects[ro.SubjectId] : "")}");
 
             foreach (var p in personsList)
             {
@@ -254,13 +278,13 @@ namespace backend.Controllers
                     }
                 }
 
-                results.Add(MapPersonToOutput(p, reg, lic, aff, addrA, addrC, mergedSubjectsStr, provinces, districts, subdistricts, branches, regions, religionDict, bloodDict));
+                results.Add(MapPersonToOutput(p, reg, lic, aff, addrA, addrC, mergedSubjectsStr, provinces, districts, subdistricts, branches, regions, religionDict, bloodDict, renewBasics, dates, companies, territories, expertises, titles, renewOtherDict, subjects));
             }
 
             return Ok(results);
         }
 
-        private object MapPersonToOutput(Person p, PersonRegistration reg, PersonLicense lic, PersonAffiliation aff, PersonAddress addrA, PersonAddress addrC, string? mergedSubjects, Dictionary<int, string> provinces, Dictionary<int, string> districts, Dictionary<int, string> subdistricts, Dictionary<int, string> branches, Dictionary<int, string> regions, Dictionary<int, string> religionDict, Dictionary<int, string> bloodDict)
+        private object MapPersonToOutput(Person p, PersonRegistration reg, PersonLicense lic, PersonAffiliation aff, PersonAddress addrA, PersonAddress addrC, string? mergedSubjects, Dictionary<int, string> provinces, Dictionary<int, string> districts, Dictionary<int, string> subdistricts, Dictionary<int, string> branches, Dictionary<int, string> regions, Dictionary<int, string> religionDict, Dictionary<int, string> bloodDict, Dictionary<string, string> renewBasics, Dictionary<int, string> dates, Dictionary<int, string> companies, Dictionary<int, string> territories, Dictionary<int, string> expertises, Dictionary<string, string> titles, Dictionary<int, string> renewOtherDict, Dictionary<int, string> subjects)
         {
             var provName = addrA != null && addrA.ProvinceId.HasValue && provinces.ContainsKey(addrA.ProvinceId.Value) ? provinces[addrA.ProvinceId.Value] : "";
             var distName = addrA != null && addrA.DistrictId.HasValue && districts.ContainsKey(addrA.DistrictId.Value) ? districts[addrA.DistrictId.Value] : "";
@@ -273,6 +297,8 @@ namespace backend.Controllers
             var branchName = aff != null && aff.BranchId.HasValue && branches.ContainsKey(aff.BranchId.Value) ? branches[aff.BranchId.Value] : (aff?.BrokerBranch ?? "");
             var regionName = aff != null && aff.RegionId.HasValue && regions.ContainsKey(aff.RegionId.Value) ? regions[aff.RegionId.Value] : "";
 
+            var other = p.Others?.FirstOrDefault();
+
             return new
             {
                 // Person
@@ -281,7 +307,7 @@ namespace backend.Controllers
                 FirstName = p.FirstNameTh,
                 MiddleNameTh = p.MiddleNameTh,
                 LastName = p.LastNameTh,
-                TitleOldTh = p.TitleOldTh,
+                TitleOldTh = p.TitleOldTh != null && titles.ContainsKey(p.TitleOldTh) ? titles[p.TitleOldTh] : p.TitleOldTh,
                 FirstNameOldTh = p.FirstNameOldTh,
                 MiddleNameOldTh = p.MiddleNameOldTh,
                 LastNameOldTh = p.LastNameOldTh,
@@ -304,23 +330,65 @@ namespace backend.Controllers
                 CreatedAt = reg?.start_time?.ToString("yyyy-MM-dd HH:mm:ss"),
 
                 // PersonAddress
-                Address = addrA != null ? $"{addrA.HouseNo} {addrA.Moo} {addrA.Soi} {addrA.Road} {subName} {distName} {provName} {addrA.Postcode}" : "",
-                ContactAddress = addrC != null ? $"{addrC.HouseNo} {addrC.Moo} {addrC.Soi} {addrC.Road} {cSubName} {cDistName} {cProvName} {addrC.Postcode}" : "",
+                Address = addrA != null ? $"{addrA.HouseNo} {addrA.Moo} {addrA.Village} {addrA.Soi} {addrA.Road} {subName} {distName} {provName} {addrA.Postcode}".Trim().Replace("  ", " ") : "",
+                Address_HouseNo = addrA?.HouseNo,
+                Address_Moo = addrA?.Moo,
+                Address_Village = addrA?.Village,
+                Address_Soi = addrA?.Soi,
+                Address_Road = addrA?.Road,
+                Address_Province = provName,
+                Address_District = distName,
+                Address_SubDistrict = subName,
+                Address_Postcode = addrA?.Postcode,
+
+                ContactAddress = addrC != null ? $"{addrC.HouseNo} {addrC.Moo} {addrC.Village} {addrC.Soi} {addrC.Road} {cSubName} {cDistName} {cProvName} {addrC.Postcode}".Trim().Replace("  ", " ") : "",
+                Contact_HouseNo = addrC?.HouseNo,
+                Contact_Moo = addrC?.Moo,
+                Contact_Village = addrC?.Village,
+                Contact_Soi = addrC?.Soi,
+                Contact_Road = addrC?.Road,
+                Contact_Province = cProvName,
+                Contact_District = cDistName,
+                Contact_SubDistrict = cSubName,
+                Contact_Postcode = addrC?.Postcode,
 
                 // PersonLicense
                 LicenseNo = lic?.LicenseNo,
                 LicenseIssueDate = lic?.LicenseIssueDate?.ToString("yyyy-MM-dd"),
                 LicenseExpiryDate = lic?.LicenseExpiryDate?.ToString("yyyy-MM-dd"),
                 CourseType = lic?.CourseType,
+                License_CourseTypeCode = lic?.CourseTypeCode != null && renewBasics.ContainsKey(lic.CourseTypeCode) ? renewBasics[lic.CourseTypeCode] : lic?.CourseTypeCode,
 
                 // PersonAffiliation
-                AgentLevel = (string?)null,
-                BrokerLevel = aff?.BrokerType, 
                 Region = regionName,
                 Branch = branchName,
+                Affiliation_BrokerCompany = aff?.BrokerCompany,
+                Affiliation_BrokerBranch = aff?.BrokerBranch,
+                Affiliation_ViriyahAgentCode = aff?.ViriyahAgentCode,
+                Affiliation_BrokerType = aff?.BrokerType,
 
                 // PersonCourse
-                MergedSubjects = mergedSubjects
+                MergedSubjects = mergedSubjects,
+                Course_CourseDateIds = p.Courses != null ? string.Join(", ", p.Courses.Where(c => c.CourseDateId.HasValue).Select(c => dates.ContainsKey(c.CourseDateId.Value) ? dates[c.CourseDateId.Value] : c.CourseDateId.ToString())) : "",
+                Course_RenewOtherIds = p.Courses != null ? string.Join(", ", p.Courses.Where(c => c.RenewOtherId.HasValue).Select(c => renewOtherDict.ContainsKey(c.RenewOtherId.Value) ? renewOtherDict[c.RenewOtherId.Value] : c.RenewOtherId.ToString())) : "",
+
+                // PersonOther
+                Other_ExtraTrainingInterest = other?.ExtraTrainingInterest,
+                Other_OtherBusiness = other?.OtherBusiness,
+                Other_BrokerBranch = other?.BrokerBranch,
+                Other_InsuranceExperienceYears = other?.InsuranceExperienceYears,
+                
+                // PersonOtherCompanies
+                Other_CompanyIds = other?.OtherCompanies != null ? string.Join(", ", other.OtherCompanies.Where(c => c.CompanyId.HasValue).Select(c => companies.ContainsKey(c.CompanyId.Value) ? companies[c.CompanyId.Value] : c.CompanyId.ToString())) : "",
+
+                // PersonOtherSalesArea
+                Other_TerritoriesIds = other?.SalesAreas != null ? string.Join(", ", other.SalesAreas.Where(s => s.TerritoriesId.HasValue).Select(s => territories.ContainsKey(s.TerritoriesId.Value) ? territories[s.TerritoriesId.Value] : s.TerritoriesId.ToString())) : "",
+
+                // PersonOtherSpecialty
+                Other_ExpertiseIds = other?.Specialties != null ? string.Join(", ", other.Specialties.Where(s => s.ExpertiseId.HasValue).Select(s => expertises.ContainsKey(s.ExpertiseId.Value) ? expertises[s.ExpertiseId.Value] : s.ExpertiseId.ToString())) : "",
+
+                // PersonTraining5y
+                Training5y_CourseIds = p.Trainings != null ? string.Join(", ", p.Trainings.Where(t => t.CourseId.HasValue).Select(t => subjects.ContainsKey(t.CourseId.Value) ? subjects[t.CourseId.Value] : t.CourseId.ToString())) : ""
             };
         }
     }

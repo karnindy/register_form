@@ -263,6 +263,8 @@ namespace backend.Models
         public string NationId { get; set; }
         public string? DocumentType { get; set; } // e.g. "Profile", "IDCard", "IDCardFace"
         public string? FilePath { get; set; }
+        public byte[]? FileData { get; set; }
+        public string? ContentType { get; set; }
         public DateTime? UploadedAt { get; set; }
 
         [ForeignKey("NationId")]

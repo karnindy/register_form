@@ -25,7 +25,9 @@ namespace backend.Controllers
             [FromQuery] string? search,
             [FromQuery] string? idRanges,
             [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10)
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string sortBy = "date",
+            [FromQuery] string sortDir = "desc")
         {
             var query = context.Persons
                 .Include(p => p.Registrations)
@@ -38,7 +40,8 @@ namespace backend.Controllers
 
             if (!string.IsNullOrEmpty(search))
             {
-                var s = search.ToLower().Trim();
+                var s = search.ToLower().Trim().Replace("สาขา ", "สาขา").Replace("ภาค ", "ภาค");
+                var sNoSpace = s.Replace(" ", "");
                 
                 int? minAge = null;
                 int? maxAge = null;
@@ -73,9 +76,9 @@ namespace backend.Controllers
                     
                     context.Provinces.Any(pv => p.Addresses.Any(a => a.AddressType == "A" && a.ProvinceId == pv.Id) && pv.ProvinceThai != null && pv.ProvinceThai.ToLower().Contains(s)) ||
                     
-                    context.AgentRegions.Any(r => p.Affiliations.Any(a => a.RegionId == r.Id) && r.Name != null && r.Name.ToLower().Contains(s)) ||
+                    context.AgentRegions.Any(r => p.Affiliations.Any(a => a.RegionId == r.Id) && r.Name != null && r.Name.ToLower().Replace(" ", "").Contains(sNoSpace)) ||
                     
-                    context.AgentBranches.Any(ab => p.Affiliations.Any(a => a.BranchId == ab.Id) && ab.Name != null && ab.Name.ToLower().Contains(s)) ||
+                    context.AgentBranches.Any(ab => p.Affiliations.Any(a => a.BranchId == ab.Id) && ab.Name != null && ("สาขา" + ab.Name.ToLower()).Contains(s)) ||
 
                     context.RenewBasics.Any(rb => p.Courses.Any(c => c.CourseId == rb.Id) && rb.CourseName != null && rb.CourseName.ToLower().Contains(s)) ||
                     
@@ -117,33 +120,33 @@ namespace backend.Controllers
             }
 
             var total = personsList.Count;
-            var pagedData = personsList.OrderByDescending(p => p.NationId)
-                .Skip(pageSize > 0 ? (page - 1) * pageSize : 0)
-                .Take(pageSize > 0 ? pageSize : Math.Max(1, total))
-                .ToList();
 
-            var data = pagedData.Select(p => {
+            var renewBasicsDict = await context.RenewBasics.ToDictionaryAsync(rb => rb.Id, rb => rb.CourseName);
+            var renewDatesDict = await context.RenewDates.ToDictionaryAsync(rd => rd.Id, rd => rd.CourseDateDisplay);
+
+            var projectedList = personsList.Select(p => {
                 var latestRegistration = p.Registrations.OrderByDescending(r => r.Id).FirstOrDefault();
                 var latestLicense = p.Licenses.OrderByDescending(l => l.Id).FirstOrDefault();
                 var latestCourse = p.Courses.OrderByDescending(c => c.PersonCourseId).FirstOrDefault();
                 
-                var renewCourse = latestCourse?.CourseId != null ? context.RenewBasics.FirstOrDefault(rb => rb.Id == latestCourse.CourseId) : null;
-                var renewDate = latestCourse?.CourseDateId != null ? context.RenewDates.FirstOrDefault(rd => rd.Id == latestCourse.CourseDateId) : null;
+                var renewCourseName = latestCourse?.CourseId != null && renewBasicsDict.ContainsKey(latestCourse.CourseId.Value) ? renewBasicsDict[latestCourse.CourseId.Value] : null;
+                var renewDateDisplay = latestCourse?.CourseDateId != null && renewDatesDict.ContainsKey(latestCourse.CourseDateId.Value) ? renewDatesDict[latestCourse.CourseDateId.Value] : null;
 
                 return new
                 {
+                    RegistrationId = latestRegistration?.Id,
                     NationId = p.NationId,
                     Name = $"{p.FirstNameTh} {p.LastNameTh}",
                     IdCard = p.NationId,
-                    Course = renewCourse?.CourseName ?? latestLicense?.CourseType ?? "ไม่ระบุ",
-                    Date = renewDate?.CourseDateDisplay ?? latestRegistration?.start_time?.ToString("yyyy-MM-dd") ?? "",
+                    Course = renewCourseName ?? latestLicense?.CourseType ?? "ไม่ระบุ",
+                    Date = renewDateDisplay ?? latestRegistration?.start_time?.ToString("yyyy-MM-dd") ?? "",
                     Status = (latestRegistration?.confirmed ?? false) ? "ยืนยันแล้ว" : "รอยืนยัน",
                     
                     HistoryRegistrations = p.Registrations.OrderByDescending(r => r.Id).Select(r => new { r.Id, r.start_time, r.confirmed }).ToList(),
                     HistoryCourses = p.Courses.OrderByDescending(c => c.PersonCourseId).Select(c => {
-                        var rc = c.CourseId != null ? context.RenewBasics.FirstOrDefault(rb => rb.Id == c.CourseId) : null;
-                        var rd = c.CourseDateId != null ? context.RenewDates.FirstOrDefault(x => x.Id == c.CourseDateId) : null;
-                        return new { c.PersonCourseId, CourseName = rc?.CourseName, DateDisplay = rd?.CourseDateDisplay };
+                        var rcName = c.CourseId != null && renewBasicsDict.ContainsKey(c.CourseId.Value) ? renewBasicsDict[c.CourseId.Value] : null;
+                        var rdDisplay = c.CourseDateId != null && renewDatesDict.ContainsKey(c.CourseDateId.Value) ? renewDatesDict[c.CourseDateId.Value] : null;
+                        return new { c.PersonCourseId, CourseName = rcName, DateDisplay = rdDisplay };
                     }).ToList(),
                     Transactions = p.RegistrationHistories.OrderByDescending(h => h.Id).Select(h => new {
                         Id = h.Id,
@@ -153,7 +156,34 @@ namespace backend.Controllers
                 };
             });
 
-            return Ok(new { data, total, page, pageSize = pageSize > 0 ? pageSize : total });
+            if (sortDir.ToLower() == "desc") {
+                projectedList = sortBy.ToLower() switch {
+                    "registrationid" => projectedList.OrderByDescending(x => x.RegistrationId),
+                    "name" => projectedList.OrderByDescending(x => x.Name),
+                    "idcard" => projectedList.OrderByDescending(x => x.IdCard),
+                    "course" => projectedList.OrderByDescending(x => x.Course),
+                    "date" => projectedList.OrderByDescending(x => x.Date),
+                    "status" => projectedList.OrderByDescending(x => x.Status),
+                    _ => projectedList.OrderByDescending(x => x.Date)
+                };
+            } else {
+                projectedList = sortBy.ToLower() switch {
+                    "registrationid" => projectedList.OrderBy(x => x.RegistrationId),
+                    "name" => projectedList.OrderBy(x => x.Name),
+                    "idcard" => projectedList.OrderBy(x => x.IdCard),
+                    "course" => projectedList.OrderBy(x => x.Course),
+                    "date" => projectedList.OrderBy(x => x.Date),
+                    "status" => projectedList.OrderBy(x => x.Status),
+                    _ => projectedList.OrderBy(x => x.Date)
+                };
+            }
+
+            var pagedData = projectedList
+                .Skip(pageSize > 0 ? (page - 1) * pageSize : 0)
+                .Take(pageSize > 0 ? pageSize : Math.Max(1, total))
+                .ToList();
+
+            return Ok(new { data = pagedData, total, page, pageSize = pageSize > 0 ? pageSize : total });
         }
 
         [HttpGet("trainees/{nationId}/full")]
@@ -303,13 +333,24 @@ namespace backend.Controllers
                 {
                     d.Id,
                     d.DocumentType,
-                    // Make sure the path is URL friendly
-                    FilePath = "/" + d.FilePath.Replace("\\", "/"),
+                    FilePath = $"/api/admin/documents/{d.Id}/file",
                     d.UploadedAt
                 })
                 .ToList();
 
             return Ok(documents);
+        }
+
+        [HttpGet("documents/{id}/file")]
+        [AllowAnonymous] // Assuming we need this or not? The images might be protected.
+        public async Task<IActionResult> GetDocumentFile(int id, [FromServices] AppDbContext context)
+        {
+            var doc = await context.PersonDocuments.FindAsync(id);
+            if (doc == null || doc.FileData == null)
+                return NotFound("Document file not found");
+
+            var contentType = string.IsNullOrEmpty(doc.ContentType) ? "application/octet-stream" : doc.ContentType;
+            return File(doc.FileData, contentType);
         }
     }
 }

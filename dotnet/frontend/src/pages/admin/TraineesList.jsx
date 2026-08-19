@@ -8,6 +8,8 @@ export default function TraineesList() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
+  const [sortBy, setSortBy] = useState('date');
+  const [sortDir, setSortDir] = useState('desc');
 
   const [selectedTrainee, setSelectedTrainee] = useState(null);
   const [documents, setDocuments] = useState([]);
@@ -77,7 +79,7 @@ export default function TraineesList() {
     setLoading(true);
     try {
       const token = localStorage.getItem('admin_token');
-      const qs = new URLSearchParams({ search: searchTerm, page, pageSize: pageSize === 'All' ? 0 : pageSize });
+      const qs = new URLSearchParams({ search: searchTerm, page, pageSize: pageSize === 'All' ? 0 : pageSize, sortBy, sortDir });
       const response = await fetch(`http://localhost:8085/api/admin/trainees?${qs.toString()}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -100,7 +102,7 @@ export default function TraineesList() {
 
   useEffect(() => {
     fetchTrainees();
-  }, [page, pageSize]);
+  }, [page, pageSize, sortBy, sortDir]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -218,12 +220,33 @@ export default function TraineesList() {
         <table className="min-w-full table-auto">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ลำดับ</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อ-นามสกุล</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">เลขบัตร ปชช.</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">หลักสูตรล่าสุด</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่สมัครล่าสุด</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สถานะ</th>
+              {[
+                { key: 'registrationid', label: 'ลำดับ' },
+                { key: 'name', label: 'ชื่อ-นามสกุล' },
+                { key: 'idcard', label: 'เลขบัตร ปชช.' },
+                { key: 'course', label: 'หลักสูตรล่าสุด' },
+                { key: 'date', label: 'วันที่สมัครล่าสุด' },
+                { key: 'status', label: 'สถานะ' }
+              ].map(col => (
+                <th key={col.key} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onClick={() => {
+                  if (sortBy === col.key) {
+                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+                  } else {
+                    setSortBy(col.key);
+                    setSortDir('asc');
+                  }
+                }}>
+                  <div className="flex items-center space-x-1">
+                    <span>{col.label}</span>
+                    {sortBy === col.key && (
+                      <i className={`fas fa-sort-${sortDir === 'asc' ? 'up' : 'down'}`}></i>
+                    )}
+                    {sortBy !== col.key && (
+                      <i className="fas fa-sort text-gray-300"></i>
+                    )}
+                  </div>
+                </th>
+              ))}
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">จัดการ</th>
             </tr>
           </thead>
@@ -236,7 +259,7 @@ export default function TraineesList() {
                       <button onClick={() => toggleRow(t.nationId)} className="mr-2 text-gray-500 hover:text-gray-700">
                         <i className={`fas fa-chevron-${expandedRows[t.nationId] ? 'down' : 'right'}`}></i>
                       </button>
-                      {((page - 1) * (pageSize === 'All' ? total : pageSize)) + index + 1}
+                      {t.registrationId || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{t.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{t.idCard}</td>
@@ -364,6 +387,9 @@ export default function TraineesList() {
                                             }
                                             const mapObj = masterMap[key];
                                             if (mapObj) {
+                                              if (Array.isArray(val)) {
+                                                return val.map(id => mapObj[id] || id).join(', ');
+                                              }
                                               if (typeof val === 'string' && val.includes(',')) {
                                                 return val.split(',').map(id => mapObj[id.trim()] || id).join(', ');
                                               }
@@ -375,13 +401,34 @@ export default function TraineesList() {
                                           oldVal = resolveValue(k, oldVal);
                                           newVal = resolveValue(k, newVal);
                                           
-                                          diffs.push(
-                                            <div key={k} className="mb-1 text-xs">
-                                              <span className="font-semibold text-gray-700">{mappedKey}:</span>{' '}
-                                              <span className="text-gray-400 line-through">{oldVal || '-'}</span>{' '}
-                                              <span className="text-green-600 font-medium">&rarr; {newVal || '-'}</span>
-                                            </div>
-                                          );
+                                          const isMultiVal = (v) => typeof v === 'string' && v.includes(', ');
+                                          const shouldBeList = ['วิชาลงทะเบียน', 'วิชาที่เคยอบรม', 'วิชาที่ประสงค์จะอบรม', 'พื้นที่ขาย', 'บริษัทประกันอื่น', 'ความเชี่ยวชาญ'].includes(mappedKey);
+
+                                          if (shouldBeList && (isMultiVal(oldVal) || isMultiVal(newVal))) {
+                                            const renderList = (v) => {
+                                              if (!v) return '-';
+                                              return (
+                                                <ul className="list-disc ml-5 mt-1 mb-1">
+                                                  {v.split(', ').map((item, idx) => <li key={idx}>{item}</li>)}
+                                                </ul>
+                                              );
+                                            };
+                                            diffs.push(
+                                              <div key={k} className="mb-2 text-xs">
+                                                <div className="font-semibold text-gray-700">{mappedKey}:</div>
+                                                {oldVal && <div className="text-gray-400 line-through">{renderList(oldVal)}</div>}
+                                                {newVal && <div className="text-green-600 font-medium">{renderList(newVal)}</div>}
+                                              </div>
+                                            );
+                                          } else {
+                                            diffs.push(
+                                              <div key={k} className="mb-1 text-xs">
+                                                <span className="font-semibold text-gray-700">{mappedKey}:</span>{' '}
+                                                <span className="text-gray-400 line-through">{oldVal || '-'}</span>{' '}
+                                                <span className="text-green-600 font-medium">&rarr; {newVal || '-'}</span>
+                                              </div>
+                                            );
+                                          }
                                           checkedMappedKeys.add(mappedKey);
                                         }
                                       });

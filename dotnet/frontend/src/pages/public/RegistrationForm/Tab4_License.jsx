@@ -121,8 +121,13 @@ export default function Tab4License() {
       }
     } else {
       // If they filled licenseNo voluntarily, still validate its format
-      if (formData.licenseNo?.trim() && !/^\d{10}$/.test(formData.licenseNo)) {
-        newErrors.licenseNo = 'กรุณาระบุตัวเลข 10 หลัก';
+      if (formData.licenseNo?.trim()) {
+        if (!/^\d{10}$/.test(formData.licenseNo)) {
+          newErrors.licenseNo = 'กรุณาระบุตัวเลข 10 หลัก';
+        }
+        if (!formData.licenseExpire) {
+          newErrors.licenseExpire = 'กรุณาระบุวันที่บัตรหมดอายุเมื่อกรอกเลขที่ใบอนุญาต';
+        }
       }
       
       if (formData.licenseExpire) {

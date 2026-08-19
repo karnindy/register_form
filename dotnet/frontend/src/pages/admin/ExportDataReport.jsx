@@ -24,11 +24,13 @@ export default function ExportDataReport() {
   const [courseTypeFilter, setCourseTypeFilter] = useState('ทั้งหมด');
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/masterdata/renew-courses`)
-      .then(res => res.json())
-      .then(data => {
+    Promise.all([
+      fetch(`${API_BASE_URL}/masterdata/renew-courses`).then(res => res.json()),
+      fetch(`${API_BASE_URL}/masterdata/renew-other-courses`).then(res => res.json())
+    ])
+      .then(([coursesData, otherCoursesData]) => {
         const groups = {};
-        data.forEach(item => {
+        coursesData.forEach(item => {
           if (!groups[item.courseName]) {
             groups[item.courseName] = {
               courseId: item.id,
@@ -42,6 +44,12 @@ export default function ExportDataReport() {
             }
           }
         });
+        
+        const tor4Name = "ขอต่อใบอนุญาตเป็นตัวแทน/นายหน้าประกันวินาศภัย 4 เป็นต้นไป";
+        if (groups[tor4Name]) {
+          groups[tor4Name].dates = otherCoursesData.map(o => ({ dateId: o.id, display: o.displayName }));
+        }
+
         setGroupedCourses(Object.values(groups));
       })
       .catch(err => console.error('Failed to fetch courses:', err));
@@ -97,8 +105,6 @@ export default function ExportDataReport() {
         LicenseNo: r.licenseNo,
         LicenseIssueDate: r.licenseIssueDate,
         LicenseExpiryDate: r.licenseExpiryDate,
-        AgentLevel: r.agentLevel,
-        BrokerLevel: r.brokerLevel,
         CourseType: r.courseType,
         MergedSubjects: r.mergedSubjects
       }));
@@ -108,7 +114,10 @@ export default function ExportDataReport() {
   };
 
   const handleSearchPerson = async () => {
-    if (!searchTerm && !idRanges) return;
+    if (!searchTerm && !idRanges) {
+      setSearchResults([]);
+      return;
+    }
     setIsSearching(true);
     try {
       const token = localStorage.getItem('admin_token');
@@ -175,10 +184,14 @@ export default function ExportDataReport() {
       const keys = Object.keys(dataByCourse);
       const extension = format === 'csv' ? '.csv' : (format === 'xls' ? '.xls' : '.xlsx');
       
+      const pad = (n) => n.toString().padStart(2, '0');
+      const d = new Date();
+      const dateStr = `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+      
       if (keys.length === 1) {
         const cType = keys[0];
         const ws = XLSX.utils.json_to_sheet(dataByCourse[cType]);
-        const fileName = `Export_Course_${cType}${extension}`;
+        const fileName = `Export_Course_${cType}_${dateStr}${extension}`;
         
         if (format === 'csv') {
           const csv = XLSX.utils.sheet_to_csv(ws);
@@ -198,17 +211,17 @@ export default function ExportDataReport() {
           
           if (format === 'csv') {
             const csv = XLSX.utils.sheet_to_csv(ws);
-            zip.file(`Export_Course_${cType}${extension}`, "\uFEFF" + csv);
+            zip.file(`Export_Course_${cType}_${dateStr}${extension}`, "\uFEFF" + csv);
           } else {
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Data");
             const excelBuffer = XLSX.write(wb, { bookType: format === 'xls' ? 'biff8' : 'xlsx', type: 'array' });
-            zip.file(`Export_Course_${cType}${extension}`, excelBuffer);
+            zip.file(`Export_Course_${cType}_${dateStr}${extension}`, excelBuffer);
           }
         });
 
         const zipContent = await zip.generateAsync({ type: 'blob' });
-        saveAs(zipContent, `ExportData_${new Date().getTime()}.zip`);
+        saveAs(zipContent, `ExportData_${dateStr}.zip`);
       }
 
     } catch (err) {

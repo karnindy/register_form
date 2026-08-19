@@ -42,40 +42,37 @@ namespace backend.Controllers
                 {
                     // Use form field name as DocumentType (e.g. "Profile", "IDCard", "IDCardFace")
                     var docType = file.Name;
-                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-                    var filePath = Path.Combine(uploadPath, fileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    
+                    using (var ms = new MemoryStream())
                     {
-                        await file.CopyToAsync(stream);
-                    }
+                        await file.CopyToAsync(ms);
+                        var fileBytes = ms.ToArray();
+                        var contentType = file.ContentType;
 
-                    var existingDoc = _context.PersonDocuments.FirstOrDefault(d => d.NationId == cleanNationId && d.DocumentType == docType);
-                    if (existingDoc != null)
-                    {
-                        // Delete old file if exists
-                        var oldFilePath = Path.Combine(_env.ContentRootPath, existingDoc.FilePath.Replace("/", Path.DirectorySeparatorChar.ToString()));
-                        if (System.IO.File.Exists(oldFilePath))
+                        var existingDoc = _context.PersonDocuments.FirstOrDefault(d => d.NationId == cleanNationId && d.DocumentType == docType);
+                        if (existingDoc != null)
                         {
-                            System.IO.File.Delete(oldFilePath);
+                            // Update existing record
+                            existingDoc.FileData = fileBytes;
+                            existingDoc.ContentType = contentType;
+                            existingDoc.UploadedAt = DateTime.Now;
+                            // Reset FilePath as it's no longer used
+                            existingDoc.FilePath = null;
+                            _context.PersonDocuments.Update(existingDoc);
                         }
-
-                        // Update existing record
-                        existingDoc.FilePath = Path.Combine("LocalData", "uploads", cleanNationId, fileName).Replace("\\", "/");
-                        existingDoc.UploadedAt = DateTime.Now;
-                        _context.PersonDocuments.Update(existingDoc);
-                    }
-                    else
-                    {
-                        // Add new record
-                        var doc = new PersonDocument
+                        else
                         {
-                            NationId = cleanNationId,
-                            DocumentType = docType,
-                            FilePath = Path.Combine("LocalData", "uploads", cleanNationId, fileName).Replace("\\", "/"),
-                            UploadedAt = DateTime.Now
-                        };
-                        _context.PersonDocuments.Add(doc);
+                            // Add new record
+                            var doc = new PersonDocument
+                            {
+                                NationId = cleanNationId,
+                                DocumentType = docType,
+                                FileData = fileBytes,
+                                ContentType = contentType,
+                                UploadedAt = DateTime.Now
+                            };
+                            _context.PersonDocuments.Add(doc);
+                        }
                     }
                 }
             }
