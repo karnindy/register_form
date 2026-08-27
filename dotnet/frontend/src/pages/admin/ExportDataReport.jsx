@@ -9,15 +9,15 @@ const API_BASE_URL = 'http://localhost:8085/api';
 export default function ExportDataReport() {
   const [searchTerm, setSearchTerm] = useState('');
   const [idRanges, setIdRanges] = useState('');
-  
+
   const [searchResults, setSearchResults] = useState([]);
   const [selectedPersons, setSelectedPersons] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
-        
+
   const [courses, setCourses] = useState([]);
   const [groupedCourses, setGroupedCourses] = useState([]);
   const [selectedCourses, setSelectedCourses] = useState({});
-  
+
   const [exportType, setExportType] = useState('all');
   const [loading, setLoading] = useState(false);
   const [expandedCourses, setExpandedCourses] = useState({});
@@ -44,7 +44,7 @@ export default function ExportDataReport() {
             }
           }
         });
-        
+
         const tor4Name = "ขอต่อใบอนุญาตเป็นตัวแทน/นายหน้าประกันวินาศภัย 4 เป็นต้นไป";
         if (groups[tor4Name]) {
           groups[tor4Name].dates = otherCoursesData.map(o => ({ dateId: o.id, display: o.displayName }));
@@ -90,9 +90,82 @@ export default function ExportDataReport() {
     setExpandedCourses(prev => ({ ...prev, [courseId]: !prev[courseId] }));
   };
 
+  const formatDateToDDMMYYYY = (val) => {
+    if (!val) return '';
+    if (typeof val === 'string' && /^\d{2}\/\d{2}\/\d{4}$/.test(val)) return val;
+    const str = String(val).trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+      const parts = str.substring(0, 10).split('-');
+      const y = parseInt(parts[0], 10);
+      const yearStr = y < 2400 ? String(y + 543) : String(y);
+      return `${parts[2]}/${parts[1]}/${yearStr}`;
+    }
+    const d = new Date(val);
+    if (!isNaN(d.getTime())) {
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      let year = d.getFullYear();
+      if (year < 2400) year += 543;
+      return `${day}/${month}/${year}`;
+    }
+    return val;
+  };
+
+  const formatGender = (g) => {
+    if (!g) return 'UNSPECIFIC';
+    const s = String(g).trim().toLowerCase();
+    if (s === '1' || s === 'ชาย' || s === 'male' || s === 'm') return 'MALE';
+    if (s === '2' || s === 'หญิง' || s === 'female' || s === 'f') return 'FEMALE';
+    return 'UNSPECIFIC';
+  };
+
   const getFilteredColumns = (data) => {
     if (!data || data.length === 0) return [];
-    
+
+    if (exportType === 'bulk_lms') {
+      return data.map(r => {
+        let deductVal = '';
+        if (r.deductionPrivilege) {
+          if (Array.isArray(r.deductionPrivilege)) {
+            if (r.deductionPrivilege.includes('MasterDegree')) deductVal = 'ปริญญาโท';
+          } else if (typeof r.deductionPrivilege === 'string' && r.deductionPrivilege.includes('MasterDegree')) {
+            deductVal = 'ปริญญาโท';
+          }
+        }
+
+        return {
+          'username*': r.nationalId || '',
+          'email*': r.email || '',
+          'salute*': r.title || '',
+          'firstname*': r.firstName || '',
+          'middlename': r.middleNameTh || '',
+          'lastname*': r.lastName || '',
+          'citizenId': r.nationalId || '',
+          'phone_no': r.phone || '',
+          'oic_license_nonlife': r.licenseNo || '',
+          'oic_startdate_nonlife_(DD/MM/YYYY)': formatDateToDDMMYYYY(r.licenseIssueDate),
+          'oic_enddate_nonlife_(DD/MM/YYYY)': formatDateToDDMMYYYY(r.licenseExpiryDate),
+          'gender_(FEMALE/MALE/UNSPECIFIC)': formatGender(r.gender),
+          'date_of_birth_(DD/MM/YYYY)': formatDateToDDMMYYYY(r.birthDate),
+          'partner_name': '',
+          'onboard_date': '',
+          'sales_id': r.affiliation_ViriyahAgentCode || '',
+          'region_description': r.region || '',
+          'branch_name': r.branch || '',
+          'branch_code': '',
+          'qualification1': '',
+          'qualification2': '',
+          'educational_qualification': '',
+          'remark1': '',
+          'remark2': '',
+          'employment_group': '',
+          'next_renewal_time': '',
+          'oic_deduct': deductVal,
+          'upline': ''
+        };
+      });
+    }
+
     if (exportType === 'main') {
       return data.map(r => ({
         Id: r.id,
@@ -109,7 +182,7 @@ export default function ExportDataReport() {
         MergedSubjects: r.mergedSubjects
       }));
     }
-    
+
     return data;
   };
 
@@ -124,7 +197,7 @@ export default function ExportDataReport() {
       const params = { page: 1, pageSize: 50 };
       if (searchTerm) params.search = searchTerm;
       if (idRanges) params.idRanges = idRanges;
-      
+
       const qs = new URLSearchParams(params);
       const response = await fetch(`${API_BASE_URL}/admin/trainees?${qs.toString()}`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -175,7 +248,7 @@ export default function ExportDataReport() {
       }
 
       const dataByCourse = {};
-      exportData.forEach(row => {
+      rawData.forEach(row => {
         const cType = row.courseType || 'Unknown';
         if (!dataByCourse[cType]) dataByCourse[cType] = [];
         dataByCourse[cType].push(row);
@@ -183,16 +256,18 @@ export default function ExportDataReport() {
 
       const keys = Object.keys(dataByCourse);
       const extension = format === 'csv' ? '.csv' : (format === 'xls' ? '.xls' : '.xlsx');
-      
+
       const pad = (n) => n.toString().padStart(2, '0');
       const d = new Date();
-      const dateStr = `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
-      
+      const dateStr = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+      const filePrefix = exportType === 'bulk_lms' ? 'Export_Course_LMS_' : 'Export_Course_';
+
       if (keys.length === 1) {
         const cType = keys[0];
-        const ws = XLSX.utils.json_to_sheet(dataByCourse[cType]);
-        const fileName = `Export_Course_${cType}_${dateStr}${extension}`;
-        
+        const rows = getFilteredColumns(dataByCourse[cType]);
+        const ws = XLSX.utils.json_to_sheet(rows);
+        const fileName = `${filePrefix}${cType}_${dateStr}${extension}`;
+
         if (format === 'csv') {
           const csv = XLSX.utils.sheet_to_csv(ws);
           const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csv], { type: "text/csv;charset=utf-8;" });
@@ -207,16 +282,17 @@ export default function ExportDataReport() {
       } else {
         const zip = new JSZip();
         keys.forEach(cType => {
-          const ws = XLSX.utils.json_to_sheet(dataByCourse[cType]);
-          
+          const rows = getFilteredColumns(dataByCourse[cType]);
+          const ws = XLSX.utils.json_to_sheet(rows);
+
           if (format === 'csv') {
             const csv = XLSX.utils.sheet_to_csv(ws);
-            zip.file(`Export_Course_${cType}_${dateStr}${extension}`, "\uFEFF" + csv);
+            zip.file(`${filePrefix}${cType}_${dateStr}${extension}`, "\uFEFF" + csv);
           } else {
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Data");
             const excelBuffer = XLSX.write(wb, { bookType: format === 'xls' ? 'biff8' : 'xlsx', type: 'array' });
-            zip.file(`Export_Course_${cType}_${dateStr}${extension}`, excelBuffer);
+            zip.file(`${filePrefix}${cType}_${dateStr}${extension}`, excelBuffer);
           }
         });
 
@@ -252,21 +328,21 @@ export default function ExportDataReport() {
           <i className="fas fa-search mr-2"></i> ค้นหาและระบุตัวบุคคล
         </h3>
         <p className="text-xs text-gray-500 mb-4">
-          หากเลือกระบุบุคคลในส่วนนี้ ระบบจะทำการส่งออกเฉพาะบุคคลที่อยู่ในรายชื่อ (ข้ามการกรองตามหลักสูตร)<br/>
+          หากเลือกระบุบุคคลในส่วนนี้ ระบบจะทำการส่งออกเฉพาะบุคคลที่อยู่ในรายชื่อ (ข้ามการกรองตามหลักสูตร)<br />
           <span className="font-semibold">สามารถค้นหาได้จาก:</span> ชื่อ (เช่น สมชาย), นามสกุล (เช่น ใจดี), บัตรประชาชน (เช่น 1111111111111), เลขใบอนุญาต (เช่น 6304000000), เพศ (เช่น ชาย), ภาค (เช่น ภาค 1 (ภาคเหนือ)), สาขา (เช่น ชลบุรี), ช่วงอายุ (เช่น 20-30)
         </p>
-        
+
         <div className="flex gap-2 mb-4">
-          <input 
-            type="text" 
-            placeholder="ค้นหา ชื่อ, นามสกุล, บัตรฯ, ใบอนุญาต, เพศ, ภาค, สาขา, ช่วงอายุ (เช่น 20-30)..." 
+          <input
+            type="text"
+            placeholder="ค้นหา ชื่อ, นามสกุล, บัตรฯ, ใบอนุญาต, เพศ, ภาค, สาขา, ช่วงอายุ (เช่น 20-30)..."
             className="flex-1 border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-primary focus:outline-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearchPerson()}
           />
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={handleSearchPerson}
             disabled={isSearching}
             className="px-4 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition-colors"
@@ -284,7 +360,7 @@ export default function ExportDataReport() {
                   <span className="font-medium">{person.firstNameTh} {person.lastNameTh}</span>
                   <span className="text-gray-500 ml-2">บัตรประชาชน: {person.nationId}</span>
                 </div>
-                <button 
+                <button
                   type="button"
                   onClick={() => {
                     if (!selectedPersons.find(p => p.nationalId === person.nationId)) {
@@ -311,7 +387,7 @@ export default function ExportDataReport() {
                     <span className="font-medium">{person.firstNameTh} {person.lastNameTh}</span>
                     <span className="text-gray-500 ml-2">บัตรประชาชน: {person.nationalId}</span>
                   </div>
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setSelectedPersons(selectedPersons.filter(p => p.nationalId !== person.nationalId))}
                     className="px-3 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
@@ -326,9 +402,9 @@ export default function ExportDataReport() {
 
         <div className="mb-4">
           <label className="block text-sm text-gray-700 mb-1">ช่วง ID (เช่น 50-100, 150-200)</label>
-          <input 
-            type="text" 
-            placeholder="{50-100},{150-200}" 
+          <input
+            type="text"
+            placeholder="{50-100},{150-200}"
             className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none"
             value={idRanges}
             onChange={(e) => setIdRanges(e.target.value)}
@@ -339,7 +415,7 @@ export default function ExportDataReport() {
 
       <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-8">
         <label className="block text-sm font-semibold text-gray-700 mb-3">เลือกระดับและวันที่ (ส่งออกแยกไฟล์หากเลือกหลายรายการ)</label>
-        
+
         <div className="flex gap-4 mb-4">
           <label className="flex items-center cursor-pointer">
             <input type="radio" value="ทั้งหมด" checked={courseTypeFilter === 'ทั้งหมด'} onChange={(e) => setCourseTypeFilter(e.target.value)} className="w-4 h-4 mr-2 accent-primary" />
@@ -362,55 +438,55 @@ export default function ExportDataReport() {
               return c.courseName.includes(courseTypeFilter);
             })
             .map((c) => (
-            <div key={c.courseId} className="border-b last:border-b-0">
-              <div className="flex items-center p-3 hover:bg-gray-50">
-                <button 
-                  type="button" 
-                  className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 mr-2 focus:outline-none"
-                  onClick={() => toggleCourseExpand(c.courseId)}
-                >
-                  <i className={`fas fa-${expandedCourses[c.courseId] ? 'minus' : 'plus'}`}></i>
-                </button>
-                <input 
-                  type="checkbox" 
-                  className="w-4 h-4 mr-3 accent-primary"
-                  checked={selectedCourses[c.courseId]?.length === c.dates.length && c.dates.length > 0}
-                  ref={el => {
-                    if (el) {
-                      const selectedCount = selectedCourses[c.courseId]?.length || 0;
-                      el.indeterminate = selectedCount > 0 && selectedCount < c.dates.length;
-                    }
-                  }}
-                  onChange={(e) => handleCourseCheck(c.courseId, e.target.checked)}
-                />
-                <span className="text-sm text-gray-800">{c.courseName} ({c.dates.length} รอบ)</span>
-              </div>
-              
-              {expandedCourses[c.courseId] && (
-                <div className="pl-12 pr-4 pb-2 bg-gray-50/50">
-                  {c.dates.map(d => (
-                    <div key={d.dateId} className="flex items-center py-2 border-b last:border-0 border-gray-100">
-                      <input 
-                        type="checkbox" 
-                        className="w-4 h-4 mr-3 accent-primary"
-                        checked={(selectedCourses[c.courseId] || []).includes(d.dateId)}
-                        onChange={(e) => handleDateCheck(c.courseId, d.dateId, e.target.checked)}
-                      />
-                      <span className="text-sm text-gray-600">{d.display}</span>
-                    </div>
-                  ))}
+              <div key={c.courseId} className="border-b last:border-b-0">
+                <div className="flex items-center p-3 hover:bg-gray-50">
+                  <button
+                    type="button"
+                    className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 mr-2 focus:outline-none"
+                    onClick={() => toggleCourseExpand(c.courseId)}
+                  >
+                    <i className={`fas fa-${expandedCourses[c.courseId] ? 'minus' : 'plus'}`}></i>
+                  </button>
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 mr-3 accent-primary"
+                    checked={selectedCourses[c.courseId]?.length === c.dates.length && c.dates.length > 0}
+                    ref={el => {
+                      if (el) {
+                        const selectedCount = selectedCourses[c.courseId]?.length || 0;
+                        el.indeterminate = selectedCount > 0 && selectedCount < c.dates.length;
+                      }
+                    }}
+                    onChange={(e) => handleCourseCheck(c.courseId, e.target.checked)}
+                  />
+                  <span className="text-sm text-gray-800">{c.courseName} ({c.dates.length} รอบ)</span>
                 </div>
-              )}
-            </div>
-          ))}
+
+                {expandedCourses[c.courseId] && (
+                  <div className="pl-12 pr-4 pb-2 bg-gray-50/50">
+                    {c.dates.map(d => (
+                      <div key={d.dateId} className="flex items-center py-2 border-b last:border-0 border-gray-100">
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 mr-3 accent-primary"
+                          checked={(selectedCourses[c.courseId] || []).includes(d.dateId)}
+                          onChange={(e) => handleDateCheck(c.courseId, d.dateId, e.target.checked)}
+                        />
+                        <span className="text-sm text-gray-600">{d.display}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
         </div>
 
         <div className="space-y-2 mb-6">
           <label className="flex items-center">
-            <input 
-              type="radio" 
-              name="exportType" 
-              value="all" 
+            <input
+              type="radio"
+              name="exportType"
+              value="all"
               checked={exportType === 'all'}
               onChange={() => setExportType('all')}
               className="w-4 h-4 mr-3 accent-primary"
@@ -418,9 +494,9 @@ export default function ExportDataReport() {
             <span className="text-sm text-gray-700">แสดงทั้งหมด (ทุกคอลัมน์)</span>
           </label>
           <label className="flex items-center">
-            <input 
-              type="radio" 
-              name="exportType" 
+            <input
+              type="radio"
+              name="exportType"
               value="main"
               checked={exportType === 'main'}
               onChange={() => setExportType('main')}
@@ -428,20 +504,33 @@ export default function ExportDataReport() {
             />
             <span className="text-sm text-gray-700">แสดงเฉพาะข้อมูลหลัก (คำนำหน้า, ชื่อ, นามสกุล, อีเมล, บัตรประชาชน, เบอร์โทร, เลขใบอนุญาต)</span>
           </label>
+          <label className="flex items-center">
+            <input
+              type="radio"
+              name="exportType"
+              value="bulk_lms"
+              checked={exportType === 'bulk_lms'}
+              onChange={() => setExportType('bulk_lms')}
+              className="w-4 h-4 mr-3 accent-primary"
+            />
+            <span className="text-sm text-gray-700">
+              Template LMS (Add Users)
+            </span>
+          </label>
         </div>
 
         <div className="flex flex-wrap gap-4">
-          <button 
-            type="button" 
+          <button
+            type="button"
             disabled={loading}
             onClick={() => handleExport('csv')}
             className={`flex items-center px-6 py-2 rounded text-white font-medium ${loading ? 'bg-gray-400' : 'bg-yellow-500 hover:bg-yellow-600'}`}
           >
             <i className="fas fa-file-csv mr-2"></i> Export to CSV
           </button>
-          
-          <button 
-            type="button" 
+
+          <button
+            type="button"
             disabled={loading}
             onClick={() => handleExport('xls')}
             className={`flex items-center px-6 py-2 rounded text-white font-medium ${loading ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}
@@ -449,8 +538,8 @@ export default function ExportDataReport() {
             <i className="fas fa-file-excel mr-2"></i> Export to Excel (.xls)
           </button>
 
-          <button 
-            type="button" 
+          <button
+            type="button"
             disabled={loading}
             onClick={() => handleExport('xlsx')}
             className={`flex items-center px-6 py-2 rounded text-white font-medium ${loading ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'}`}

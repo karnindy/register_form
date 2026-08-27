@@ -241,29 +241,6 @@ app.MapPost("/api/migrate-db", async (MySqlDbContext mysqlDb, AppDbContext sqlDb
     }
 
     // Note: To insert explicit IDs, we need to enable IDENTITY_INSERT.
-    // For simplicity, we just use raw SQL to insert them to bypass IDENTITY constraints in EF Core.
-    
-    // Quick helper to execute raw SQL for inserts
-    async Task MigrateTable<T>(DbSet<T> sourceSet, string tableName) where T : class
-    {
-        var records = await sourceSet.AsNoTracking().ToListAsync();
-        if (!records.Any()) return;
-        
-        var first = records.First();
-        var props = first.GetType().GetProperties().Where(p => p.Name != "Id" && (p.PropertyType == typeof(string) || p.PropertyType.IsPrimitive || p.PropertyType.IsValueType)).ToList();
-        
-        foreach (var record in records)
-        {
-            var idProp = record.GetType().GetProperty("Id");
-            var idVal = idProp?.GetValue(record);
-            
-            // Check if exists
-            var exists = await sqlDb.Database.ExecuteSqlRawAsync($"SELECT 1 FROM {tableName} WHERE Id = {idVal}");
-            // Actually ExecuteSqlRaw returns number of rows affected, we can't use it for SELECT easily.
-            // Better to just try catch insert.
-        }
-    }
-
     // Since it's getting complicated with IDENTITY_INSERT, let's just insert them via EF but we have to manually run SET IDENTITY_INSERT ON
     using var transaction = await sqlDb.Database.BeginTransactionAsync();
     try
@@ -274,7 +251,7 @@ app.MapPost("/api/migrate-db", async (MySqlDbContext mysqlDb, AppDbContext sqlDb
         var tables = new[] { "Provinces", "Districts", "SubDistricts", "Genders", "Titles", "BloodTypes", "Religions", "Territories", "Expertises", "Companies" };
         foreach (var t in tables) 
         {
-            await sqlDb.Database.ExecuteSqlRawAsync($"IF OBJECT_ID('{t}', 'U') IS NOT NULL SET IDENTITY_INSERT {t} ON;");
+            await sqlDb.Database.ExecuteSqlRawAsync(string.Format("IF OBJECT_ID('{0}', 'U') IS NOT NULL SET IDENTITY_INSERT {0} ON;", t));
         }
         
         var provinces = await mysqlDb.Provinces.AsNoTracking().ToListAsync();
@@ -345,7 +322,7 @@ app.MapPost("/api/migrate-db", async (MySqlDbContext mysqlDb, AppDbContext sqlDb
 
         foreach (var t in tables) 
         {
-            await sqlDb.Database.ExecuteSqlRawAsync($"IF OBJECT_ID('{t}', 'U') IS NOT NULL SET IDENTITY_INSERT {t} OFF;");
+            await sqlDb.Database.ExecuteSqlRawAsync(string.Format("IF OBJECT_ID('{0}', 'U') IS NOT NULL SET IDENTITY_INSERT {0} OFF;", t));
         }
         
         await transaction.CommitAsync();

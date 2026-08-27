@@ -327,7 +327,7 @@ namespace backend.Controllers
         public async Task<IActionResult> GetTraineeDocuments(string nationId, [FromServices] AppDbContext context)
         {
             var cleanNationId = nationId.Replace("-", "");
-            var documents = context.PersonDocuments
+            var documents = await context.PersonDocuments
                 .Where(d => d.NationId == cleanNationId)
                 .Select(d => new
                 {
@@ -336,7 +336,7 @@ namespace backend.Controllers
                     FilePath = $"/api/admin/documents/{d.Id}/file",
                     d.UploadedAt
                 })
-                .ToList();
+                .ToListAsync();
 
             return Ok(documents);
         }

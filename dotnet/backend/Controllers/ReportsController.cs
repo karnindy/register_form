@@ -137,18 +137,19 @@ namespace backend.Controllers
                 {
                     // Course matches if the person has this course, and if dateIds are provided, it must match one of them.
                     bool hasDateFilter = c.DateIds != null && c.DateIds.Count > 0;
-                    if (hasDateFilter)
+                    if (hasDateFilter && c.DateIds != null)
                     {
-                        coursePredicates.Add(p => p.Courses.Any(pc => 
+                        var dateIds = c.DateIds;
+                        coursePredicates.Add(p => p.Courses != null && p.Courses.Any(pc => 
                             (c.CourseId == 9 || c.CourseId == 10 ? (pc.CourseId == 9 || pc.CourseId == 10) : pc.CourseId == c.CourseId) && 
                             (
-                                (pc.CourseDateId != null && c.DateIds.Contains(pc.CourseDateId.Value)) || 
-                                (pc.RenewOtherId != null && c.DateIds.Contains(pc.RenewOtherId.Value))
+                                (pc.CourseDateId != null && dateIds.Contains(pc.CourseDateId.Value)) || 
+                                (pc.RenewOtherId != null && dateIds.Contains(pc.RenewOtherId.Value))
                             )));
                     }
                     else
                     {
-                        coursePredicates.Add(p => p.Courses.Any(pc => 
+                        coursePredicates.Add(p => p.Courses != null && p.Courses.Any(pc => 
                             c.CourseId == 9 || c.CourseId == 10 ? (pc.CourseId == 9 || pc.CourseId == 10) : pc.CourseId == c.CourseId));
                     }
                 }
@@ -284,7 +285,7 @@ namespace backend.Controllers
             return Ok(results);
         }
 
-        private object MapPersonToOutput(Person p, PersonRegistration reg, PersonLicense lic, PersonAffiliation aff, PersonAddress addrA, PersonAddress addrC, string? mergedSubjects, Dictionary<int, string> provinces, Dictionary<int, string> districts, Dictionary<int, string> subdistricts, Dictionary<int, string> branches, Dictionary<int, string> regions, Dictionary<int, string> religionDict, Dictionary<int, string> bloodDict, Dictionary<string, string> renewBasics, Dictionary<int, string> dates, Dictionary<int, string> companies, Dictionary<int, string> territories, Dictionary<int, string> expertises, Dictionary<string, string> titles, Dictionary<int, string> renewOtherDict, Dictionary<int, string> subjects)
+        private object MapPersonToOutput(Person p, PersonRegistration? reg, PersonLicense? lic, PersonAffiliation? aff, PersonAddress? addrA, PersonAddress? addrC, string? mergedSubjects, Dictionary<int, string> provinces, Dictionary<int, string> districts, Dictionary<int, string> subdistricts, Dictionary<int, string> branches, Dictionary<int, string> regions, Dictionary<int, string> religionDict, Dictionary<int, string> bloodDict, Dictionary<string, string> renewBasics, Dictionary<int, string> dates, Dictionary<int, string> companies, Dictionary<int, string> territories, Dictionary<int, string> expertises, Dictionary<string, string> titles, Dictionary<int, string> renewOtherDict, Dictionary<int, string> subjects)
         {
             var provName = addrA != null && addrA.ProvinceId.HasValue && provinces.ContainsKey(addrA.ProvinceId.Value) ? provinces[addrA.ProvinceId.Value] : "";
             var distName = addrA != null && addrA.DistrictId.HasValue && districts.ContainsKey(addrA.DistrictId.Value) ? districts[addrA.DistrictId.Value] : "";
@@ -327,7 +328,10 @@ namespace backend.Controllers
 
                 // PersonRegistration
                 Id = reg?.Id ?? 0,
-                CreatedAt = reg?.start_time?.ToString("yyyy-MM-dd HH:mm:ss"),
+                CreatedAt = reg?.start_time?.ToString("dd/MM/yyyy HH:mm:ss"),
+                OnboardDate = reg?.start_time?.ToString("dd/MM/yyyy") ?? "",
+                DeductionPrivilege = reg?.DeductionPrivilege,
+                MasterDegreeStatus = reg?.MasterDegreeStatus,
 
                 // PersonAddress
                 Address = addrA != null ? $"{addrA.HouseNo} {addrA.Moo} {addrA.Village} {addrA.Soi} {addrA.Road} {subName} {distName} {provName} {addrA.Postcode}".Trim().Replace("  ", " ") : "",
@@ -369,8 +373,8 @@ namespace backend.Controllers
 
                 // PersonCourse
                 MergedSubjects = mergedSubjects,
-                Course_CourseDateIds = p.Courses != null ? string.Join(", ", p.Courses.Where(c => c.CourseDateId.HasValue).Select(c => dates.ContainsKey(c.CourseDateId.Value) ? dates[c.CourseDateId.Value] : c.CourseDateId.ToString())) : "",
-                Course_RenewOtherIds = p.Courses != null ? string.Join(", ", p.Courses.Where(c => c.RenewOtherId.HasValue).Select(c => renewOtherDict.ContainsKey(c.RenewOtherId.Value) ? renewOtherDict[c.RenewOtherId.Value] : c.RenewOtherId.ToString())) : "",
+                Course_CourseDateIds = p.Courses != null ? string.Join(", ", p.Courses.Where(c => c.CourseDateId.HasValue).Select(c => c.CourseDateId.HasValue && dates.ContainsKey(c.CourseDateId.Value) ? dates[c.CourseDateId.Value] : (c.CourseDateId?.ToString() ?? ""))) : "",
+                Course_RenewOtherIds = p.Courses != null ? string.Join(", ", p.Courses.Where(c => c.RenewOtherId.HasValue).Select(c => c.RenewOtherId.HasValue && renewOtherDict.ContainsKey(c.RenewOtherId.Value) ? renewOtherDict[c.RenewOtherId.Value] : (c.RenewOtherId?.ToString() ?? ""))) : "",
 
                 // PersonOther
                 Other_ExtraTrainingInterest = other?.ExtraTrainingInterest,
@@ -388,7 +392,7 @@ namespace backend.Controllers
                 Other_ExpertiseIds = other?.Specialties != null ? string.Join(", ", other.Specialties.Where(s => s.ExpertiseId.HasValue).Select(s => expertises.ContainsKey(s.ExpertiseId.Value) ? expertises[s.ExpertiseId.Value] : s.ExpertiseId.ToString())) : "",
 
                 // PersonTraining5y
-                Training5y_CourseIds = p.Trainings != null ? string.Join(", ", p.Trainings.Where(t => t.CourseId.HasValue).Select(t => subjects.ContainsKey(t.CourseId.Value) ? subjects[t.CourseId.Value] : t.CourseId.ToString())) : ""
+                Training5y_CourseIds = p.Trainings != null ? string.Join(", ", p.Trainings.Where(t => t.CourseId.HasValue).Select(t => t.CourseId.HasValue && subjects.ContainsKey(t.CourseId.Value) ? subjects[t.CourseId.Value] : (t.CourseId?.ToString() ?? ""))) : ""
             };
         }
     }

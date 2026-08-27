@@ -118,46 +118,44 @@ namespace backend.Controllers
             var affiliation = person?.Affiliations.FirstOrDefault();
             var other = person?.Others.FirstOrDefault();
 
-            bool useDb = person != null;
-
             var flatData = new
             {
-                nationalId = useDb ? person.NationId : cleanNationId,
-                idCardExpiry = useDb ? person.IdCardExpiry?.ToString("yyyy-MM-dd") : GetStr("idCardExpiry"),
-                titleTh = useDb ? person.TitleTh : GetStr("titleTh"),
-                firstNameTh = useDb ? person.FirstNameTh : GetStr("firstNameTh"),
-                middleNameTh = useDb ? person.MiddleNameTh : GetStr("middleNameTh"),
-                lastNameTh = useDb ? person.LastNameTh : GetStr("lastNameTh"),
+                nationalId = person?.NationId ?? cleanNationId,
+                idCardExpiry = person?.IdCardExpiry?.ToString("yyyy-MM-dd") ?? GetStr("idCardExpiry"),
+                titleTh = person?.TitleTh ?? GetStr("titleTh"),
+                firstNameTh = person?.FirstNameTh ?? GetStr("firstNameTh"),
+                middleNameTh = person?.MiddleNameTh ?? GetStr("middleNameTh"),
+                lastNameTh = person?.LastNameTh ?? GetStr("lastNameTh"),
                 hasChangedName = !string.IsNullOrEmpty(person?.FirstNameOldTh) ? "yes" : "no",
                 titlePrev = person?.TitleOldTh,
                 firstNameOldTh = person?.FirstNameOldTh,
                 middleNameOldTh = person?.MiddleNameOldTh,
                 lastNameOldTh = person?.LastNameOldTh,
-                birthDate = useDb ? person.BirthDate?.ToString("yyyy-MM-dd") : GetStr("birthDate"),
-                religion = useDb ? person.ReligionId?.ToString() : (GetReligionId(GetStr("religion")))?.ToString(),
-                gender = useDb ? person.GenderId?.ToString() : (GetGenderId(GetStr("gender")))?.ToString(),
-                bloodGroup = useDb ? person.BloodGroupId?.ToString() : (GetBloodId(GetStr("bloodGroup")))?.ToString(),
-                phone = useDb ? person.PhoneOtp : GetStr("phoneOtp"),
-                email = useDb ? person.EmailAlt : GetStr("email"),
-                lineId = useDb ? person.LineId : GetStr("lineId"),
-                facebook = useDb ? person.Facebook : GetStr("facebook"),
-                instagram = useDb ? person.Instagram : GetStr("instagram"),
-                foodAllergy = useDb ? person.FoodAllergy : GetStr("foodAllergy"),
-                medicalCondition = useDb ? person.MedicalCondition : GetStr("medicalCondition"),
-                emergencyContactName = useDb ? person.EmergencyContactName : GetStr("emergencyContactName"),
-                emergencyContactPhone = useDb ? person.EmergencyContactPhone : GetStr("emergencyContactPhone"),
+                birthDate = person?.BirthDate?.ToString("yyyy-MM-dd") ?? GetStr("birthDate"),
+                religion = person?.ReligionId?.ToString() ?? (GetReligionId(GetStr("religion")))?.ToString(),
+                gender = person?.GenderId?.ToString() ?? (GetGenderId(GetStr("gender")))?.ToString(),
+                bloodGroup = person?.BloodGroupId?.ToString() ?? (GetBloodId(GetStr("bloodGroup")))?.ToString(),
+                phone = person?.PhoneOtp ?? GetStr("phoneOtp"),
+                email = person?.EmailAlt ?? GetStr("email"),
+                lineId = person?.LineId ?? GetStr("lineId"),
+                facebook = person?.Facebook ?? GetStr("facebook"),
+                instagram = person?.Instagram ?? GetStr("instagram"),
+                foodAllergy = person?.FoodAllergy ?? GetStr("foodAllergy"),
+                medicalCondition = person?.MedicalCondition ?? GetStr("medicalCondition"),
+                emergencyContactName = person?.EmergencyContactName ?? GetStr("emergencyContactName"),
+                emergencyContactPhone = person?.EmergencyContactPhone ?? GetStr("emergencyContactPhone"),
                 
                 // Tab 3 Address
-                sameAddress = addressCurrent == null ? true : false,
-                houseNo = useDb ? addressHouse?.HouseNo : GetStr("addrHouseNo"),
-                moo = useDb ? addressHouse?.Moo : GetStr("addrMoo"),
-                village = useDb ? addressHouse?.Village : GetStr("addrVillage"),
-                soi = useDb ? addressHouse?.Soi : GetStr("addrSoi"),
-                road = useDb ? addressHouse?.Road : GetStr("addrRoad"),
-                provinceId = useDb ? addressHouse?.ProvinceId?.ToString() : (GetProvinceId(GetStr("addrProvince")))?.ToString(),
-                districtId = useDb ? addressHouse?.DistrictId?.ToString() : (GetDistrictId(GetStr("addrDistrict")))?.ToString(),
-                subDistrictId = useDb ? addressHouse?.SubDistrictId?.ToString() : (GetSubDistrictId(GetStr("addrSubdistrict")))?.ToString(),
-                zipcode = useDb ? addressHouse?.Postcode : GetStr("addrPostcode"),
+                sameAddress = addressCurrent == null,
+                houseNo = addressHouse?.HouseNo ?? GetStr("addrHouseNo"),
+                moo = addressHouse?.Moo ?? GetStr("addrMoo"),
+                village = addressHouse?.Village ?? GetStr("addrVillage"),
+                soi = addressHouse?.Soi ?? GetStr("addrSoi"),
+                road = addressHouse?.Road ?? GetStr("addrRoad"),
+                provinceId = addressHouse?.ProvinceId?.ToString() ?? (GetProvinceId(GetStr("addrProvince")))?.ToString(),
+                districtId = addressHouse?.DistrictId?.ToString() ?? (GetDistrictId(GetStr("addrDistrict")))?.ToString(),
+                subDistrictId = addressHouse?.SubDistrictId?.ToString() ?? (GetSubDistrictId(GetStr("addrSubdistrict")))?.ToString(),
+                zipcode = addressHouse?.Postcode ?? GetStr("addrPostcode"),
 
                 shipHouseNo = addressCurrent?.HouseNo,
                 shipMoo = addressCurrent?.Moo,
@@ -170,37 +168,36 @@ namespace backend.Controllers
                 shipzipcode = addressCurrent?.Postcode,
                 
                 // Tab 4 License & Affiliation
-                agentRegion = useDb ? affiliation?.RegionId?.ToString() : GetStr("agentRegion"),
-                agentBranch = useDb ? affiliation?.BranchId?.ToString() : GetStr("agentBranch"),
-                brokerAffiliation = useDb ? affiliation?.BrokerCompany : GetStr("brokerAffiliation"),
-                viriyaContractCode = useDb ? affiliation?.ViriyahAgentCode : GetStr("viriyaContractCode"),
-                brokerType = useDb ? affiliation?.BrokerType : GetStr("brokerType"),
+                agentRegion = affiliation?.RegionId?.ToString() ?? GetStr("agentRegion"),
+                agentBranch = affiliation?.BranchId?.ToString() ?? GetStr("agentBranch"),
+                brokerAffiliation = affiliation?.BrokerCompany ?? GetStr("brokerAffiliation"),
+                viriyaContractCode = affiliation?.ViriyahAgentCode ?? GetStr("viriyaContractCode"),
+                brokerType = affiliation?.BrokerType ?? GetStr("brokerType"),
 
                 // Licenses
-                licenseNo = useDb ? person.Licenses.FirstOrDefault()?.LicenseNo : GetStr("licenseNo"),
-                licenseIssue = useDb ? person.Licenses.FirstOrDefault()?.LicenseIssueDate?.ToString("yyyy-MM-dd") : GetStr("licenseIssue"),
-                licenseExpire = useDb ? person.Licenses.FirstOrDefault()?.LicenseExpiryDate?.ToString("yyyy-MM-dd") : GetStr("licenseExpire"),
-                agentType = useDb ? person.Licenses.FirstOrDefault()?.CourseType : GetStr("agentType"),
+                licenseNo = person?.Licenses?.FirstOrDefault()?.LicenseNo ?? GetStr("licenseNo"),
+                licenseIssue = person?.Licenses?.FirstOrDefault()?.LicenseIssueDate?.ToString("yyyy-MM-dd") ?? GetStr("licenseIssue"),
+                licenseExpire = person?.Licenses?.FirstOrDefault()?.LicenseExpiryDate?.ToString("yyyy-MM-dd") ?? GetStr("licenseExpire"),
+                agentType = person?.Licenses?.FirstOrDefault()?.CourseType ?? GetStr("agentType"),
                 
                 // Tab 5 Course
-                courseType = useDb ? (person.Courses.FirstOrDefault(c => c.CourseId != null && c.CourseId != 9 && c.CourseId != 10)?.CourseId?.ToString() ?? person.Courses.FirstOrDefault(c => c.CourseId == 9 || c.CourseId == 10)?.CourseId?.ToString()) : GetStr("courseType"),
-                trainingDate = useDb ? person.Courses.FirstOrDefault(c => c.CourseDateId != null)?.CourseDateId?.ToString() : GetStr("trainingDate"),
-                selectedSubjects = useDb ? (person.Courses.Any(c => c.RenewOtherId != null) ? person.Courses.Where(c => c.RenewOtherId != null).Select(c => c.RenewOtherId?.ToString() ?? "").Where(s => !string.IsNullOrEmpty(s)).ToList() : new List<string>()) : (GetStrList("selectedSubjects") ?? new List<string>()),
-                previousCourses = useDb ? (person.Trainings.Any(t => t.CourseId != null) ? person.Trainings.Where(t => t.CourseId != null).Select(t => t.CourseId?.ToString() ?? "").Where(s => !string.IsNullOrEmpty(s)).ToList() : new List<string>()) : (GetStrList("previousCourses") ?? new List<string>()),
+                courseType = (person?.Courses != null ? (person.Courses.FirstOrDefault(c => c.CourseId != null && c.CourseId != 9 && c.CourseId != 10)?.CourseId?.ToString() ?? person.Courses.FirstOrDefault(c => c.CourseId == 9 || c.CourseId == 10)?.CourseId?.ToString()) : null) ?? GetStr("courseType"),
+                trainingDate = person?.Courses?.FirstOrDefault(c => c.CourseDateId != null)?.CourseDateId?.ToString() ?? GetStr("trainingDate"),
+                selectedSubjects = (person?.Courses != null && person.Courses.Any(c => c.RenewOtherId != null)) ? person.Courses.Where(c => c.RenewOtherId != null).Select(c => c.RenewOtherId?.ToString() ?? "").Where(s => !string.IsNullOrEmpty(s)).ToList() : (GetStrList("selectedSubjects") ?? new List<string>()),
+                previousCourses = (person?.Trainings != null && person.Trainings.Any(t => t.CourseId != null)) ? person.Trainings.Where(t => t.CourseId != null).Select(t => t.CourseId?.ToString() ?? "").Where(s => !string.IsNullOrEmpty(s)).ToList() : (GetStrList("previousCourses") ?? new List<string>()),
 
                 // Other
-                insuranceExperienceYears = useDb ? other?.InsuranceExperienceYears?.ToString() : GetStr("insuranceExperienceYears"),
-                occupation = useDb ? other?.OtherBusiness : GetStr("occupation"),
-                brokerBranch = useDb ? other?.BrokerBranch : GetStr("brokerBranch"),
-                extraTrainingInterest = useDb ? other?.ExtraTrainingInterest : GetStr("extraTrainingInterest"),
+                insuranceExperienceYears = other?.InsuranceExperienceYears?.ToString() ?? GetStr("insuranceExperienceYears"),
+                occupation = other?.OtherBusiness ?? GetStr("occupation"),
+                brokerBranch = other?.BrokerBranch ?? GetStr("brokerBranch"),
+                extraTrainingInterest = other?.ExtraTrainingInterest ?? GetStr("extraTrainingInterest"),
                 
-                salesTerritories = useDb ? (other?.SalesAreas.Any(s => s.TerritoriesId != null) == true ? other.SalesAreas.Where(s => s.TerritoriesId != null).Select(s => s.TerritoriesId.ToString() ?? "").Where(s => !string.IsNullOrEmpty(s)).ToList() : new List<string>()) : (GetStrList("salesTerritories") ?? new List<string>()),
-                otherInsuranceCompanies = useDb ? (other?.OtherCompanies.Any(c => c.CompanyId != null) == true ? other.OtherCompanies.Where(c => c.CompanyId != null).Select(c => c.CompanyId.ToString() ?? "").Where(s => !string.IsNullOrEmpty(s)).ToList() : new List<string>()) : (GetStrList("otherInsuranceCompanies") ?? new List<string>()),
-                insuranceSpecialty = useDb ? (other?.Specialties.Any(s => s.ExpertiseId != null) == true ? other.Specialties.Where(s => s.ExpertiseId != null).Select(s => s.ExpertiseId.ToString() ?? "").Where(s => !string.IsNullOrEmpty(s)).ToList() : new List<string>()) : (GetStrList("insuranceSpecialty") ?? new List<string>())
+                salesTerritories = (other?.SalesAreas != null && other.SalesAreas.Any(s => s.TerritoriesId != null)) ? other.SalesAreas.Where(s => s.TerritoriesId != null).Select(s => s.TerritoriesId?.ToString() ?? "").Where(s => !string.IsNullOrEmpty(s)).ToList() : (GetStrList("salesTerritories") ?? new List<string>()),
+                otherInsuranceCompanies = (other?.OtherCompanies != null && other.OtherCompanies.Any(c => c.CompanyId != null)) ? other.OtherCompanies.Where(c => c.CompanyId != null).Select(c => c.CompanyId?.ToString() ?? "").Where(s => !string.IsNullOrEmpty(s)).ToList() : (GetStrList("otherInsuranceCompanies") ?? new List<string>()),
+                insuranceSpecialty = (other?.Specialties != null && other.Specialties.Any(s => s.ExpertiseId != null)) ? other.Specialties.Where(s => s.ExpertiseId != null).Select(s => s.ExpertiseId?.ToString() ?? "").Where(s => !string.IsNullOrEmpty(s)).ToList() : (GetStrList("insuranceSpecialty") ?? new List<string>())
             };
 
             return Ok(flatData);
         }
     }
 }
-
