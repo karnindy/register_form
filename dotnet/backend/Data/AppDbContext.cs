@@ -12,6 +12,9 @@ namespace backend.Data
         public DbSet<Register> Registers { get; set; }
         public DbSet<RegisterHistory> RegisterHistories { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<Role> Roles { get; set; }
+        public DbSet<Menu> Menus { get; set; }
+        public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<SysConfig> SysConfigs { get; set; }
         public DbSet<OicAgentProfileStore> OicAgentProfileStores { get; set; }
         public DbSet<OicRawApiStore> OicRawApiStores { get; set; }

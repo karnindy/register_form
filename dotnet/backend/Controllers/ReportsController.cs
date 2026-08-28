@@ -383,16 +383,16 @@ namespace backend.Controllers
                 Other_InsuranceExperienceYears = other?.InsuranceExperienceYears,
                 
                 // PersonOtherCompanies
-                Other_CompanyIds = other?.OtherCompanies != null ? string.Join(", ", other.OtherCompanies.Where(c => c.CompanyId.HasValue).Select(c => companies.ContainsKey(c.CompanyId.Value) ? companies[c.CompanyId.Value] : c.CompanyId.ToString())) : "",
+                Other_CompanyIds = other?.OtherCompanies != null ? string.Join(", ", other.OtherCompanies.Where(c => c.CompanyId.HasValue).Select(c => companies.ContainsKey(c.CompanyId!.Value) ? companies[c.CompanyId.Value] : c.CompanyId.Value.ToString())) : "",
 
                 // PersonOtherSalesArea
-                Other_TerritoriesIds = other?.SalesAreas != null ? string.Join(", ", other.SalesAreas.Where(s => s.TerritoriesId.HasValue).Select(s => territories.ContainsKey(s.TerritoriesId.Value) ? territories[s.TerritoriesId.Value] : s.TerritoriesId.ToString())) : "",
+                Other_TerritoriesIds = other?.SalesAreas != null ? string.Join(", ", other.SalesAreas.Where(s => s.TerritoriesId.HasValue).Select(s => territories.ContainsKey(s.TerritoriesId!.Value) ? territories[s.TerritoriesId.Value] : s.TerritoriesId.Value.ToString())) : "",
 
                 // PersonOtherSpecialty
-                Other_ExpertiseIds = other?.Specialties != null ? string.Join(", ", other.Specialties.Where(s => s.ExpertiseId.HasValue).Select(s => expertises.ContainsKey(s.ExpertiseId.Value) ? expertises[s.ExpertiseId.Value] : s.ExpertiseId.ToString())) : "",
+                Other_ExpertiseIds = other?.Specialties != null ? string.Join(", ", other.Specialties.Where(s => s.ExpertiseId.HasValue).Select(s => expertises.ContainsKey(s.ExpertiseId!.Value) ? expertises[s.ExpertiseId.Value] : s.ExpertiseId.Value.ToString())) : "",
 
                 // PersonTraining5y
-                Training5y_CourseIds = p.Trainings != null ? string.Join(", ", p.Trainings.Where(t => t.CourseId.HasValue).Select(t => t.CourseId.HasValue && subjects.ContainsKey(t.CourseId.Value) ? subjects[t.CourseId.Value] : (t.CourseId?.ToString() ?? ""))) : ""
+                Training5y_CourseIds = p.Trainings != null ? string.Join(", ", p.Trainings.Where(t => t.CourseId.HasValue).Select(t => subjects.ContainsKey(t.CourseId!.Value) ? subjects[t.CourseId.Value] : t.CourseId.Value.ToString())) : ""
             };
         }
     }

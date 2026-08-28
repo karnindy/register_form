@@ -1,0 +1,298 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using backend.Data;
+using backend.Models;
+
+namespace backend.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class RolesController : ControllerBase
+    {
+        private readonly AppDbContext _context;
+
+        public RolesController(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        public class RolePermissionDto
+        {
+            public string MenuKey { get; set; } = null!;
+            public bool CanView { get; set; }
+            public bool CanEdit { get; set; }
+        }
+
+        public class CreateRoleDto
+        {
+            public string RoleCode { get; set; } = null!;
+            public string RoleName { get; set; } = null!;
+            public string? Description { get; set; }
+            public List<RolePermissionDto>? Permissions { get; set; }
+        }
+
+        public class UpdateRoleDto
+        {
+            public string RoleName { get; set; } = null!;
+            public string? Description { get; set; }
+            public List<RolePermissionDto>? Permissions { get; set; }
+        }
+
+        /// <summary>
+        /// ดึงรายการเมนูทั้งหมดที่สามารถกำหนดสิทธิ์ได้
+        /// </summary>
+        [HttpGet("menus")]
+        public async Task<IActionResult> GetMenus()
+        {
+            var menus = await _context.Menus
+                .OrderBy(m => m.SortOrder)
+                .ToListAsync();
+            return Ok(menus);
+        }
+
+        /// <summary>
+        /// ดึงรายการ Roles ทั้งหมด พร้อมจำนวนผู้ใช้งานและสรุปสิทธิ์
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetRoles()
+        {
+            var roles = await _context.Roles
+                .Include(r => r.Permissions)
+                .OrderBy(r => r.Id)
+                .ToListAsync();
+
+            var userCounts = await _context.Users
+                .GroupBy(u => u.Role)
+                .Select(g => new { Role = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.Role, x => x.Count);
+
+            var result = roles.Select(r => new
+            {
+                r.Id,
+                r.RoleCode,
+                r.RoleName,
+                r.Description,
+                r.IsSystem,
+                r.CreatedAt,
+                r.UpdatedAt,
+                UserCount = userCounts.ContainsKey(r.RoleCode) ? userCounts[r.RoleCode] : 0,
+                ViewableMenuCount = r.Permissions.Count(p => p.CanView),
+                EditableMenuCount = r.Permissions.Count(p => p.CanEdit)
+            });
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// ดึงข้อมูล Role และตารางสิทธิ์ตาม ID
+        /// </summary>
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetRole(int id)
+        {
+            var role = await _context.Roles
+                .Include(r => r.Permissions)
+                .SingleOrDefaultAsync(r => r.Id == id);
+
+            if (role == null) return NotFound(new { message = "ไม่พบ Role นี้ในระบบ" });
+
+            var allMenus = await _context.Menus.OrderBy(m => m.SortOrder).ToListAsync();
+
+            var permissionsMatrix = allMenus.Select(m =>
+            {
+                var existing = role.Permissions.FirstOrDefault(p => p.MenuKey == m.MenuKey);
+                return new
+                {
+                    m.MenuKey,
+                    m.MenuName,
+                    m.Category,
+                    m.Icon,
+                    m.Path,
+                    CanView = existing?.CanView ?? false,
+                    CanEdit = existing?.CanEdit ?? false
+                };
+            }).ToList();
+
+            return Ok(new
+            {
+                role.Id,
+                role.RoleCode,
+                role.RoleName,
+                role.Description,
+                role.IsSystem,
+                role.CreatedAt,
+                role.UpdatedAt,
+                Permissions = permissionsMatrix
+            });
+        }
+
+        /// <summary>
+        /// ดึงตารางสิทธิ์การใช้งานตาม RoleCode
+        /// </summary>
+        [HttpGet("by-code/{roleCode}")]
+        public async Task<IActionResult> GetRoleByCode(string roleCode)
+        {
+            var role = await _context.Roles
+                .Include(r => r.Permissions)
+                .SingleOrDefaultAsync(r => r.RoleCode.ToLower() == roleCode.Trim().ToLower());
+
+            if (role == null)
+            {
+                // Fallback permissions based on role code
+                return Ok(new List<object>());
+            }
+
+            var permissions = role.Permissions.Select(p => new
+            {
+                p.MenuKey,
+                p.CanView,
+                p.CanEdit
+            }).ToList();
+
+            return Ok(new
+            {
+                role.RoleCode,
+                role.RoleName,
+                Permissions = permissions
+            });
+        }
+
+        /// <summary>
+        /// สร้าง Role ใหม่พร้อมกำหนดสิทธิ์
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> CreateRole([FromBody] CreateRoleDto dto)
+        {
+            var callerRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            if (string.Equals(callerRole, "Viewer", StringComparison.OrdinalIgnoreCase))
+            {
+                return StatusCode(403, new { message = "บทบาท Viewer มีสิทธิ์สำหรับค้นหาและดูข้อมูล (Enquiry Only) เท่านั้น ไม่ได้รับอนุญาตให้สร้างหรือแก้ไขสิทธิ์" });
+            }
+
+            if (string.IsNullOrWhiteSpace(dto.RoleCode) || string.IsNullOrWhiteSpace(dto.RoleName))
+            {
+                return BadRequest(new { message = "กรุณาระบุรหัส Role และชื่อ Role" });
+            }
+
+            var cleanCode = dto.RoleCode.Trim();
+            var exists = await _context.Roles.AnyAsync(r => r.RoleCode.ToLower() == cleanCode.ToLower());
+            if (exists)
+            {
+                return BadRequest(new { message = "รหัส Role นี้มีอยู่ในระบบแล้ว" });
+            }
+
+            var role = new Role
+            {
+                RoleCode = cleanCode,
+                RoleName = dto.RoleName.Trim(),
+                Description = dto.Description?.Trim(),
+                IsSystem = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Roles.Add(role);
+            await _context.SaveChangesAsync();
+
+            // Add permissions
+            if (dto.Permissions != null && dto.Permissions.Count > 0)
+            {
+                foreach (var p in dto.Permissions)
+                {
+                    _context.RolePermissions.Add(new RolePermission
+                    {
+                        RoleId = role.Id,
+                        MenuKey = p.MenuKey,
+                        CanView = p.CanView,
+                        CanEdit = p.CanEdit
+                    });
+                }
+                await _context.SaveChangesAsync();
+            }
+
+            return CreatedAtAction(nameof(GetRole), new { id = role.Id }, new { message = "สร้าง Role สำเร็จ", roleId = role.Id });
+        }
+
+        /// <summary>
+        /// อัปเดตข้อมูล Role และแก้ไขตารางสิทธิ์
+        /// </summary>
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateRole(int id, [FromBody] UpdateRoleDto dto)
+        {
+            var callerRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            if (string.Equals(callerRole, "Viewer", StringComparison.OrdinalIgnoreCase))
+            {
+                return StatusCode(403, new { message = "บทบาท Viewer มีสิทธิ์สำหรับค้นหาและดูข้อมูล (Enquiry Only) เท่านั้น ไม่ได้รับอนุญาตให้แก้ไขสิทธิ์" });
+            }
+
+            var role = await _context.Roles
+                .Include(r => r.Permissions)
+                .SingleOrDefaultAsync(r => r.Id == id);
+
+            if (role == null) return NotFound(new { message = "ไม่พบ Role นี้ในระบบ" });
+
+            // Superadmin is the supreme root role and must always have 100% full access
+            if (role.RoleCode.ToLower() == "superadmin")
+            {
+                return BadRequest(new { message = "สิทธิ์ของ Superadmin เป็นสิทธิ์สูงสุดของระบบ (Full Access) ถูกล็อคไว้เสมอ ไม่สามารถปรับลดสิทธิ์ได้เพื่อป้องกันระบบขัดข้อง" });
+            }
+
+            role.RoleName = dto.RoleName.Trim();
+            role.Description = dto.Description?.Trim();
+            role.UpdatedAt = DateTime.UtcNow;
+
+            // Update permissions
+            if (dto.Permissions != null)
+            {
+                // Remove existing permissions
+                _context.RolePermissions.RemoveRange(role.Permissions);
+
+                // Add new permissions
+                foreach (var p in dto.Permissions)
+                {
+                    _context.RolePermissions.Add(new RolePermission
+                    {
+                        RoleId = role.Id,
+                        MenuKey = p.MenuKey,
+                        CanView = p.CanView,
+                        CanEdit = p.CanEdit
+                    });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "อัปเดตสิทธิ์ของ Role สำเร็จ" });
+        }
+
+        /// <summary>
+        /// ลบ Role (เฉพาะ Custom Role ที่ไม่มีผู้ใช้ผูกอยู่)
+        /// </summary>
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteRole(int id)
+        {
+            var callerRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            if (string.Equals(callerRole, "Viewer", StringComparison.OrdinalIgnoreCase))
+            {
+                return StatusCode(403, new { message = "บทบาท Viewer มีสิทธิ์สำหรับค้นหาและดูข้อมูล (Enquiry Only) เท่านั้น ไม่ได้รับอนุญาตให้ลบ Role" });
+            }
+
+            var role = await _context.Roles.FindAsync(id);
+            if (role == null) return NotFound(new { message = "ไม่พบ Role นี้ในระบบ" });
+
+            if (role.IsSystem)
+            {
+                return BadRequest(new { message = "ไม่อนุญาตให้ลบ Role เริ่มต้นของระบบ (System Role)" });
+            }
+
+            var hasUsers = await _context.Users.AnyAsync(u => u.Role == role.RoleCode);
+            if (hasUsers)
+            {
+                return BadRequest(new { message = "ไม่สามารถลบ Role นี้ได้เนื่องจากมีผู้ใช้งานผูกอยู่ กรุณาย้ายผู้ใช้งานไป Role อื่นก่อน" });
+            }
+
+            _context.Roles.Remove(role);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "ลบ Role สำเร็จ" });
+        }
+    }
+}

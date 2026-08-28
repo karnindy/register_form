@@ -39,6 +39,21 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Register register)
         {
+            // If the caller is authenticated as an Applicant, enforce that register.NationalId == token's NationId
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+                var tokenNationId = User.FindFirst("NationId")?.Value;
+                if (role == "Applicant" && !string.IsNullOrEmpty(tokenNationId))
+                {
+                    var cleanReqId = System.Text.RegularExpressions.Regex.Replace(register.NationalId ?? "", @"\D", "");
+                    if (cleanReqId != tokenNationId)
+                    {
+                        return StatusCode(403, new { message = "ไม่อนุญาตให้ลงทะเบียนด้วยเลขบัตรประชาชนอื่นที่ไม่ตรงกับบัญชีของท่าน" });
+                    }
+                }
+            }
+
             var id = await _repository.CreateAsync(register);
             return CreatedAtAction(nameof(Get), new { id = id }, register);
         }

@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRegistration } from '../../../context/RegistrationContext';
+import { useAuth } from '../../../context/AuthContext';
 import Button from '../../../components/Button';
 import Input from '../../../components/Input';
 import Select from '../../../components/Select';
@@ -7,6 +8,7 @@ import ThaiDatePicker from '../../../components/ThaiDatePicker';
 
 export default function Tab2PersonalInfo() {
   const { nextStep, prevStep, formData, updateData, masterData } = useRegistration();
+  const { user } = useAuth();
 
   const titleOptions = masterData.titles?.length > 0 ? masterData.titles.map(t => ({ value: t.id.toString(), label: t.name })) : [
     { value: '1', label: 'นาย' },
@@ -46,6 +48,44 @@ export default function Tab2PersonalInfo() {
   const [errors, setErrors] = useState({});
   const [isFetchingPerson, setIsFetchingPerson] = useState(false);
 
+  const formatNationalId = (id) => {
+    if (!id) return '';
+    const val = id.replace(/\D/g, '');
+    let formatted = val;
+    if (val.length > 1) formatted = formatted.slice(0, 1) + '-' + formatted.slice(1);
+    if (val.length > 5) formatted = formatted.slice(0, 6) + '-' + formatted.slice(6);
+    if (val.length > 10) formatted = formatted.slice(0, 12) + '-' + formatted.slice(12);
+    if (val.length > 12) formatted = formatted.slice(0, 15) + '-' + formatted.slice(15);
+    return formatted;
+  };
+
+  // Auto-fill person data on mount if user is bound to a NationId
+  useEffect(() => {
+    if (user?.nationId) {
+      const rawId = user.nationId.replace(/\D/g, '');
+      const formatted = formatNationalId(rawId);
+
+      // Enforce the bound nationalId
+      if (!formData.nationalId || formData.nationalId.replace(/\D/g, '') !== rawId) {
+        updateData({ nationalId: formatted, idCard: rawId });
+      }
+
+      // If personal details not fetched yet, fetch and auto-fill
+      if (!formData.firstNameTh) {
+        setIsFetchingPerson(true);
+        fetch(`http://localhost:8085/api/person/${rawId}`)
+          .then(res => res.ok ? res.json() : null)
+          .then(personData => {
+            if (personData) {
+              updateData({ ...personData, nationalId: formatted });
+            }
+          })
+          .catch(err => console.error("Failed to auto-fetch person data", err))
+          .finally(() => setIsFetchingPerson(false));
+      }
+    }
+  }, [user?.nationId]);
+
   const handleChange = (e) => {
     updateData({ [e.target.id || e.target.name]: e.target.value });
     // Clear error when user types
@@ -55,6 +95,9 @@ export default function Tab2PersonalInfo() {
   };
 
   const handleNationalIdChange = async (e) => {
+    // If locked to authenticated user, prevent changing
+    if (user?.nationId) return;
+
     let val = e.target.value.replace(/\D/g, ''); // Remove non-digits
     if (val.length > 13) val = val.slice(0, 13);
     
@@ -65,7 +108,7 @@ export default function Tab2PersonalInfo() {
     if (val.length > 10) formatted = formatted.slice(0, 12) + '-' + formatted.slice(12);
     if (val.length > 12) formatted = formatted.slice(0, 15) + '-' + formatted.slice(15);
     
-    updateData({ nationalId: formatted });
+    updateData({ nationalId: formatted, idCard: val });
     if (errors.nationalId) {
       setErrors(prev => ({ ...prev, nationalId: '' }));
     }
@@ -206,8 +249,19 @@ export default function Tab2PersonalInfo() {
               placeholder="x-xxxx-xxxxx-xx-x"
               value={formData.nationalId || ''} 
               onChange={handleNationalIdChange}
+              disabled={!!user?.nationId}
+              readOnly={!!user?.nationId}
+              inputClassName={user?.nationId ? "bg-slate-100/90 cursor-not-allowed border-slate-300 font-mono font-medium text-slate-800" : ""}
               error={errors.nationalId}
             />
+            {user?.nationId && (
+              <div className="text-xs text-blue-900 bg-blue-50/90 border border-blue-200 px-3 py-2 rounded-lg -mt-3 mb-4 flex items-center gap-2 shadow-sm">
+                <i className="fa-solid fa-lock text-primary text-sm flex-shrink-0"></i>
+                <span>
+                  เลขประจำตัวประชาชนนี้ถูกผูกไว้กับบัญชีผู้ใช้ <strong>{user.email || user.username}</strong> โดยอัตโนมัติ (ไม่อนุญาตให้แก้ไขเพื่อความถูกต้อง)
+                </span>
+              </div>
+            )}
           </div>
           <div>
             <ThaiDatePicker 

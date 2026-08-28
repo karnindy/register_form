@@ -1,0 +1,350 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using backend.Data;
+using backend.Models;
+using System.Text.RegularExpressions;
+
+namespace backend.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class UsersController : ControllerBase
+    {
+        private readonly AppDbContext _context;
+
+        public UsersController(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        public class CreateUserDto
+        {
+            public string Username { get; set; } = null!;
+            public string? Email { get; set; }
+            public string Password { get; set; } = null!;
+            public string Role { get; set; } = "Applicant"; // Superadmin, Admin, Viewer, Applicant
+            public string? NationId { get; set; }
+            public string? FullName { get; set; }
+            public string? Phone { get; set; }
+            public bool IsActive { get; set; } = true;
+        }
+
+        public class UpdateUserDto
+        {
+            public string? Email { get; set; }
+            public string Role { get; set; } = "Applicant";
+            public string? NationId { get; set; }
+            public string? FullName { get; set; }
+            public string? Phone { get; set; }
+            public bool IsActive { get; set; } = true;
+        }
+
+        public class ChangePasswordDto
+        {
+            public string NewPassword { get; set; } = null!;
+        }
+
+        /// <summary>
+        /// ดึงรายชื่อผู้ใช้งานทั้งหมด พร้อมระบบค้นหาและกรอง Role
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetUsers([FromQuery] string? search, [FromQuery] string? role, [FromQuery] bool? isActive)
+        {
+            var query = _context.Users.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(role) && role != "all")
+            {
+                query = query.Where(u => u.Role == role);
+            }
+
+            if (isActive.HasValue)
+            {
+                query = query.Where(u => u.IsActive == isActive.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.Trim().ToLower();
+                query = query.Where(u => 
+                    u.Username.ToLower().Contains(s) ||
+                    (u.Email != null && u.Email.ToLower().Contains(s)) ||
+                    (u.FullName != null && u.FullName.ToLower().Contains(s)) ||
+                    (u.NationId != null && u.NationId.Contains(s)) ||
+                    (u.Phone != null && u.Phone.Contains(s))
+                );
+            }
+
+            var users = await query
+                .OrderByDescending(u => u.CreatedAt)
+                .Select(u => new
+                {
+                    u.Id,
+                    u.Username,
+                    u.Email,
+                    u.Role,
+                    u.NationId,
+                    u.FullName,
+                    u.Phone,
+                    u.IsActive,
+                    u.IsEmailVerified,
+                    u.LastLoginAt,
+                    u.CreatedAt,
+                    u.UpdatedAt
+                })
+                .ToListAsync();
+
+            return Ok(users);
+        }
+
+        /// <summary>
+        /// ดึงข้อมูลผู้ใช้งานรายบุคคล
+        /// </summary>
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUser(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null) return NotFound(new { message = "ไม่พบผู้ใช้งาน" });
+
+            return Ok(new
+            {
+                user.Id,
+                user.Username,
+                user.Email,
+                user.Role,
+                user.NationId,
+                user.FullName,
+                user.Phone,
+                user.IsActive,
+                user.IsEmailVerified,
+                user.LastLoginAt,
+                user.CreatedAt,
+                user.UpdatedAt
+            });
+        }
+
+        /// <summary>
+        /// สร้างผู้ใช้งานใหม่
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
+        {
+            var callerRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            if (string.Equals(callerRole, "Viewer", StringComparison.OrdinalIgnoreCase))
+            {
+                return StatusCode(403, new { message = "บทบาท Viewer มีสิทธิ์สำหรับค้นหาและดูข้อมูล (Enquiry Only) เท่านั้น ไม่ได้รับอนุญาตให้สร้างผู้ใช้งาน" });
+            }
+
+            if (dto.Role == "Superadmin" && !string.Equals(callerRole, "Superadmin", StringComparison.OrdinalIgnoreCase))
+            {
+                return StatusCode(403, new { message = "เฉพาะ Superadmin เท่านั้นที่สามารถสร้างผู้ใช้งานระดับ Superadmin ได้" });
+            }
+
+            if (string.IsNullOrWhiteSpace(dto.Username) || string.IsNullOrWhiteSpace(dto.Password))
+            {
+                return BadRequest(new { message = "กรุณาระบุชื่อผู้ใช้และรหัสผ่าน" });
+            }
+
+            var cleanUsername = dto.Username.Trim();
+            var cleanEmail = dto.Email?.Trim().ToLower();
+
+            // Check duplicate username
+            var existingUsername = await _context.Users.AnyAsync(u => u.Username.ToLower() == cleanUsername.ToLower());
+            if (existingUsername)
+            {
+                return BadRequest(new { message = "ชื่อผู้ใช้งานนี้มีอยู่ในระบบแล้ว" });
+            }
+
+            // Check duplicate email if provided
+            if (!string.IsNullOrEmpty(cleanEmail))
+            {
+                var existingEmail = await _context.Users.AnyAsync(u => u.Email != null && u.Email.ToLower() == cleanEmail);
+                if (existingEmail)
+                {
+                    return BadRequest(new { message = "อีเมลนี้มีอยู่ในระบบแล้ว" });
+                }
+            }
+
+            string? cleanNationId = null;
+            if (!string.IsNullOrWhiteSpace(dto.NationId))
+            {
+                cleanNationId = Regex.Replace(dto.NationId, @"\D", "");
+                if (cleanNationId.Length != 13)
+                {
+                    return BadRequest(new { message = "เลขประจำตัวประชาชนต้องเป็นตัวเลข 13 หลัก" });
+                }
+            }
+
+            var newUser = new User
+            {
+                Username = cleanUsername,
+                Email = cleanEmail ?? (dto.Role == "Applicant" ? cleanUsername : null),
+                PasswordHash = dto.Password, // Plain/hash
+                Role = dto.Role,
+                NationId = cleanNationId,
+                FullName = dto.FullName?.Trim(),
+                Phone = dto.Phone?.Trim(),
+                IsActive = dto.IsActive,
+                IsEmailVerified = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Users.Add(newUser);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetUser), new { id = newUser.Id }, new
+            {
+                newUser.Id,
+                newUser.Username,
+                newUser.Email,
+                newUser.Role,
+                newUser.NationId,
+                newUser.FullName,
+                newUser.Phone,
+                newUser.IsActive,
+                newUser.CreatedAt
+            });
+        }
+
+        /// <summary>
+        /// แก้ไขข้อมูลผู้ใช้งาน
+        /// </summary>
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDto dto)
+        {
+            var callerRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            if (string.Equals(callerRole, "Viewer", StringComparison.OrdinalIgnoreCase))
+            {
+                return StatusCode(403, new { message = "บทบาท Viewer มีสิทธิ์สำหรับค้นหาและดูข้อมูล (Enquiry Only) เท่านั้น ไม่ได้รับอนุญาตให้แก้ไขผู้ใช้งาน" });
+            }
+
+            var user = await _context.Users.FindAsync(id);
+            if (user == null) return NotFound(new { message = "ไม่พบผู้ใช้งาน" });
+
+            if (user.Role == "Superadmin" && !string.Equals(callerRole, "Superadmin", StringComparison.OrdinalIgnoreCase))
+            {
+                return StatusCode(403, new { message = "ไม่อนุญาตให้แก้ไขข้อมูลของผู้ดูแลระบบสูงสุด (Superadmin)" });
+            }
+
+            if (dto.Role == "Superadmin" && !string.Equals(callerRole, "Superadmin", StringComparison.OrdinalIgnoreCase))
+            {
+                return StatusCode(403, new { message = "ไม่อนุญาตให้ปรับระดับสิทธิ์เป็น Superadmin" });
+            }
+
+            var cleanEmail = dto.Email?.Trim().ToLower();
+            if (!string.IsNullOrEmpty(cleanEmail) && cleanEmail != user.Email?.ToLower())
+            {
+                var existingEmail = await _context.Users.AnyAsync(u => u.Id != id && u.Email != null && u.Email.ToLower() == cleanEmail);
+                if (existingEmail)
+                {
+                    return BadRequest(new { message = "อีเมลนี้มีผู้ใช้งานอื่นใช้แล้ว" });
+                }
+                user.Email = cleanEmail;
+            }
+
+            if (!string.IsNullOrWhiteSpace(dto.NationId))
+            {
+                var cleanNationId = Regex.Replace(dto.NationId, @"\D", "");
+                user.NationId = cleanNationId;
+            }
+            else
+            {
+                user.NationId = null;
+            }
+
+            user.Role = dto.Role;
+            user.FullName = dto.FullName?.Trim();
+            user.Phone = dto.Phone?.Trim();
+            user.IsActive = dto.IsActive;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "อัปเดตข้อมูลผู้ใช้งานสำเร็จ", user });
+        }
+
+        /// <summary>
+        /// เปลี่ยนรหัสผ่านให้ผู้ใช้งาน
+        /// </summary>
+        [HttpPut("{id}/password")]
+        public async Task<IActionResult> ChangePassword(int id, [FromBody] ChangePasswordDto dto)
+        {
+            var callerRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            if (string.Equals(callerRole, "Viewer", StringComparison.OrdinalIgnoreCase))
+            {
+                return StatusCode(403, new { message = "บทบาท Viewer มีสิทธิ์สำหรับค้นหาและดูข้อมูล (Enquiry Only) เท่านั้น ไม่ได้รับอนุญาตให้เปลี่ยนรหัสผ่าน" });
+            }
+
+            if (string.IsNullOrWhiteSpace(dto.NewPassword) || dto.NewPassword.Length < 4)
+            {
+                return BadRequest(new { message = "รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 4 ตัวอักษร" });
+            }
+
+            var user = await _context.Users.FindAsync(id);
+            if (user == null) return NotFound(new { message = "ไม่พบผู้ใช้งาน" });
+
+            if (user.Role == "Superadmin" && !string.Equals(callerRole, "Superadmin", StringComparison.OrdinalIgnoreCase))
+            {
+                return StatusCode(403, new { message = "ไม่อนุญาตให้เปลี่ยนรหัสผ่านของผู้ดูแลระบบสูงสุด (Superadmin)" });
+            }
+
+            user.PasswordHash = dto.NewPassword;
+            user.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = $"เปลี่ยนรหัสผ่านสำหรับผู้ใช้ {user.Username} สำเร็จ" });
+        }
+
+        /// <summary>
+        /// สลับสถานะเปิด/ปิดการใช้งานผู้ใช้ (Toggle Active/Inactive)
+        /// </summary>
+        [HttpPatch("{id}/toggle-status")]
+        public async Task<IActionResult> ToggleStatus(int id)
+        {
+            var callerRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            if (string.Equals(callerRole, "Viewer", StringComparison.OrdinalIgnoreCase))
+            {
+                return StatusCode(403, new { message = "บทบาท Viewer มีสิทธิ์สำหรับค้นหาและดูข้อมูล (Enquiry Only) เท่านั้น ไม่ได้รับอนุญาตให้ระงับหรือเปิดใช้งานบัญชี" });
+            }
+
+            var user = await _context.Users.FindAsync(id);
+            if (user == null) return NotFound(new { message = "ไม่พบผู้ใช้งาน" });
+
+            if (user.Role == "Superadmin")
+            {
+                return BadRequest(new { message = "ไม่อนุญาตให้ระงับการใช้งานบัญชีผู้ดูแลระบบสูงสุด (Superadmin)" });
+            }
+
+            user.IsActive = !user.IsActive;
+            user.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = $"เปลี่ยนสถานะเป็น {(user.IsActive ? "เปิดใช้งาน" : "ระงับการใช้งาน")} สำเร็จ", isActive = user.IsActive });
+        }
+
+        /// <summary>
+        /// ลบผู้ใช้งานออกจากระบบ
+        /// </summary>
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser(int id)
+        {
+            var callerRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            if (string.Equals(callerRole, "Viewer", StringComparison.OrdinalIgnoreCase))
+            {
+                return StatusCode(403, new { message = "บทบาท Viewer มีสิทธิ์สำหรับค้นหาและดูข้อมูล (Enquiry Only) เท่านั้น ไม่ได้รับอนุญาตให้ลบผู้ใช้งาน" });
+            }
+
+            var user = await _context.Users.FindAsync(id);
+            if (user == null) return NotFound(new { message = "ไม่พบผู้ใช้งาน" });
+
+            if (user.Role == "Superadmin" || user.Username.ToLower() == "superadmin" || user.Username.ToLower() == "admin")
+            {
+                return BadRequest(new { message = "ไม่อนุญาตให้ลบบัญชีผู้ดูแลระบบหลักของระบบ" });
+            }
+
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "ลบผู้ใช้งานสำเร็จ" });
+        }
+    }
+}

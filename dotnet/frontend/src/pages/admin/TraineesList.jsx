@@ -1,7 +1,10 @@
 import { useState, useEffect, Fragment } from 'react';
 import TraineeEditModal from './TraineeEditModal';
+import { useAuth } from '../../context/AuthContext';
 
 export default function TraineesList() {
+  const { canEditMenu, user } = useAuth();
+  const canEditTrainees = canEditMenu('trainees');
   const [trainees, setTrainees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -271,15 +274,19 @@ export default function TraineesList() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button onClick={() => handleViewTrainee(t)} className="text-primary hover:text-primary-light mr-3" title="ดูรูปภาพ">
-                        <i className="fas fa-image"></i>
+                      <button onClick={() => handleViewTrainee(t)} className="text-primary hover:text-primary-light mr-3" title="ดูรูปภาพเอกสาร">
+                        <i className="fas fa-image"></i> ดูรูปภาพ
                       </button>
-                      <button onClick={() => setEditingTraineeId(t.nationId)} className="text-yellow-600 hover:text-yellow-900 mr-3" title="แก้ไขข้อมูล/ประวัติ">
-                        <i className="fas fa-edit"></i> แก้ไข
-                      </button>
-                      <button className="text-red-600 hover:text-red-900" title="ลบข้อมูล">
-                        <i className="fas fa-trash"></i>
-                      </button>
+                      {canEditTrainees && (
+                        <>
+                          <button onClick={() => setEditingTraineeId(t.nationId)} className="text-yellow-600 hover:text-yellow-900 mr-3" title="แก้ไขข้อมูล/ประวัติ">
+                            <i className="fas fa-edit"></i> แก้ไข
+                          </button>
+                          <button className="text-red-600 hover:text-red-900" title="ลบข้อมูล">
+                            <i className="fas fa-trash"></i>
+                          </button>
+                        </>
+                      )}
                     </td>
                   </tr>
                   
@@ -536,16 +543,18 @@ export default function TraineesList() {
                         )}
                       </div>
                       <div className="w-full mt-auto relative">
-                        <label className={`w-full block text-center text-sm font-medium py-2 px-4 rounded cursor-pointer transition-colors ${isUploading ? 'bg-gray-300 text-gray-500' : 'bg-primary text-white hover:bg-primary-light'}`}>
-                          {isUploading ? 'กำลังอัปโหลด...' : 'อัปโหลดรูปใหม่'}
-                          <input 
-                            type="file" 
-                            accept="image/jpeg,image/png,image/gif" 
-                            className="hidden" 
-                            disabled={isUploading}
-                            onChange={(e) => handleUploadDocument(e, type.key)} 
-                          />
-                        </label>
+                        {canEditTrainees && (
+                          <label className={`w-full block text-center text-sm font-medium py-2 px-4 rounded cursor-pointer transition-colors ${isUploading ? 'bg-gray-300 text-gray-500' : 'bg-primary text-white hover:bg-primary-light'}`}>
+                            {isUploading ? 'กำลังอัปโหลด...' : 'อัปโหลดรูปใหม่'}
+                            <input 
+                              type="file" 
+                              accept="image/jpeg,image/png,image/gif" 
+                              className="hidden" 
+                              disabled={isUploading}
+                              onChange={(e) => handleUploadDocument(e, type.key)} 
+                            />
+                          </label>
+                        )}
                         {doc && <p className="text-xs text-gray-500 text-center mt-2">อัปเดตล่าสุด: {new Date(doc.uploadedAt).toLocaleString('th-TH')}</p>}
                       </div>
                     </div>

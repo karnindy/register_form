@@ -1,8 +1,21 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from './AuthContext';
 
 const RegistrationContext = createContext();
 
+const formatNationalId = (id) => {
+  if (!id) return '';
+  const val = id.replace(/\D/g, '');
+  let formatted = val;
+  if (val.length > 1) formatted = formatted.slice(0, 1) + '-' + formatted.slice(1);
+  if (val.length > 5) formatted = formatted.slice(0, 6) + '-' + formatted.slice(6);
+  if (val.length > 10) formatted = formatted.slice(0, 12) + '-' + formatted.slice(12);
+  if (val.length > 12) formatted = formatted.slice(0, 15) + '-' + formatted.slice(15);
+  return formatted;
+};
+
 export function RegistrationProvider({ children }) {
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [masterData, setMasterData] = useState({
     provinces: [],
@@ -18,11 +31,27 @@ export function RegistrationProvider({ children }) {
   const [sysConfig, setSysConfig] = useState({});
   const [formData, setFormData] = useState({
     pdpaConsent: false,
-    idCard: '',
+    nationalId: user?.nationId ? formatNationalId(user.nationId) : '',
+    idCard: user?.nationId || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
     firstNameTh: '',
     lastNameTh: '',
     // ... other fields
   });
+
+  useEffect(() => {
+    if (user?.nationId) {
+      const formatted = formatNationalId(user.nationId);
+      setFormData(prev => ({
+        ...prev,
+        nationalId: formatted,
+        idCard: user.nationId,
+        email: prev.email || user.email || '',
+        phone: prev.phone || user.phone || ''
+      }));
+    }
+  }, [user]);
 
   useEffect(() => {
     // Fetch master data on load
