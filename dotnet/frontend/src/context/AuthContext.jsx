@@ -108,16 +108,19 @@ export function AuthProvider({ children }) {
     if (!user) return false;
     if (user.role === 'Superadmin') return true; // Superadmin has all permissions
 
-    if (!user.permissions || !Array.isArray(user.permissions)) {
+    if (!user.permissions || !Array.isArray(user.permissions) || user.permissions.length === 0) {
       // Fallback defaults for standard roles if permissions not loaded
-      if (user.role === 'Admin') return true;
+      if (user.role === 'Admin') return !['registration_form', 'my_registrations'].includes(menuKey);
       if (user.role === 'Viewer') return action === 'view' && ['dashboard', 'trainees', 'reports'].includes(menuKey);
       if (user.role === 'Applicant') return ['registration_form', 'my_registrations'].includes(menuKey);
       return false;
     }
 
     const perm = user.permissions.find(p => p.menuKey === menuKey);
-    if (!perm) return false;
+    if (!perm) {
+      if (user.role === 'Admin') return !['registration_form', 'my_registrations'].includes(menuKey);
+      return false;
+    }
 
     return action === 'edit' ? !!perm.canEdit : !!perm.canView;
   };

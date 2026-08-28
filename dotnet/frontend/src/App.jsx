@@ -35,12 +35,14 @@ import OicValueMappingCrud from './pages/admin/OicValueMappingCrud';
 import ReportsDashboard from './pages/admin/ReportsDashboard';
 import ReportRemarks from './pages/admin/ReportRemarks';
 import ExportDataReport from './pages/admin/ExportDataReport';
+import ErrorBoundary from './components/ErrorBoundary';
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
+    <ErrorBoundary name="Root Application">
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
           {/* Public Auth Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -99,6 +101,7 @@ export default function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

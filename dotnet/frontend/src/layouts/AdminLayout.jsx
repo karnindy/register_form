@@ -1,5 +1,6 @@
 import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 export default function AdminLayout() {
   const { user, canViewMenu, logout } = useAuth();
@@ -96,7 +97,9 @@ export default function AdminLayout() {
 
       {/* Main Content */}
       <main className="flex-1 p-8 w-full overflow-y-auto h-screen">
-        <Outlet />
+        <ErrorBoundary name="Admin Main Page">
+          <Outlet />
+        </ErrorBoundary>
       </main>
     </div>
   );

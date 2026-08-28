@@ -159,13 +159,13 @@ export default function Login() {
 
               <button
                 type="button"
-                onClick={() => handleQuickLogin('admin', 'editor')}
+                onClick={() => handleQuickLogin('admin', 'password123')}
                 className="p-2 bg-white border border-amber-200 rounded-lg text-left hover:border-amber-500 hover:bg-amber-50/50 transition-colors shadow-sm"
               >
                 <div className="font-bold text-amber-700 flex items-center gap-1">
                   🛡️ แอดมิน (Admin)
                 </div>
-                <div className="text-[11px] text-slate-500">admin / editor</div>
+                <div className="text-[11px] text-slate-500">admin / password123</div>
               </button>
 
               <button
@@ -176,18 +176,18 @@ export default function Login() {
                 <div className="font-bold text-purple-700 flex items-center gap-1">
                   👑 ซูเปอร์แอดมิน
                 </div>
-                <div className="text-[11px] text-slate-500">superadmin / pass...</div>
+                <div className="text-[11px] text-slate-500">superadmin / password123</div>
               </button>
 
               <button
                 type="button"
-                onClick={() => handleQuickLogin('viewer', 'viewer')}
+                onClick={() => handleQuickLogin('viewer', 'password123')}
                 className="p-2 bg-white border border-emerald-200 rounded-lg text-left hover:border-emerald-500 hover:bg-emerald-50/50 transition-colors shadow-sm"
               >
                 <div className="font-bold text-emerald-700 flex items-center gap-1">
                   👁️ สาขา (Viewer)
                 </div>
-                <div className="text-[11px] text-slate-500">viewer / viewer</div>
+                <div className="text-[11px] text-slate-500">viewer / password123</div>
               </button>
             </div>
           </div>

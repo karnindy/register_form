@@ -7,10 +7,23 @@ import {
 import { useAuth } from '../../context/AuthContext';
 
 export default function UserManagement() {
-  const { user: authUser, canViewMenu, canEditMenu } = useAuth();
-  const canViewUsers = canViewMenu('users');
-  const canEditUsers = canEditMenu('users');
+  const { user: authUser, token, canViewMenu, canEditMenu } = useAuth();
   const isSuperadmin = authUser?.role === 'Superadmin';
+  const canViewUsers = isSuperadmin || canViewMenu('users');
+  const canEditUsers = isSuperadmin || canEditMenu('users');
+
+  const getAuthHeaders = () => {
+    const currentToken = token || localStorage.getItem('authToken');
+    return {
+      'Content-Type': 'application/json',
+      ...(currentToken ? { 'Authorization': `Bearer ${currentToken}` } : {})
+    };
+  };
+
+  const getAuthOnlyHeaders = () => {
+    const currentToken = token || localStorage.getItem('authToken');
+    return currentToken ? { 'Authorization': `Bearer ${currentToken}` } : {};
+  };
 
   const [activeTab, setActiveTab] = useState('users'); // 'users' | 'roles'
 
@@ -60,7 +73,7 @@ export default function UserManagement() {
       if (selectedStatus !== 'all') {
         url += `&isActive=${selectedStatus === 'active'}`;
       }
-      const res = await fetch(url);
+      const res = await fetch(url, { headers: getAuthOnlyHeaders() });
       if (res.ok) {
         const data = await res.json();
         setUsers(data);
@@ -75,7 +88,7 @@ export default function UserManagement() {
 
   const fetchRoles = async () => {
     try {
-      const res = await fetch(`http://localhost:8085/api/roles`);
+      const res = await fetch(`http://localhost:8085/api/roles`, { headers: getAuthOnlyHeaders() });
       if (res.ok) {
         const data = await res.json();
         setRoles(data);
@@ -155,7 +168,7 @@ export default function UserManagement() {
       if (currentUser) {
         const res = await fetch(`http://localhost:8085/api/users/${currentUser.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(),
           body: JSON.stringify({
             email: userFormData.email,
             role: userFormData.role,
@@ -171,7 +184,7 @@ export default function UserManagement() {
       } else {
         const res = await fetch(`http://localhost:8085/api/users`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(),
           body: JSON.stringify(userFormData)
         });
         const data = await res.json();
@@ -197,7 +210,7 @@ export default function UserManagement() {
     try {
       const res = await fetch(`http://localhost:8085/api/users/${currentUser.id}/password`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ newPassword })
       });
       const data = await res.json();
@@ -213,7 +226,8 @@ export default function UserManagement() {
   const handleDeleteUser = async () => {
     try {
       const res = await fetch(`http://localhost:8085/api/users/${currentUser.id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: getAuthOnlyHeaders()
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'ลบผู้ใช้งานไม่สำเร็จ');
@@ -234,7 +248,8 @@ export default function UserManagement() {
     }
     try {
       const res = await fetch(`http://localhost:8085/api/users/${targetUser.id}/toggle-status`, {
-        method: 'PATCH'
+        method: 'PATCH',
+        headers: getAuthOnlyHeaders()
       });
       if (res.ok) {
         fetchUsers();
@@ -271,7 +286,9 @@ export default function UserManagement() {
       return;
     }
     try {
-      const res = await fetch(`http://localhost:8085/api/roles/${role.id}`);
+      const res = await fetch(`http://localhost:8085/api/roles/${role.id}`, {
+        headers: getAuthOnlyHeaders()
+      });
       if (res.ok) {
         const data = await res.json();
         setCurrentRole(data);
@@ -294,7 +311,7 @@ export default function UserManagement() {
       if (currentRole) {
         const res = await fetch(`http://localhost:8085/api/roles/${currentRole.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(),
           body: JSON.stringify({
             roleName: roleFormData.roleName,
             description: roleFormData.description
@@ -308,7 +325,7 @@ export default function UserManagement() {
       } else {
         const res = await fetch(`http://localhost:8085/api/roles`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(),
           body: JSON.stringify(roleFormData)
         });
         if (!res.ok) {
@@ -350,7 +367,7 @@ export default function UserManagement() {
     try {
       const res = await fetch(`http://localhost:8085/api/roles/${currentRole.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           roleName: currentRole.roleName,
           description: currentRole.description,
@@ -378,7 +395,8 @@ export default function UserManagement() {
   const handleDeleteRole = async () => {
     try {
       const res = await fetch(`http://localhost:8085/api/roles/${currentRole.id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: getAuthOnlyHeaders()
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'ลบ Role ไม่สำเร็จ');
@@ -397,6 +415,25 @@ export default function UserManagement() {
   const viewerCount = users.filter(u => u.role === 'Viewer').length;
   const applicantCount = users.filter(u => u.role === 'Applicant').length;
 
+  // Hierarchy Levels: Superadmin = 100, Admin = 50, Custom = 30, Viewer = 20, Applicant = 10
+  const getRoleLevel = (roleCode) => {
+    switch (roleCode?.toLowerCase()) {
+      case 'superadmin': return 100;
+      case 'admin': return 50;
+      case 'viewer': return 20;
+      case 'applicant': return 10;
+      default: return 30; // custom roles
+    }
+  };
+
+  // Rule: Can ONLY manage strictly lower roles (Cannot manage own role or higher roles)
+  const canManageRole = (targetRoleCode) => {
+    if (!authUser?.role || !targetRoleCode) return false;
+    const callerLevel = getRoleLevel(authUser.role);
+    const targetLevel = getRoleLevel(targetRoleCode);
+    return callerLevel > targetLevel;
+  };
+
   const getRoleBadge = (roleCode) => {
     switch (roleCode) {
       case 'Superadmin':
@@ -412,8 +449,8 @@ export default function UserManagement() {
     }
   };
 
-  // Filter selectable roles in user modal (only Superadmin can grant Superadmin role)
-  const selectableRoles = roles.filter(r => isSuperadmin || r.roleCode !== 'Superadmin');
+  // Filter selectable roles in user modal: Can only assign roles that are strictly lower than caller's role
+  const selectableRoles = roles.filter(r => canManageRole(r.roleCode));
 
   // If user cannot view this menu at all (e.g. Viewer)
   if (!canViewUsers) {
@@ -643,14 +680,14 @@ export default function UserManagement() {
                   ) : (
                     users.map(u => {
                       const isTargetSuperadmin = u.role === 'Superadmin';
-                      const canManageThisUser = isSuperadmin || !isTargetSuperadmin;
+                      const canManageThisUser = canManageRole(u.role);
 
                       return (
                         <tr key={u.id} className="hover:bg-slate-50/60 transition-colors">
                           <td className="py-3.5 px-4">
                             <div className="flex items-center gap-3">
                               <div className="w-9 h-9 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-xs">
-                                {(u.fullName || u.username).charAt(0).toUpperCase()}
+                                {(u.fullName || u.username || 'U').charAt(0).toUpperCase()}
                               </div>
                               <div>
                                 <div className="font-bold text-slate-800">{u.fullName || u.username}</div>
@@ -686,7 +723,7 @@ export default function UserManagement() {
                                   ? 'bg-green-100 text-green-800 hover:bg-green-200' 
                                   : 'bg-red-100 text-red-800 hover:bg-red-200'
                               } disabled:opacity-40 disabled:cursor-not-allowed`}
-                              title={canManageThisUser ? "คลิกเพื่อสลับสถานะ" : "สิทธิ์ของ Superadmin ถูกล็อคไว้เสมอ"}
+                              title={canManageThisUser ? "คลิกเพื่อสลับสถานะ" : "ไม่สามารถจัดการบัญชีของ Role ตัวเอง หรือ Role ที่เทียบเท่า/สูงกว่าได้"}
                             >
                               {u.isActive ? 'เปิดใช้งาน' : 'ระงับ'}
                             </button>
@@ -702,7 +739,7 @@ export default function UserManagement() {
                                 onClick={() => handleOpenEditUser(u)}
                                 disabled={!canManageThisUser}
                                 className="p-1.5 text-slate-500 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                                title={canManageThisUser ? "แก้ไขข้อมูล" : "เฉพาะ Superadmin เท่านั้นที่แก้ไขบัญชีนี้ได้"}
+                                title={canManageThisUser ? "แก้ไขข้อมูล" : "ไม่สามารถแก้ไขบัญชีของ Role ตัวเอง หรือ Role ที่เทียบเท่า/สูงกว่าได้"}
                               >
                                 <Edit2 className="w-4 h-4" />
                               </button>
@@ -710,7 +747,7 @@ export default function UserManagement() {
                                 onClick={() => handleOpenPassword(u)}
                                 disabled={!canManageThisUser}
                                 className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                                title={canManageThisUser ? "เปลี่ยนรหัสผ่าน" : "เฉพาะ Superadmin เท่านั้นที่เปลี่ยนรหัสผ่านบัญชีนี้ได้"}
+                                title={canManageThisUser ? "เปลี่ยนรหัสผ่าน" : "ไม่สามารถเปลี่ยนรหัสผ่านของ Role ตัวเอง หรือ Role ที่เทียบเท่า/สูงกว่าได้"}
                               >
                                 <Key className="w-4 h-4" />
                               </button>
@@ -718,7 +755,7 @@ export default function UserManagement() {
                                 onClick={() => handleOpenDeleteUser(u)}
                                 disabled={!canManageThisUser || u.username === 'superadmin' || u.username === 'admin'}
                                 className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                                title={canManageThisUser ? "ลบผู้ใช้" : "ไม่อนุญาตให้ลบบัญชีนี้"}
+                                title={canManageThisUser ? "ลบผู้ใช้" : "ไม่สามารถลบบัญชีนี้ได้"}
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
@@ -763,6 +800,8 @@ export default function UserManagement() {
                 <tbody className="divide-y divide-slate-100">
                   {roles.map(r => {
                     const isSuperadminRole = r.roleCode === 'Superadmin';
+                    const isOwnRole = r.roleCode?.toLowerCase() === authUser?.role?.toLowerCase();
+                    const canManageThisRole = canManageRole(r.roleCode);
 
                     return (
                       <tr key={r.id} className="hover:bg-slate-50/60 transition-colors">
@@ -811,6 +850,14 @@ export default function UserManagement() {
                               <span className="text-xs text-slate-400 italic py-1.5">
                                 สิทธิ์สูงสุดถาวร
                               </span>
+                            ) : !canManageThisRole ? (
+                              <span
+                                className="text-xs text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 flex items-center gap-1 cursor-not-allowed"
+                                title="ไม่สามารถกำหนดสิทธิ์ Role ของตัวเอง หรือ Role ที่มีระดับสิทธิ์เทียบเท่า/สูงกว่าได้"
+                              >
+                                <Lock className="w-3 h-3 text-slate-400" />
+                                {isOwnRole ? 'Role ตัวเอง (ล็อค)' : 'สิทธิ์เทียบเท่า/สูงกว่า'}
+                              </span>
                             ) : (
                               <button
                                 onClick={() => handleOpenPermissions(r)}
@@ -821,7 +868,7 @@ export default function UserManagement() {
                               </button>
                             )}
                             
-                            {!r.isSystem && (
+                            {!r.isSystem && canManageThisRole && (
                               <>
                                 <button
                                   onClick={() => handleOpenEditRole(r)}

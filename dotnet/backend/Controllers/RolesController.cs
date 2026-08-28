@@ -217,11 +217,7 @@ namespace backend.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateRole(int id, [FromBody] UpdateRoleDto dto)
         {
-            var callerRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-            if (string.Equals(callerRole, "Viewer", StringComparison.OrdinalIgnoreCase))
-            {
-                return StatusCode(403, new { message = "บทบาท Viewer มีสิทธิ์สำหรับค้นหาและดูข้อมูล (Enquiry Only) เท่านั้น ไม่ได้รับอนุญาตให้แก้ไขสิทธิ์" });
-            }
+            var callerRole = backend.Common.RoleHierarchy.GetCallerRole(HttpContext);
 
             var role = await _context.Roles
                 .Include(r => r.Permissions)
@@ -233,6 +229,12 @@ namespace backend.Controllers
             if (role.RoleCode.ToLower() == "superadmin")
             {
                 return BadRequest(new { message = "สิทธิ์ของ Superadmin เป็นสิทธิ์สูงสุดของระบบ (Full Access) ถูกล็อคไว้เสมอ ไม่สามารถปรับลดสิทธิ์ได้เพื่อป้องกันระบบขัดข้อง" });
+            }
+
+            // Enforce: Role can only configure strictly lower roles (Role cannot configure itself or higher roles)
+            if (!backend.Common.RoleHierarchy.CanManageRole(callerRole, role.RoleCode))
+            {
+                return StatusCode(403, new { message = $"การกำหนดสิทธิ์ต้องกระทำโดย Role ที่มีระดับสิทธิ์สูงกว่าเท่านั้น บทบาท '{callerRole ?? "ไม่มีสิทธิ์"}' ไม่สามารถแก้ไขสิทธิ์ของ Role '{role.RoleName}' ({role.RoleCode}) ได้" });
             }
 
             role.RoleName = dto.RoleName.Trim();
@@ -269,14 +271,15 @@ namespace backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteRole(int id)
         {
-            var callerRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-            if (string.Equals(callerRole, "Viewer", StringComparison.OrdinalIgnoreCase))
-            {
-                return StatusCode(403, new { message = "บทบาท Viewer มีสิทธิ์สำหรับค้นหาและดูข้อมูล (Enquiry Only) เท่านั้น ไม่ได้รับอนุญาตให้ลบ Role" });
-            }
+            var callerRole = backend.Common.RoleHierarchy.GetCallerRole(HttpContext);
 
             var role = await _context.Roles.FindAsync(id);
             if (role == null) return NotFound(new { message = "ไม่พบ Role นี้ในระบบ" });
+
+            if (!backend.Common.RoleHierarchy.CanManageRole(callerRole, role.RoleCode))
+            {
+                return StatusCode(403, new { message = $"การลบ Role ต้องกระทำโดย Role ที่มีระดับสิทธิ์สูงกว่าเท่านั้น" });
+            }
 
             if (role.IsSystem)
             {

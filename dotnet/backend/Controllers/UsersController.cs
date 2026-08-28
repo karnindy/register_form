@@ -128,15 +128,11 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
         {
-            var callerRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-            if (string.Equals(callerRole, "Viewer", StringComparison.OrdinalIgnoreCase))
-            {
-                return StatusCode(403, new { message = "บทบาท Viewer มีสิทธิ์สำหรับค้นหาและดูข้อมูล (Enquiry Only) เท่านั้น ไม่ได้รับอนุญาตให้สร้างผู้ใช้งาน" });
-            }
+            var callerRole = backend.Common.RoleHierarchy.GetCallerRole(HttpContext);
 
-            if (dto.Role == "Superadmin" && !string.Equals(callerRole, "Superadmin", StringComparison.OrdinalIgnoreCase))
+            if (!backend.Common.RoleHierarchy.CanManageRole(callerRole, dto.Role))
             {
-                return StatusCode(403, new { message = "เฉพาะ Superadmin เท่านั้นที่สามารถสร้างผู้ใช้งานระดับ Superadmin ได้" });
+                return StatusCode(403, new { message = $"การสร้างผู้ใช้งานต้องทำโดย Role ที่มีระดับสิทธิ์สูงกว่าเท่านั้น บัญชีระดับ '{callerRole}' ไม่สามารถสร้างผู้ใช้งานระดับ '{dto.Role}' ได้" });
             }
 
             if (string.IsNullOrWhiteSpace(dto.Username) || string.IsNullOrWhiteSpace(dto.Password))
@@ -211,23 +207,19 @@ namespace backend.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDto dto)
         {
-            var callerRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-            if (string.Equals(callerRole, "Viewer", StringComparison.OrdinalIgnoreCase))
-            {
-                return StatusCode(403, new { message = "บทบาท Viewer มีสิทธิ์สำหรับค้นหาและดูข้อมูล (Enquiry Only) เท่านั้น ไม่ได้รับอนุญาตให้แก้ไขผู้ใช้งาน" });
-            }
+            var callerRole = backend.Common.RoleHierarchy.GetCallerRole(HttpContext);
 
             var user = await _context.Users.FindAsync(id);
             if (user == null) return NotFound(new { message = "ไม่พบผู้ใช้งาน" });
 
-            if (user.Role == "Superadmin" && !string.Equals(callerRole, "Superadmin", StringComparison.OrdinalIgnoreCase))
+            if (!backend.Common.RoleHierarchy.CanManageRole(callerRole, user.Role))
             {
-                return StatusCode(403, new { message = "ไม่อนุญาตให้แก้ไขข้อมูลของผู้ดูแลระบบสูงสุด (Superadmin)" });
+                return StatusCode(403, new { message = $"การจัดการผู้ใช้งานต้องทำโดย Role ที่มีระดับสิทธิ์สูงกว่าเท่านั้น บัญชีระดับ '{callerRole}' ไม่สามารถแก้ไขผู้ใช้งานระดับ '{user.Role}' ได้" });
             }
 
-            if (dto.Role == "Superadmin" && !string.Equals(callerRole, "Superadmin", StringComparison.OrdinalIgnoreCase))
+            if (!backend.Common.RoleHierarchy.CanManageRole(callerRole, dto.Role))
             {
-                return StatusCode(403, new { message = "ไม่อนุญาตให้ปรับระดับสิทธิ์เป็น Superadmin" });
+                return StatusCode(403, new { message = $"บัญชีระดับ '{callerRole}' ไม่สามารถปรับระดับสิทธิ์ผู้ใช้งานเป็น '{dto.Role}' ได้" });
             }
 
             var cleanEmail = dto.Email?.Trim().ToLower();
@@ -268,23 +260,19 @@ namespace backend.Controllers
         [HttpPut("{id}/password")]
         public async Task<IActionResult> ChangePassword(int id, [FromBody] ChangePasswordDto dto)
         {
-            var callerRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-            if (string.Equals(callerRole, "Viewer", StringComparison.OrdinalIgnoreCase))
+            var callerRole = backend.Common.RoleHierarchy.GetCallerRole(HttpContext);
+
+            var user = await _context.Users.FindAsync(id);
+            if (user == null) return NotFound(new { message = "ไม่พบผู้ใช้งาน" });
+
+            if (!backend.Common.RoleHierarchy.CanManageRole(callerRole, user.Role))
             {
-                return StatusCode(403, new { message = "บทบาท Viewer มีสิทธิ์สำหรับค้นหาและดูข้อมูล (Enquiry Only) เท่านั้น ไม่ได้รับอนุญาตให้เปลี่ยนรหัสผ่าน" });
+                return StatusCode(403, new { message = $"การเปลี่ยนรหัสผ่านต้องทำโดย Role ที่มีระดับสิทธิ์สูงกว่าเท่านั้น บัญชีระดับ '{callerRole}' ไม่สามารถเปลี่ยนรหัสผ่านของผู้ใช้งานระดับ '{user.Role}' ได้" });
             }
 
             if (string.IsNullOrWhiteSpace(dto.NewPassword) || dto.NewPassword.Length < 4)
             {
                 return BadRequest(new { message = "รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 4 ตัวอักษร" });
-            }
-
-            var user = await _context.Users.FindAsync(id);
-            if (user == null) return NotFound(new { message = "ไม่พบผู้ใช้งาน" });
-
-            if (user.Role == "Superadmin" && !string.Equals(callerRole, "Superadmin", StringComparison.OrdinalIgnoreCase))
-            {
-                return StatusCode(403, new { message = "ไม่อนุญาตให้เปลี่ยนรหัสผ่านของผู้ดูแลระบบสูงสุด (Superadmin)" });
             }
 
             user.PasswordHash = dto.NewPassword;
@@ -300,18 +288,14 @@ namespace backend.Controllers
         [HttpPatch("{id}/toggle-status")]
         public async Task<IActionResult> ToggleStatus(int id)
         {
-            var callerRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-            if (string.Equals(callerRole, "Viewer", StringComparison.OrdinalIgnoreCase))
-            {
-                return StatusCode(403, new { message = "บทบาท Viewer มีสิทธิ์สำหรับค้นหาและดูข้อมูล (Enquiry Only) เท่านั้น ไม่ได้รับอนุญาตให้ระงับหรือเปิดใช้งานบัญชี" });
-            }
+            var callerRole = backend.Common.RoleHierarchy.GetCallerRole(HttpContext);
 
             var user = await _context.Users.FindAsync(id);
             if (user == null) return NotFound(new { message = "ไม่พบผู้ใช้งาน" });
 
-            if (user.Role == "Superadmin")
+            if (!backend.Common.RoleHierarchy.CanManageRole(callerRole, user.Role))
             {
-                return BadRequest(new { message = "ไม่อนุญาตให้ระงับการใช้งานบัญชีผู้ดูแลระบบสูงสุด (Superadmin)" });
+                return StatusCode(403, new { message = $"การระงับหรือเปิดใช้งานบัญชีต้องทำโดย Role ที่มีระดับสิทธิ์สูงกว่าเท่านั้น บัญชีระดับ '{callerRole}' ไม่สามารถจัดการบัญชีระดับ '{user.Role}' ได้" });
             }
 
             user.IsActive = !user.IsActive;
@@ -327,14 +311,15 @@ namespace backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            var callerRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-            if (string.Equals(callerRole, "Viewer", StringComparison.OrdinalIgnoreCase))
-            {
-                return StatusCode(403, new { message = "บทบาท Viewer มีสิทธิ์สำหรับค้นหาและดูข้อมูล (Enquiry Only) เท่านั้น ไม่ได้รับอนุญาตให้ลบผู้ใช้งาน" });
-            }
+            var callerRole = backend.Common.RoleHierarchy.GetCallerRole(HttpContext);
 
             var user = await _context.Users.FindAsync(id);
             if (user == null) return NotFound(new { message = "ไม่พบผู้ใช้งาน" });
+
+            if (!backend.Common.RoleHierarchy.CanManageRole(callerRole, user.Role))
+            {
+                return StatusCode(403, new { message = $"การลบผู้ใช้งานต้องทำโดย Role ที่มีระดับสิทธิ์สูงกว่าเท่านั้น บัญชีระดับ '{callerRole}' ไม่สามารถลบผู้ใช้งานระดับ '{user.Role}' ได้" });
+            }
 
             if (user.Role == "Superadmin" || user.Username.ToLower() == "superadmin" || user.Username.ToLower() == "admin")
             {
