@@ -84,18 +84,32 @@ namespace backend.Controllers
             var provinces = await _context.Provinces.ToListAsync();
             var districts = await _context.Districts.ToListAsync();
             var subDistricts = await _context.SubDistricts.ToListAsync();
+            var titles = await _context.Titles.ToListAsync();
+
+            string GetTitleName(string? titleValue)
+            {
+                if (string.IsNullOrEmpty(titleValue)) return "";
+                if (int.TryParse(titleValue, out int tid))
+                {
+                    var t = titles.FirstOrDefault(x => x.Id == tid);
+                    if (t != null) return t.Name;
+                }
+                return titleValue;
+            }
 
             int? GetProvinceId(string? name) => string.IsNullOrEmpty(name) ? null : provinces.FirstOrDefault(x => x.ProvinceThai == name)?.ProvinceId;
             int? GetDistrictId(string? name) => string.IsNullOrEmpty(name) ? null : districts.FirstOrDefault(x => x.DistrictThai == name)?.DistrictId;
             int? GetSubDistrictId(string? name) => string.IsNullOrEmpty(name) ? null : subDistricts.FirstOrDefault(x => x.SubDistrictThai == name)?.SubDistrictId;
 
-            int? GetGenderId(string? name) => name?.ToLower() switch {
+            int? GetGenderId(string? name) => name?.ToLower() switch
+            {
                 "male" or "ชาย" => 1,
                 "female" or "หญิง" => 2,
                 _ => null
             };
 
-            int? GetReligionId(string? name) => name?.ToLower() switch {
+            int? GetReligionId(string? name) => name?.ToLower() switch
+            {
                 "buddhism" or "พุทธ" => 1,
                 "christianity" or "คริสต์" => 2,
                 "islam" or "อิสลาม" => 3,
@@ -104,7 +118,8 @@ namespace backend.Controllers
                 _ => 6
             };
 
-            int? GetBloodId(string? name) => name?.ToUpper() switch {
+            int? GetBloodId(string? name) => name?.ToUpper() switch
+            {
                 "A" => 1,
                 "B" => 2,
                 "O" => 3,
@@ -118,11 +133,15 @@ namespace backend.Controllers
             var affiliation = person?.Affiliations.FirstOrDefault();
             var other = person?.Others.FirstOrDefault();
 
+            var rawTitle = person?.TitleTh ?? GetStr("titleTh");
+            var resolvedTitleName = GetTitleName(rawTitle);
+
             var flatData = new
             {
                 nationalId = person?.NationId ?? cleanNationId,
                 idCardExpiry = person?.IdCardExpiry?.ToString("yyyy-MM-dd") ?? GetStr("idCardExpiry"),
-                titleTh = person?.TitleTh ?? GetStr("titleTh"),
+                titleTh = rawTitle,
+                titleThName = resolvedTitleName,
                 firstNameTh = person?.FirstNameTh ?? GetStr("firstNameTh"),
                 middleNameTh = person?.MiddleNameTh ?? GetStr("middleNameTh"),
                 lastNameTh = person?.LastNameTh ?? GetStr("lastNameTh"),

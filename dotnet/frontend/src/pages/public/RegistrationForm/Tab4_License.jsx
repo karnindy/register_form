@@ -1,6 +1,7 @@
 import { useRegistration } from '../../../context/RegistrationContext';
 import Button from '../../../components/Button';
 import Input from '../../../components/Input';
+import ThaiDatePicker from '../../../components/ThaiDatePicker';
 import { useEffect, useState } from 'react';
 import Select from 'react-select';
 
@@ -333,17 +334,15 @@ export default function Tab4License() {
               }
             }}
           />
-          <Input 
+          <ThaiDatePicker 
             label="วันที่ออกใบอนุญาต" 
             id="licenseIssue" 
-            type="date" 
             value={formData.licenseIssue || ''} 
             onChange={handleChange} 
           />
-          <Input 
+          <ThaiDatePicker 
             label="วันที่บัตรหมดอายุ" 
             id="licenseExpire" 
-            type="date" 
             required={isRenewal}
             error={errors.licenseExpire}
             value={formData.licenseExpire || ''} 

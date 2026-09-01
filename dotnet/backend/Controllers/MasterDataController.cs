@@ -77,6 +77,7 @@ namespace backend.Controllers
         }
 
         [HttpGet("renew-courses")]
+        [HttpGet("courses")]
         public async Task<IActionResult> GetRenewCourses([FromQuery] string? agentType)
         {
             var query = _context.RenewBasics.Where(c => c.Status == "active");

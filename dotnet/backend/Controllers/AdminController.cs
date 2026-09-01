@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using backend.Repositories;
 using backend.Models;
 using backend.Data;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace backend.Controllers
 {
@@ -19,6 +22,45 @@ namespace backend.Controllers
             _repository = repository;
         }
 
+        private (string? Role, string? Username, string? NationId, string? Email) GetCallerInfo(AppDbContext context)
+        {
+            var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                return (null, null, null, null);
+            }
+
+            var tokenStr = authHeader.Substring("Bearer ".Length).Trim();
+            try
+            {
+                var handler = new JwtSecurityTokenHandler();
+                if (handler.CanReadToken(tokenStr))
+                {
+                    var jwt = handler.ReadJwtToken(tokenStr);
+                    var role = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role || c.Type == "role")?.Value;
+                    var username = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name || c.Type == "unique_name")?.Value;
+                    var nationId = jwt.Claims.FirstOrDefault(c => c.Type == "NationId" || c.Type == "nationId")?.Value;
+                    var email = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email || c.Type == "email")?.Value;
+
+                    if (string.IsNullOrEmpty(nationId) && !string.IsNullOrEmpty(username))
+                    {
+                        var user = context.Users.FirstOrDefault(u => u.Username == username);
+                        if (user != null)
+                        {
+                            nationId = user.NationId;
+                            email = user.Email ?? email;
+                            role = user.Role ?? role;
+                        }
+                    }
+
+                    return (role, username, nationId, email);
+                }
+            }
+            catch { }
+
+            return (null, null, null, null);
+        }
+
         [HttpGet("trainees")]
         public async Task<IActionResult> GetTrainees(
             [FromServices] AppDbContext context,
@@ -29,6 +71,8 @@ namespace backend.Controllers
             [FromQuery] string sortBy = "date",
             [FromQuery] string sortDir = "desc")
         {
+            var caller = GetCallerInfo(context);
+
             var query = context.Persons
                 .Include(p => p.Registrations)
                 .Include(p => p.Licenses)
@@ -37,6 +81,21 @@ namespace backend.Controllers
                 .Include(p => p.Courses)
                 .Include(p => p.RegistrationHistories)
                 .AsQueryable();
+
+            // Strict Scope: If caller is Applicant, force filter to ONLY their own record!
+            if (caller.Role?.ToLower() == "applicant")
+            {
+                var cleanNationId = caller.NationId?.Replace("-", "");
+                if (!string.IsNullOrEmpty(cleanNationId))
+                {
+                    query = query.Where(p => p.NationId == cleanNationId);
+                }
+                else if (!string.IsNullOrEmpty(caller.Email))
+                {
+                    var email = caller.Email.ToLower();
+                    query = query.Where(p => p.EmailAlt != null && p.EmailAlt.ToLower() == email);
+                }
+            }
 
             if (!string.IsNullOrEmpty(search))
             {
@@ -209,6 +268,19 @@ namespace backend.Controllers
         [HttpPut("trainees/{nationId}")]
         public async Task<IActionResult> UpdateTraineeFull(string nationId, [FromBody] Person updatedPerson, [FromServices] AppDbContext context)
         {
+            var caller = GetCallerInfo(context);
+
+            // If caller is Applicant, ensure they can ONLY edit their own nationId
+            if (caller.Role?.ToLower() == "applicant")
+            {
+                var cleanCallerNationId = caller.NationId?.Replace("-", "");
+                var cleanTargetNationId = nationId.Replace("-", "");
+                if (cleanCallerNationId != cleanTargetNationId)
+                {
+                    return StatusCode(403, new { message = "ผู้สมัครสามารถแก้ไขได้เฉพาะข้อมูลของตนเองเท่านั้น" });
+                }
+            }
+
             var p = await context.Persons
                 .Include(x => x.Registrations)
                 .Include(x => x.Licenses)
@@ -222,14 +294,29 @@ namespace backend.Controllers
                 .FirstOrDefaultAsync(x => x.NationId == nationId);
                 
             if (p == null) return NotFound();
-            
-            // Update scalar fields of Person
+
+            // 1. Snapshot OLD Data for History
+            var oldSnapshot = new
+            {
+                p.NationId,
+                p.TitleTh,
+                p.FirstNameTh,
+                p.LastNameTh,
+                p.BirthDate,
+                p.GenderId,
+                p.BloodGroupId,
+                p.ReligionId,
+                p.PhoneOtp,
+                p.EmailAlt,
+                Addresses = p.Addresses?.Select(a => new { a.AddressType, a.HouseNo, a.Moo, a.Village, a.Soi, a.Road, a.ProvinceId, a.DistrictId, a.SubDistrictId, a.Postcode }).ToList(),
+                Affiliations = p.Affiliations?.Select(a => new { AgentType = a.BrokerType, AgentBranch = a.BranchId, a.BrokerBranch, a.ViriyahAgentCode }).ToList(),
+                Licenses = p.Licenses?.Select(l => new { l.LicenseNo, l.CourseType, l.LicenseIssueDate, l.LicenseExpiryDate }).ToList(),
+                Courses = p.Courses?.Select(c => new { c.CourseId, c.CourseDateId, c.RenewOtherId }).ToList(),
+                Others = p.Others?.Select(o => new { o.ExtraTrainingInterest, o.OtherBusiness, o.InsuranceExperienceYears }).ToList()
+            };
+
+            // 2. Update scalar fields of Person
             context.Entry(p).CurrentValues.SetValues(updatedPerson);
-            
-            // For a complete full update, we would also update collections. 
-            // This requires mapping logic. For simplicity, we can trust EF Core's update if passed correctly,
-            // or we manually update the fields we care about. 
-            // In EF Core, updating collections manually is safer:
             
             // Registrations
             foreach(var r in updatedPerson.Registrations) {
@@ -244,23 +331,36 @@ namespace backend.Controllers
             }
 
             // Addresses
-            foreach(var a in updatedPerson.Addresses) {
-                var existing = p.Addresses.FirstOrDefault(e => e.Id == a.Id);
-                if (existing != null) context.Entry(existing).CurrentValues.SetValues(a);
+            context.PersonAddresses.RemoveRange(p.Addresses);
+            if (updatedPerson.Addresses != null) {
+                foreach(var a in updatedPerson.Addresses) {
+                    a.Id = 0;
+                    a.NationId = nationId;
+                    p.Addresses.Add(a);
+                }
             }
             
             // Affiliations
-            foreach(var a in updatedPerson.Affiliations) {
-                var existing = p.Affiliations.FirstOrDefault(e => e.Id == a.Id);
-                if (existing != null) context.Entry(existing).CurrentValues.SetValues(a);
+            context.PersonAffiliations.RemoveRange(p.Affiliations);
+            if (updatedPerson.Affiliations != null) {
+                foreach(var a in updatedPerson.Affiliations) {
+                    a.Id = 0;
+                    a.NationId = nationId;
+                    p.Affiliations.Add(a);
+                }
             }
 
             // Registrations
-            foreach(var reg in updatedPerson.Registrations) {
-                var existing = p.Registrations.FirstOrDefault(e => e.Id == reg.Id);
+            if (updatedPerson.Registrations != null && updatedPerson.Registrations.Any()) {
+                var firstReg = updatedPerson.Registrations.First();
+                var existing = p.Registrations?.FirstOrDefault();
                 if (existing != null) {
-                    existing.DeductionPrivilege = reg.DeductionPrivilege;
-                    existing.MasterDegreeStatus = reg.MasterDegreeStatus;
+                    existing.DeductionPrivilege = firstReg.DeductionPrivilege;
+                    existing.MasterDegreeStatus = firstReg.MasterDegreeStatus;
+                } else {
+                    firstReg.Id = 0;
+                    firstReg.NationId = nationId;
+                    p.Registrations.Add(firstReg);
                 }
             }
             
@@ -311,6 +411,176 @@ namespace backend.Controllers
                 }
             }
 
+            // 3. Record RegisterHistory & RegistrationHistoryModel
+            var addrA = updatedPerson?.Addresses?.FirstOrDefault(a => (a.AddressType != null && a.AddressType.ToUpper() == "A")) 
+                        ?? updatedPerson?.Addresses?.FirstOrDefault()
+                        ?? p.Addresses?.LastOrDefault(a => (a.AddressType != null && a.AddressType.ToUpper() == "A")) 
+                        ?? p.Addresses?.LastOrDefault();
+            var addrC = updatedPerson?.Addresses?.FirstOrDefault(a => (a.AddressType != null && (a.AddressType.ToUpper() == "C" || a.AddressType.ToUpper() == "M"))) 
+                        ?? p.Addresses?.LastOrDefault(a => (a.AddressType != null && (a.AddressType.ToUpper() == "C" || a.AddressType.ToUpper() == "M")));
+            var affil = updatedPerson?.Affiliations?.FirstOrDefault() ?? p.Affiliations?.LastOrDefault();
+            var lic = updatedPerson?.Licenses?.FirstOrDefault() ?? p.Licenses?.LastOrDefault();
+            var course = updatedPerson?.Courses?.FirstOrDefault() ?? p.Courses?.LastOrDefault();
+            var otherObj = updatedPerson?.Others?.FirstOrDefault() ?? p.Others?.LastOrDefault();
+            var salesAreas = otherObj?.SalesAreas?.Select(s => s.TerritoriesId?.ToString()).Where(s => !string.IsNullOrEmpty(s)).Select(s => s!).Distinct().OrderBy(x => x).ToList() ?? new List<string>();
+            var companies = otherObj?.OtherCompanies?.Select(c => c.CompanyId?.ToString()).Where(s => !string.IsNullOrEmpty(s)).Select(s => s!).Distinct().OrderBy(x => x).ToList() ?? new List<string>();
+            var specialties = otherObj?.Specialties?.Select(s => s.ExpertiseId?.ToString()).Where(s => !string.IsNullOrEmpty(s)).Select(s => s!).Distinct().OrderBy(x => x).ToList() ?? new List<string>();
+            var prevTrainings = (updatedPerson?.Trainings ?? p.Trainings)?.Select(t => t.CourseId?.ToString()).Where(s => !string.IsNullOrEmpty(s)).Select(s => s!).Distinct().OrderBy(x => x).ToList() ?? new List<string>();
+            var selectedSubjs = (updatedPerson?.Courses ?? p.Courses)?.Select(c => c.RenewOtherId?.ToString()).Where(s => !string.IsNullOrEmpty(s)).Select(s => s!).Distinct().OrderBy(x => x).ToList() ?? new List<string>();
+            var regObj = updatedPerson?.Registrations?.FirstOrDefault() ?? p.Registrations?.FirstOrDefault();
+
+            var newSnapshotDict = new Dictionary<string, object?>
+            {
+                ["TitleTh"] = p.TitleTh,
+                ["titleTh"] = p.TitleTh,
+                ["FirstNameTh"] = p.FirstNameTh,
+                ["firstNameTh"] = p.FirstNameTh,
+                ["MiddleNameTh"] = p.MiddleNameTh,
+                ["middleNameTh"] = p.MiddleNameTh,
+                ["LastNameTh"] = p.LastNameTh,
+                ["lastNameTh"] = p.LastNameTh,
+                ["TitleOldTh"] = p.TitleOldTh,
+                ["titleOldTh"] = p.TitleOldTh,
+                ["FirstNameOldTh"] = p.FirstNameOldTh,
+                ["firstNameOldTh"] = p.FirstNameOldTh,
+                ["MiddleNameOldTh"] = p.MiddleNameOldTh,
+                ["middleNameOldTh"] = p.MiddleNameOldTh,
+                ["LastNameOldTh"] = p.LastNameOldTh,
+                ["lastNameOldTh"] = p.LastNameOldTh,
+                ["BirthDate"] = p.BirthDate?.ToString("yyyy-MM-dd"),
+                ["IdCardExpiry"] = p.IdCardExpiry?.ToString("yyyy-MM-dd"),
+                ["idCardExpiry"] = p.IdCardExpiry?.ToString("yyyy-MM-dd"),
+                ["GenderId"] = p.GenderId,
+                ["ReligionId"] = p.ReligionId,
+                ["BloodGroupId"] = p.BloodGroupId,
+                ["FoodAllergy"] = p.FoodAllergy,
+                ["foodAllergy"] = p.FoodAllergy,
+                ["MedicalCondition"] = p.MedicalCondition,
+                ["medicalCondition"] = p.MedicalCondition,
+                ["PhoneOtp"] = p.PhoneOtp,
+                ["phone"] = p.PhoneOtp,
+                ["EmailAlt"] = p.EmailAlt,
+                ["email"] = p.EmailAlt,
+                ["LineId"] = p.LineId,
+                ["lineId"] = p.LineId,
+                ["EmergencyContactName"] = p.EmergencyContactName,
+                ["EmergencyContactPhone"] = p.EmergencyContactPhone,
+                ["HouseNo"] = addrA?.HouseNo,
+                ["houseNo"] = addrA?.HouseNo,
+                ["Moo"] = addrA?.Moo,
+                ["moo"] = addrA?.Moo,
+                ["Village"] = addrA?.Village,
+                ["village"] = addrA?.Village,
+                ["Soi"] = addrA?.Soi,
+                ["soi"] = addrA?.Soi,
+                ["Road"] = addrA?.Road,
+                ["road"] = addrA?.Road,
+                ["ProvinceId"] = addrA?.ProvinceId,
+                ["provinceId"] = addrA?.ProvinceId,
+                ["DistrictId"] = addrA?.DistrictId,
+                ["districtId"] = addrA?.DistrictId,
+                ["SubDistrictId"] = addrA?.SubDistrictId,
+                ["subDistrictId"] = addrA?.SubDistrictId,
+                ["Postcode"] = addrA?.Postcode,
+                ["postcode"] = addrA?.Postcode,
+                ["ContactHouseNo"] = addrC?.HouseNo,
+                ["contactHouseNo"] = addrC?.HouseNo,
+                ["ContactMoo"] = addrC?.Moo,
+                ["contactMoo"] = addrC?.Moo,
+                ["ContactVillage"] = addrC?.Village,
+                ["contactVillage"] = addrC?.Village,
+                ["ContactSoi"] = addrC?.Soi,
+                ["contactSoi"] = addrC?.Soi,
+                ["ContactRoad"] = addrC?.Road,
+                ["contactRoad"] = addrC?.Road,
+                ["ContactProvinceId"] = addrC?.ProvinceId,
+                ["contactProvinceId"] = addrC?.ProvinceId,
+                ["ContactDistrictId"] = addrC?.DistrictId,
+                ["contactDistrictId"] = addrC?.DistrictId,
+                ["ContactSubDistrictId"] = addrC?.SubDistrictId,
+                ["contactSubDistrictId"] = addrC?.SubDistrictId,
+                ["ContactPostcode"] = addrC?.Postcode,
+                ["contactPostcode"] = addrC?.Postcode,
+                ["AgentBranch"] = affil?.BranchId,
+                ["agentBranch"] = affil?.BranchId,
+                ["BrokerType"] = affil?.BrokerType,
+                ["brokerType"] = affil?.BrokerType,
+                ["BrokerCompany"] = affil?.BrokerCompany,
+                ["brokerCompany"] = affil?.BrokerCompany,
+                ["BrokerBranch"] = affil?.BrokerBranch,
+                ["brokerBranch"] = affil?.BrokerBranch,
+                ["viriyahAgentCode"] = affil?.ViriyahAgentCode,
+                ["agentType"] = lic?.CourseType ?? "agent",
+                ["AgentType"] = lic?.CourseType ?? "agent",
+                ["LicenseNo"] = lic?.LicenseNo,
+                ["licenseNo"] = lic?.LicenseNo,
+                ["LicenseIssueDate"] = lic?.LicenseIssueDate?.ToString("yyyy-MM-dd"),
+                ["licenseIssueDate"] = lic?.LicenseIssueDate?.ToString("yyyy-MM-dd"),
+                ["LicenseExpiryDate"] = lic?.LicenseExpiryDate?.ToString("yyyy-MM-dd"),
+                ["licenseExpiryDate"] = lic?.LicenseExpiryDate?.ToString("yyyy-MM-dd"),
+                ["CourseType"] = course?.CourseId?.ToString(),
+                ["courseType"] = course?.CourseId?.ToString(),
+                ["CourseId"] = course?.CourseId,
+                ["courseId"] = course?.CourseId,
+                ["CourseDateId"] = course?.CourseDateId,
+                ["courseDateId"] = course?.CourseDateId,
+                ["PreviousCourses"] = string.Join(",", prevTrainings),
+                ["previousCourses"] = string.Join(",", prevTrainings),
+                ["SelectedSubjects"] = string.Join(",", selectedSubjs),
+                ["selectedSubjects"] = string.Join(",", selectedSubjs),
+                ["SalesArea"] = string.Join(",", salesAreas),
+                ["salesArea"] = string.Join(",", salesAreas),
+                ["InsuranceSpecialty"] = string.Join(",", specialties),
+                ["insuranceSpecialty"] = string.Join(",", specialties),
+                ["OtherInsuranceCompanies"] = string.Join(",", companies),
+                ["otherInsuranceCompanies"] = string.Join(",", companies),
+                ["MainBusiness"] = otherObj?.OtherBusiness,
+                ["mainBusiness"] = otherObj?.OtherBusiness,
+                ["InsuranceExperienceYears"] = otherObj?.InsuranceExperienceYears?.ToString(),
+                ["insuranceExperienceYears"] = otherObj?.InsuranceExperienceYears?.ToString(),
+                ["DeductionPrivilege"] = regObj?.DeductionPrivilege,
+                ["deductionPrivilege"] = regObj?.DeductionPrivilege,
+                ["MasterDegreeStatus"] = regObj?.MasterDegreeStatus,
+                ["masterDegreeStatus"] = regObj?.MasterDegreeStatus,
+                ["Action"] = "แก้ไขข้อมูลผู้สมัคร/ผู้อบรม"
+            };
+
+            var historyJson = JsonSerializer.Serialize(newSnapshotDict);
+
+            var regId = p.Registrations.FirstOrDefault()?.Id ?? 0;
+            var historyRecord = new RegisterHistory
+            {
+                RegisterId = regId,
+                EditedByType = caller.Role?.ToLower() ?? "applicant",
+                CreatedBy = caller.Username ?? "user",
+                OldData = historyJson,
+                NewData = historyJson,
+                CreatedAt = DateTime.UtcNow
+            };
+            context.RegisterHistories.Add(historyRecord);
+
+            var historyRecordNew = new RegistrationHistoryModel
+            {
+                RegisterId = regId,
+                NationId = nationId,
+                EditedByType = caller.Role?.ToLower() ?? "applicant",
+                CreatedBy = caller.Username ?? "user",
+                OldData = historyJson,
+                NewData = historyJson,
+                CreatedAt = DateTime.UtcNow
+            };
+            context.RegistrationHistoriesNew.Add(historyRecordNew);
+
+            // 5. Sync with admin_users if corresponding user exists
+            var matchedUser = await context.Users.FirstOrDefaultAsync(u => u.NationId == nationId || (u.Email != null && u.Email.ToLower() == p.EmailAlt.ToLower()));
+            if (matchedUser != null)
+            {
+                if (!string.IsNullOrEmpty(p.FirstNameTh)) matchedUser.FullName = $"{p.FirstNameTh} {p.LastNameTh}".Trim();
+                if (!string.IsNullOrEmpty(p.PhoneOtp)) matchedUser.Phone = p.PhoneOtp;
+                if (!string.IsNullOrEmpty(p.EmailAlt)) matchedUser.Email = p.EmailAlt;
+                matchedUser.UpdatedAt = DateTime.UtcNow;
+            }
+
             await context.SaveChangesAsync();
             return Ok(p);
         }
@@ -342,15 +612,38 @@ namespace backend.Controllers
         }
 
         [HttpGet("documents/{id}/file")]
-        [AllowAnonymous] // Assuming we need this or not? The images might be protected.
-        public async Task<IActionResult> GetDocumentFile(int id, [FromServices] AppDbContext context)
+        [AllowAnonymous]
+        public async Task<IActionResult> GetDocumentFile(int id, [FromServices] AppDbContext context, [FromServices] IWebHostEnvironment env)
         {
             var doc = await context.PersonDocuments.FindAsync(id);
-            if (doc == null || doc.FileData == null)
+            if (doc == null)
                 return NotFound("Document file not found");
 
-            var contentType = string.IsNullOrEmpty(doc.ContentType) ? "application/octet-stream" : doc.ContentType;
-            return File(doc.FileData, contentType);
+            if (doc.FileData != null && doc.FileData.Length > 0)
+            {
+                var contentType = string.IsNullOrEmpty(doc.ContentType) ? "image/jpeg" : doc.ContentType;
+                return File(doc.FileData, contentType);
+            }
+
+            if (!string.IsNullOrEmpty(doc.FilePath))
+            {
+                var fullPath = Path.Combine(env.ContentRootPath, doc.FilePath);
+                if (System.IO.File.Exists(fullPath))
+                {
+                    var ext = Path.GetExtension(doc.FilePath).ToLower();
+                    var contentType = ext switch
+                    {
+                        ".png" => "image/png",
+                        ".jpg" or ".jpeg" => "image/jpeg",
+                        ".gif" => "image/gif",
+                        ".pdf" => "application/pdf",
+                        _ => "application/octet-stream"
+                    };
+                    return PhysicalFile(fullPath, contentType);
+                }
+            }
+
+            return NotFound("Document file not found");
         }
     }
 }

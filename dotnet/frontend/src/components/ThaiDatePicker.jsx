@@ -23,6 +23,7 @@ const months = [
 export default function ThaiDatePicker({ 
   label, 
   id, 
+  name,
   required, 
   error, 
   value, 
@@ -32,12 +33,20 @@ export default function ThaiDatePicker({
   ...props 
 }) {
 
-  // Convert "YYYY-MM-DD" string to Date object
-  const selectedDate = value ? new Date(value) : null;
+  // Convert "YYYY-MM-DD" or ISO string to Date object
+  let selectedDate = null;
+  if (value) {
+    const rawStr = typeof value === 'string' ? value.split('T')[0] : value;
+    const d = new Date(rawStr);
+    if (!isNaN(d.getTime())) {
+      selectedDate = d;
+    }
+  }
 
   const handleDateChange = (date) => {
+    const targetName = name || id;
     if (!date) {
-      onChange({ target: { id, name: id, value: '' } });
+      onChange({ target: { id, name: targetName, value: '' } });
       return;
     }
     
@@ -45,7 +54,7 @@ export default function ThaiDatePicker({
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    onChange({ target: { id, name: id, value: `${year}-${month}-${day}` } });
+    onChange({ target: { id, name: targetName, value: `${year}-${month}-${day}` } });
   };
 
   // Custom Input component to inject styles

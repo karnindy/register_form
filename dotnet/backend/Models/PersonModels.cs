@@ -13,7 +13,7 @@ namespace backend.Models
         [Key]
         [Column("NationId")]
         [StringLength(13)]
-        public string NationId { get; set; }
+        public string? NationId { get; set; }
 
         public DateTime? IdCardExpiry { get; set; }
         public string? TitleTh { get; set; }
@@ -57,7 +57,7 @@ namespace backend.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         [StringLength(13)]
-        public string NationId { get; set; }
+        public string? NationId { get; set; }
         public bool? PdpaConsent { get; set; }
         public DateTime? start_time { get; set; }
         public DateTime? completion_time { get; set; }
@@ -66,7 +66,9 @@ namespace backend.Models
         public string? MasterDegreeStatus { get; set; }
 
         [ForeignKey("NationId")]
-        public Person Person { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidateNever]
+        public Person? Person { get; set; }
     }
 
     [Table("personaddress")]
@@ -76,7 +78,7 @@ namespace backend.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         [StringLength(13)]
-        public string NationId { get; set; }
+        public string? NationId { get; set; }
         public string? HouseNo { get; set; }
         public string? Moo { get; set; }
         public string? Village { get; set; }
@@ -90,7 +92,9 @@ namespace backend.Models
         public string? AddressType { get; set; }
 
         [ForeignKey("NationId")]
-        public Person Person { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidateNever]
+        public Person? Person { get; set; }
     }
 
     [Table("personlicense")]
@@ -100,7 +104,7 @@ namespace backend.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         [StringLength(13)]
-        public string NationId { get; set; }
+        public string? NationId { get; set; }
         public string? LicenseNo { get; set; }
         public DateTime? LicenseIssueDate { get; set; }
         public DateTime? LicenseExpiryDate { get; set; }
@@ -108,7 +112,9 @@ namespace backend.Models
         public string? CourseTypeCode { get; set; }
 
         [ForeignKey("NationId")]
-        public Person Person { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidateNever]
+        public Person? Person { get; set; }
     }
 
     [Table("personaffiliation")]
@@ -118,7 +124,7 @@ namespace backend.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         [StringLength(13)]
-        public string NationId { get; set; }
+        public string? NationId { get; set; }
         public int? RegionId { get; set; }
         public int? BranchId { get; set; }
         public string? BrokerCompany { get; set; }
@@ -127,7 +133,9 @@ namespace backend.Models
         public string? BrokerType { get; set; }
 
         [ForeignKey("NationId")]
-        public Person Person { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidateNever]
+        public Person? Person { get; set; }
     }
 
     [Table("personcourse")]
@@ -137,13 +145,15 @@ namespace backend.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int PersonCourseId { get; set; }
         [StringLength(13)]
-        public string NationId { get; set; }
+        public string? NationId { get; set; }
         public int? CourseId { get; set; }
         public int? CourseDateId { get; set; }
         public int? RenewOtherId { get; set; }
 
         [ForeignKey("NationId")]
-        public Person Person { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidateNever]
+        public Person? Person { get; set; }
     }
 
     [Table("persontraining5y")]
@@ -153,11 +163,13 @@ namespace backend.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         [StringLength(13)]
-        public string NationId { get; set; }
+        public string? NationId { get; set; }
         public int? CourseId { get; set; }
 
         [ForeignKey("NationId")]
-        public Person Person { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidateNever]
+        public Person? Person { get; set; }
     }
 
     [Table("personother")]
@@ -167,14 +179,16 @@ namespace backend.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int id { get; set; }
         [StringLength(13)]
-        public string NationId { get; set; }
+        public string? NationId { get; set; }
         public string? ExtraTrainingInterest { get; set; }
         public string? OtherBusiness { get; set; }
         public string? BrokerBranch { get; set; }
         public int? InsuranceExperienceYears { get; set; }
 
         [ForeignKey("NationId")]
-        public Person Person { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidateNever]
+        public Person? Person { get; set; }
 
         public ICollection<PersonOtherSalesArea> SalesAreas { get; set; } = new List<PersonOtherSalesArea>();
         public ICollection<PersonOtherCompanies> OtherCompanies { get; set; } = new List<PersonOtherCompanies>();
@@ -189,13 +203,17 @@ namespace backend.Models
         public int Id { get; set; }
         public int? OtherId { get; set; }
         [StringLength(13)]
-        public string NationId { get; set; }
+        public string? NationId { get; set; }
         public int? TerritoriesId { get; set; }
 
         [ForeignKey("OtherId")]
-        public PersonOther PersonOther { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidateNever]
+        public PersonOther? PersonOther { get; set; }
         [ForeignKey("NationId")]
-        public Person Person { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidateNever]
+        public Person? Person { get; set; }
     }
 
     [Table("personothercompanies")]
@@ -206,13 +224,17 @@ namespace backend.Models
         public int Id { get; set; }
         public int? OtherId { get; set; }
         [StringLength(13)]
-        public string NationId { get; set; }
+        public string? NationId { get; set; }
         public int? CompanyId { get; set; }
 
         [ForeignKey("OtherId")]
-        public PersonOther PersonOther { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidateNever]
+        public PersonOther? PersonOther { get; set; }
         [ForeignKey("NationId")]
-        public Person Person { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidateNever]
+        public Person? Person { get; set; }
     }
 
     [Table("personotherspecialty")]
@@ -223,13 +245,17 @@ namespace backend.Models
         public int Id { get; set; }
         public int? OtherId { get; set; }
         [StringLength(13)]
-        public string NationId { get; set; }
+        public string? NationId { get; set; }
         public int? ExpertiseId { get; set; }
 
         [ForeignKey("OtherId")]
-        public PersonOther PersonOther { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidateNever]
+        public PersonOther? PersonOther { get; set; }
         [ForeignKey("NationId")]
-        public Person Person { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidateNever]
+        public Person? Person { get; set; }
     }
 
     [Table("registrationhistory")]
@@ -240,7 +266,7 @@ namespace backend.Models
         public int Id { get; set; }
         public int? RegisterId { get; set; }
         [StringLength(13)]
-        public string NationId { get; set; }
+        public string? NationId { get; set; }
         public string? EditedByType { get; set; }
         public string? CreatedBy { get; set; }
         public string? OldData { get; set; }
@@ -248,9 +274,13 @@ namespace backend.Models
         public DateTime? CreatedAt { get; set; }
 
         [ForeignKey("RegisterId")]
-        public PersonRegistration PersonRegistration { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidateNever]
+        public PersonRegistration? PersonRegistration { get; set; }
         [ForeignKey("NationId")]
-        public Person Person { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidateNever]
+        public Person? Person { get; set; }
     }
 
     [Table("persondocument")]
@@ -260,7 +290,7 @@ namespace backend.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         [StringLength(13)]
-        public string NationId { get; set; }
+        public string? NationId { get; set; }
         public string? DocumentType { get; set; } // e.g. "Profile", "IDCard", "IDCardFace"
         public string? FilePath { get; set; }
         public byte[]? FileData { get; set; }
@@ -268,6 +298,8 @@ namespace backend.Models
         public DateTime? UploadedAt { get; set; }
 
         [ForeignKey("NationId")]
-        public Person Person { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidateNever]
+        public Person? Person { get; set; }
     }
 }

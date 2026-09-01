@@ -51,6 +51,20 @@ namespace backend.Controllers
             public string NewPassword { get; set; } = null!;
         }
 
+        public class UpdateProfileRequest
+        {
+            public string? FullName { get; set; }
+            public string? Phone { get; set; }
+            public string? Email { get; set; }
+            public Person? PersonData { get; set; }
+        }
+
+        public class ChangePasswordRequest
+        {
+            public string CurrentPassword { get; set; } = null!;
+            public string NewPassword { get; set; } = null!;
+        }
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
@@ -369,6 +383,533 @@ namespace backend.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "ตั้งรหัสผ่านใหม่สำเร็จแล้ว ท่านสามารถเข้าสู่ระบบได้ทันที" });
+        }
+
+        private async Task<User?> GetCurrentUserFromToken()
+        {
+            var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            var tokenStr = authHeader.Substring("Bearer ".Length).Trim();
+            try
+            {
+                var tokenHandler = new JwtSecurityTokenHandler();
+                if (!tokenHandler.CanReadToken(tokenStr)) return null;
+
+                var jwtToken = tokenHandler.ReadJwtToken(tokenStr);
+                var userIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "nameid" || c.Type == "sub")?.Value;
+                var usernameClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name || c.Type == "unique_name")?.Value;
+
+                if (int.TryParse(userIdClaim, out int userId))
+                {
+                    var user = await _context.Users.FindAsync(userId);
+                    if (user != null) return user;
+                }
+
+                if (!string.IsNullOrEmpty(usernameClaim))
+                {
+                    return await _context.Users.SingleOrDefaultAsync(u => u.Username == usernameClaim);
+                }
+            }
+            catch { }
+
+            return null;
+        }
+
+        /// <summary>
+        /// ดึงข้อมูลโปรไฟล์ส่วนตัวของผู้ที่กำลัง Login อยู่ พร้อมข้อมูลผู้สมัครและประวัติการแก้ไข
+        /// </summary>
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfile()
+        {
+            var user = await GetCurrentUserFromToken();
+            if (user == null)
+            {
+                return Unauthorized(new { message = "กรุณาเข้าสู่ระบบก่อนทำรายการ" });
+            }
+
+            // Find linked Person record
+            Person? person = null;
+            if (!string.IsNullOrEmpty(user.NationId))
+            {
+                person = await _context.Persons
+                    .Include(x => x.Registrations)
+                    .Include(x => x.Licenses)
+                    .Include(x => x.Addresses)
+                    .Include(x => x.Affiliations)
+                    .Include(x => x.Courses)
+                    .Include(x => x.Trainings)
+                    .Include(x => x.Others).ThenInclude(o => o.SalesAreas)
+                    .Include(x => x.Others).ThenInclude(o => o.OtherCompanies)
+                    .Include(x => x.Others).ThenInclude(o => o.Specialties)
+                    .FirstOrDefaultAsync(x => x.NationId == user.NationId);
+            }
+
+            if (person == null && !string.IsNullOrEmpty(user.Email))
+            {
+                person = await _context.Persons
+                    .Include(x => x.Registrations)
+                    .Include(x => x.Licenses)
+                    .Include(x => x.Addresses)
+                    .Include(x => x.Affiliations)
+                    .Include(x => x.Courses)
+                    .Include(x => x.Trainings)
+                    .Include(x => x.Others).ThenInclude(o => o.SalesAreas)
+                    .Include(x => x.Others).ThenInclude(o => o.OtherCompanies)
+                    .Include(x => x.Others).ThenInclude(o => o.Specialties)
+                    .FirstOrDefaultAsync(x => x.EmailAlt == user.Email);
+            }
+
+            // Fetch edit history for this user
+            var regIds = person?.Registrations?.Select(r => r.Id).ToList() ?? new List<int>();
+            var histories = await _context.RegisterHistories
+                .Where(h => (person != null && regIds.Contains(h.RegisterId)) || h.CreatedBy == user.Username)
+                .OrderByDescending(h => h.CreatedAt)
+                .Take(50)
+                .ToListAsync();
+
+            return Ok(new
+            {
+                user = new
+                {
+                    id = user.Id,
+                    username = user.Username,
+                    email = user.Email,
+                    role = user.Role,
+                    nationId = user.NationId,
+                    fullName = user.FullName,
+                    phone = user.Phone
+                },
+                person,
+                histories
+            });
+        }
+
+        /// <summary>
+        /// บันทึกแก้ไขโปรไฟล์ส่วนตัวของผู้ที่กำลัง Login อยู่ และบันทึกประวัติ Snapshot ลง register_history
+        /// </summary>
+        [HttpPut("profile")]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
+        {
+            var user = await GetCurrentUserFromToken();
+            if (user == null)
+            {
+                return Unauthorized(new { message = "กรุณาเข้าสู่ระบบก่อนทำรายการ" });
+            }
+
+            var nationId = user.NationId;
+
+            // 1. Snapshot OLD Data for History
+            Person? p = null;
+            if (!string.IsNullOrEmpty(nationId))
+            {
+                p = await _context.Persons
+                    .Include(x => x.Registrations)
+                    .Include(x => x.Licenses)
+                    .Include(x => x.Addresses)
+                    .Include(x => x.Affiliations)
+                    .Include(x => x.Courses)
+                    .Include(x => x.Trainings)
+                    .Include(x => x.Others).ThenInclude(o => o.SalesAreas)
+                    .Include(x => x.Others).ThenInclude(o => o.OtherCompanies)
+                    .Include(x => x.Others).ThenInclude(o => o.Specialties)
+                    .FirstOrDefaultAsync(x => x.NationId == user.NationId);
+            }
+
+            var oldSnapshot = new
+            {
+                User = new { user.Username, user.Email, user.FullName, user.Phone },
+                Person = p != null ? new
+                {
+                    p.NationId,
+                    p.TitleTh,
+                    p.FirstNameTh,
+                    p.LastNameTh,
+                    p.BirthDate,
+                    p.GenderId,
+                    p.BloodGroupId,
+                    p.ReligionId,
+                    p.PhoneOtp,
+                    p.EmailAlt,
+                    Addresses = p.Addresses?.Select(a => new { a.AddressType, a.HouseNo, a.Moo, a.Village, a.Soi, a.Road, a.ProvinceId, a.DistrictId, a.SubDistrictId, a.Postcode }).ToList(),
+                    Affiliations = p.Affiliations?.Select(a => new { AgentType = a.BrokerType, AgentBranch = a.BranchId, BrokerBranch = a.BrokerBranch, a.ViriyahAgentCode }).ToList(),
+                    Licenses = p.Licenses?.Select(l => new { l.LicenseNo, l.CourseType, l.LicenseIssueDate, l.LicenseExpiryDate }).ToList(),
+                    Courses = p.Courses?.Select(c => new { c.CourseId, c.CourseDateId, c.RenewOtherId }).ToList(),
+                    Others = p.Others?.Select(o => new { o.ExtraTrainingInterest, o.OtherBusiness, o.InsuranceExperienceYears }).ToList()
+                } : null
+            };
+
+            // 2. Update user account info
+            if (!string.IsNullOrWhiteSpace(request.FullName)) user.FullName = request.FullName.Trim();
+            if (!string.IsNullOrWhiteSpace(request.Phone)) user.Phone = request.Phone.Trim();
+            if (!string.IsNullOrWhiteSpace(request.Email))
+            {
+                var cleanEmail = request.Email.Trim().ToLower();
+                var emailExists = await _context.Users.AnyAsync(u => u.Id != user.Id && u.Email != null && u.Email.ToLower() == cleanEmail);
+                if (emailExists)
+                {
+                    return BadRequest(new { message = "อีเมลนี้มีผู้ใช้งานอื่นในระบบแล้ว" });
+                }
+                user.Email = cleanEmail;
+            }
+            user.UpdatedAt = DateTime.UtcNow;
+
+            // 3. Update or Create Person Data if provided
+            if (request.PersonData != null)
+            {
+                nationId = user.NationId ?? request.PersonData.NationId;
+                if (!string.IsNullOrEmpty(nationId))
+                {
+                    if (p == null)
+                    {
+                        p = new Person { NationId = nationId };
+                        _context.Persons.Add(p);
+                    }
+
+                    // Update scalar values
+                    p.TitleTh = request.PersonData.TitleTh;
+                    p.FirstNameTh = request.PersonData.FirstNameTh;
+                    p.MiddleNameTh = request.PersonData.MiddleNameTh;
+                    p.LastNameTh = request.PersonData.LastNameTh;
+                    p.TitleOldTh = request.PersonData.TitleOldTh;
+                    p.FirstNameOldTh = request.PersonData.FirstNameOldTh;
+                    p.LastNameOldTh = request.PersonData.LastNameOldTh;
+                    p.BirthDate = request.PersonData.BirthDate;
+                    p.IdCardExpiry = request.PersonData.IdCardExpiry;
+                    p.ReligionId = request.PersonData.ReligionId;
+                    p.GenderId = request.PersonData.GenderId;
+                    p.BloodGroupId = request.PersonData.BloodGroupId;
+                    p.PhoneOtp = request.Phone ?? p.PhoneOtp;
+                    p.EmailAlt = request.Email ?? p.EmailAlt;
+                    p.LineId = request.PersonData.LineId;
+                    p.Facebook = request.PersonData.Facebook;
+                    p.Instagram = request.PersonData.Instagram;
+                    p.FoodAllergy = request.PersonData.FoodAllergy;
+                    p.MedicalCondition = request.PersonData.MedicalCondition;
+                    p.EmergencyContactName = request.PersonData.EmergencyContactName;
+                    p.EmergencyContactPhone = request.PersonData.EmergencyContactPhone;
+
+                    // Addresses
+                    if (request.PersonData.Addresses != null)
+                    {
+                        _context.PersonAddresses.RemoveRange(p.Addresses);
+                        foreach (var a in request.PersonData.Addresses)
+                        {
+                            a.Id = 0;
+                            a.NationId = nationId;
+                            p.Addresses.Add(a);
+                        }
+                    }
+
+                    // Affiliations
+                    if (request.PersonData.Affiliations != null)
+                    {
+                        _context.PersonAffiliations.RemoveRange(p.Affiliations);
+                        foreach (var aff in request.PersonData.Affiliations)
+                        {
+                            aff.Id = 0;
+                            aff.NationId = nationId;
+                            p.Affiliations.Add(aff);
+                        }
+                    }
+
+                    // Licenses
+                    if (request.PersonData.Licenses != null)
+                    {
+                        _context.PersonLicenses.RemoveRange(p.Licenses);
+                        foreach (var lItem in request.PersonData.Licenses)
+                        {
+                            lItem.Id = 0;
+                            lItem.NationId = user.NationId;
+                            p.Licenses.Add(lItem);
+                        }
+                    }
+
+                    // Courses
+                    if (request.PersonData.Courses != null)
+                    {
+                        _context.PersonCourses.RemoveRange(p.Courses);
+                        foreach (var c in request.PersonData.Courses)
+                        {
+                            c.PersonCourseId = 0;
+                            c.NationId = nationId;
+                            p.Courses.Add(c);
+                        }
+                    }
+
+                    // Others
+                    if (request.PersonData.Others != null)
+                    {
+                        foreach (var other in p.Others)
+                        {
+                            _context.PersonOtherSalesAreas.RemoveRange(other.SalesAreas);
+                            _context.PersonOtherCompanies.RemoveRange(other.OtherCompanies);
+                            _context.PersonOtherSpecialties.RemoveRange(other.Specialties);
+                        }
+                        _context.PersonOthers.RemoveRange(p.Others);
+
+                        foreach (var other in request.PersonData.Others)
+                        {
+                            other.id = 0;
+                            other.NationId = nationId;
+                            if (other.SalesAreas != null) { foreach (var sa in other.SalesAreas) { sa.Id = 0; sa.NationId = nationId; } }
+                            if (other.OtherCompanies != null) { foreach (var oc in other.OtherCompanies) { oc.Id = 0; oc.NationId = nationId; } }
+                            p.Others.Add(other);
+                        }
+                    }
+
+                    // Registrations
+                    if (request.PersonData.Registrations != null && request.PersonData.Registrations.Any())
+                    {
+                        var firstReg = request.PersonData.Registrations.First();
+                        var existing = p.Registrations?.FirstOrDefault();
+                        if (existing != null)
+                        {
+                            existing.DeductionPrivilege = firstReg.DeductionPrivilege;
+                            existing.MasterDegreeStatus = firstReg.MasterDegreeStatus;
+                        }
+                        else
+                        {
+                            firstReg.Id = 0;
+                            firstReg.NationId = nationId;
+                            p.Registrations.Add(firstReg);
+                        }
+                    }
+                }
+            }
+
+            // 4. Snapshot NEW Data for History
+            var addrA = request.PersonData?.Addresses?.FirstOrDefault(a => (a.AddressType != null && a.AddressType.ToUpper() == "A")) 
+                        ?? request.PersonData?.Addresses?.FirstOrDefault()
+                        ?? p?.Addresses?.LastOrDefault(a => (a.AddressType != null && a.AddressType.ToUpper() == "A")) 
+                        ?? p?.Addresses?.LastOrDefault();
+            var addrC = request.PersonData?.Addresses?.FirstOrDefault(a => (a.AddressType != null && (a.AddressType.ToUpper() == "C" || a.AddressType.ToUpper() == "M"))) 
+                        ?? p?.Addresses?.LastOrDefault(a => (a.AddressType != null && (a.AddressType.ToUpper() == "C" || a.AddressType.ToUpper() == "M")));
+            var affil = request.PersonData?.Affiliations?.FirstOrDefault() ?? p?.Affiliations?.LastOrDefault();
+            var lic = request.PersonData?.Licenses?.FirstOrDefault() ?? p?.Licenses?.LastOrDefault();
+            var course = request.PersonData?.Courses?.FirstOrDefault() ?? p?.Courses?.LastOrDefault();
+            var otherObj = request.PersonData?.Others?.FirstOrDefault() ?? p?.Others?.LastOrDefault();
+            var salesAreas = otherObj?.SalesAreas?.Select(s => s.TerritoriesId?.ToString()).Where(s => !string.IsNullOrEmpty(s)).Select(s => s!).Distinct().OrderBy(x => x).ToList() ?? new List<string>();
+            var companies = otherObj?.OtherCompanies?.Select(c => c.CompanyId?.ToString()).Where(s => !string.IsNullOrEmpty(s)).Select(s => s!).Distinct().OrderBy(x => x).ToList() ?? new List<string>();
+            var specialties = otherObj?.Specialties?.Select(s => s.ExpertiseId?.ToString()).Where(s => !string.IsNullOrEmpty(s)).Select(s => s!).Distinct().OrderBy(x => x).ToList() ?? new List<string>();
+            var prevTrainings = (request.PersonData?.Trainings ?? p?.Trainings)?.Select(t => t.CourseId?.ToString()).Where(s => !string.IsNullOrEmpty(s)).Select(s => s!).Distinct().OrderBy(x => x).ToList() ?? new List<string>();
+            var selectedSubjs = (request.PersonData?.Courses ?? p?.Courses)?.Select(c => c.RenewOtherId?.ToString()).Where(s => !string.IsNullOrEmpty(s)).Select(s => s!).Distinct().OrderBy(x => x).ToList() ?? new List<string>();
+            var regObj = request.PersonData?.Registrations?.FirstOrDefault() ?? p?.Registrations?.FirstOrDefault();
+
+            var newSnapshotDict = new Dictionary<string, object?>
+            {
+                ["TitleTh"] = p?.TitleTh,
+                ["titleTh"] = p?.TitleTh,
+                ["FirstNameTh"] = p?.FirstNameTh,
+                ["firstNameTh"] = p?.FirstNameTh,
+                ["MiddleNameTh"] = p?.MiddleNameTh,
+                ["middleNameTh"] = p?.MiddleNameTh,
+                ["LastNameTh"] = p?.LastNameTh,
+                ["lastNameTh"] = p?.LastNameTh,
+                ["TitleOldTh"] = p?.TitleOldTh,
+                ["titleOldTh"] = p?.TitleOldTh,
+                ["FirstNameOldTh"] = p?.FirstNameOldTh,
+                ["firstNameOldTh"] = p?.FirstNameOldTh,
+                ["MiddleNameOldTh"] = p?.MiddleNameOldTh,
+                ["middleNameOldTh"] = p?.MiddleNameOldTh,
+                ["LastNameOldTh"] = p?.LastNameOldTh,
+                ["lastNameOldTh"] = p?.LastNameOldTh,
+                ["BirthDate"] = p?.BirthDate?.ToString("yyyy-MM-dd"),
+                ["IdCardExpiry"] = p?.IdCardExpiry?.ToString("yyyy-MM-dd"),
+                ["idCardExpiry"] = p?.IdCardExpiry?.ToString("yyyy-MM-dd"),
+                ["GenderId"] = p?.GenderId,
+                ["ReligionId"] = p?.ReligionId,
+                ["BloodGroupId"] = p?.BloodGroupId,
+                ["FoodAllergy"] = p?.FoodAllergy,
+                ["foodAllergy"] = p?.FoodAllergy,
+                ["MedicalCondition"] = p?.MedicalCondition,
+                ["medicalCondition"] = p?.MedicalCondition,
+                ["PhoneOtp"] = p?.PhoneOtp ?? user.Phone,
+                ["phone"] = p?.PhoneOtp ?? user.Phone,
+                ["EmailAlt"] = p?.EmailAlt ?? user.Email,
+                ["email"] = p?.EmailAlt ?? user.Email,
+                ["LineId"] = p?.LineId,
+                ["lineId"] = p?.LineId,
+                ["Facebook"] = p?.Facebook,
+                ["Instagram"] = p?.Instagram,
+                ["EmergencyContactName"] = p?.EmergencyContactName,
+                ["EmergencyContactPhone"] = p?.EmergencyContactPhone,
+                ["HouseNo"] = addrA?.HouseNo,
+                ["houseNo"] = addrA?.HouseNo,
+                ["Moo"] = addrA?.Moo,
+                ["moo"] = addrA?.Moo,
+                ["Village"] = addrA?.Village,
+                ["village"] = addrA?.Village,
+                ["Soi"] = addrA?.Soi,
+                ["soi"] = addrA?.Soi,
+                ["Road"] = addrA?.Road,
+                ["road"] = addrA?.Road,
+                ["ProvinceId"] = addrA?.ProvinceId,
+                ["provinceId"] = addrA?.ProvinceId,
+                ["DistrictId"] = addrA?.DistrictId,
+                ["districtId"] = addrA?.DistrictId,
+                ["SubDistrictId"] = addrA?.SubDistrictId,
+                ["subDistrictId"] = addrA?.SubDistrictId,
+                ["Postcode"] = addrA?.Postcode,
+                ["postcode"] = addrA?.Postcode,
+                ["ContactHouseNo"] = addrC?.HouseNo,
+                ["contactHouseNo"] = addrC?.HouseNo,
+                ["ContactMoo"] = addrC?.Moo,
+                ["contactMoo"] = addrC?.Moo,
+                ["ContactVillage"] = addrC?.Village,
+                ["contactVillage"] = addrC?.Village,
+                ["ContactSoi"] = addrC?.Soi,
+                ["contactSoi"] = addrC?.Soi,
+                ["ContactRoad"] = addrC?.Road,
+                ["contactRoad"] = addrC?.Road,
+                ["ContactProvinceId"] = addrC?.ProvinceId,
+                ["contactProvinceId"] = addrC?.ProvinceId,
+                ["ContactDistrictId"] = addrC?.DistrictId,
+                ["contactDistrictId"] = addrC?.DistrictId,
+                ["ContactSubDistrictId"] = addrC?.SubDistrictId,
+                ["contactSubDistrictId"] = addrC?.SubDistrictId,
+                ["ContactPostcode"] = addrC?.Postcode,
+                ["contactPostcode"] = addrC?.Postcode,
+                ["AgentBranch"] = affil?.BranchId,
+                ["agentBranch"] = affil?.BranchId,
+                ["BrokerType"] = affil?.BrokerType,
+                ["brokerType"] = affil?.BrokerType,
+                ["BrokerCompany"] = affil?.BrokerCompany,
+                ["brokerCompany"] = affil?.BrokerCompany,
+                ["BrokerBranch"] = affil?.BrokerBranch,
+                ["brokerBranch"] = affil?.BrokerBranch,
+                ["viriyahAgentCode"] = affil?.ViriyahAgentCode,
+                ["agentType"] = lic?.CourseType ?? "agent",
+                ["AgentType"] = lic?.CourseType ?? "agent",
+                ["LicenseNo"] = lic?.LicenseNo,
+                ["licenseNo"] = lic?.LicenseNo,
+                ["LicenseIssueDate"] = lic?.LicenseIssueDate?.ToString("yyyy-MM-dd"),
+                ["licenseIssueDate"] = lic?.LicenseIssueDate?.ToString("yyyy-MM-dd"),
+                ["LicenseExpiryDate"] = lic?.LicenseExpiryDate?.ToString("yyyy-MM-dd"),
+                ["licenseExpiryDate"] = lic?.LicenseExpiryDate?.ToString("yyyy-MM-dd"),
+                ["CourseType"] = course?.CourseId?.ToString(),
+                ["courseType"] = course?.CourseId?.ToString(),
+                ["CourseId"] = course?.CourseId,
+                ["courseId"] = course?.CourseId,
+                ["CourseDateId"] = course?.CourseDateId,
+                ["courseDateId"] = course?.CourseDateId,
+                ["PreviousCourses"] = string.Join(",", prevTrainings),
+                ["previousCourses"] = string.Join(",", prevTrainings),
+                ["SelectedSubjects"] = string.Join(",", selectedSubjs),
+                ["selectedSubjects"] = string.Join(",", selectedSubjs),
+                ["SalesArea"] = string.Join(",", salesAreas),
+                ["salesArea"] = string.Join(",", salesAreas),
+                ["InsuranceSpecialty"] = string.Join(",", specialties),
+                ["insuranceSpecialty"] = string.Join(",", specialties),
+                ["OtherInsuranceCompanies"] = string.Join(",", companies),
+                ["otherInsuranceCompanies"] = string.Join(",", companies),
+                ["MainBusiness"] = otherObj?.OtherBusiness,
+                ["mainBusiness"] = otherObj?.OtherBusiness,
+                ["InsuranceExperienceYears"] = otherObj?.InsuranceExperienceYears?.ToString(),
+                ["insuranceExperienceYears"] = otherObj?.InsuranceExperienceYears?.ToString(),
+                ["DeductionPrivilege"] = regObj?.DeductionPrivilege,
+                ["deductionPrivilege"] = regObj?.DeductionPrivilege,
+                ["MasterDegreeStatus"] = regObj?.MasterDegreeStatus,
+                ["masterDegreeStatus"] = regObj?.MasterDegreeStatus,
+                ["Action"] = "แก้ไขข้อมูลส่วนตัว"
+            };
+
+            var historyJson = System.Text.Json.JsonSerializer.Serialize(newSnapshotDict);
+
+            // 5. Create RegisterHistory & RegistrationHistoryModel entry
+            var registerId = p?.Registrations?.FirstOrDefault()?.Id ?? 0;
+            var historyRecord = new RegisterHistory
+            {
+                RegisterId = registerId,
+                EditedByType = user.Role?.ToLower() ?? "applicant",
+                CreatedBy = user.Username,
+                OldData = historyJson,
+                NewData = historyJson,
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.RegisterHistories.Add(historyRecord);
+
+            if (!string.IsNullOrEmpty(nationId))
+            {
+                var historyRecordNew = new RegistrationHistoryModel
+                {
+                    RegisterId = registerId,
+                    NationId = nationId,
+                    EditedByType = user.Role?.ToLower() ?? "applicant",
+                    CreatedBy = user.Username,
+                    OldData = historyJson,
+                    NewData = historyJson,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.RegistrationHistoriesNew.Add(historyRecordNew);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "บันทึกข้อมูลส่วนตัวและประวัติการแก้ไขเรียบร้อยแล้ว",
+                user = new
+                {
+                    id = user.Id,
+                    username = user.Username,
+                    email = user.Email,
+                    role = user.Role,
+                    nationId = user.NationId,
+                    fullName = user.FullName,
+                    phone = user.Phone
+                },
+                person = p
+            });
+        }
+
+        /// <summary>
+        /// เปลี่ยนรหัสผ่านของตนเอง
+        /// </summary>
+        [HttpPut("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            var user = await GetCurrentUserFromToken();
+            if (user == null)
+            {
+                return Unauthorized(new { message = "กรุณาเข้าสู่ระบบก่อนทำรายการ" });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.CurrentPassword) || string.IsNullOrWhiteSpace(request.NewPassword))
+            {
+                return BadRequest(new { message = "กรุณากรอกรหัสผ่านปัจจุบันและรหัสผ่านใหม่" });
+            }
+
+            if (request.NewPassword.Length < 4)
+            {
+                return BadRequest(new { message = "รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 4 ตัวอักษร" });
+            }
+
+            if (user.PasswordHash != request.CurrentPassword)
+            {
+                return BadRequest(new { message = "รหัสผ่านปัจจุบันไม่ถูกต้อง" });
+            }
+
+            user.PasswordHash = request.NewPassword;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            var historyRecord = new RegisterHistory
+            {
+                RegisterId = 0,
+                EditedByType = user.Role?.ToLower() ?? "applicant",
+                CreatedBy = user.Username,
+                OldData = System.Text.Json.JsonSerializer.Serialize(new { action = "ChangePassword", username = user.Username, note = "Changed password" }),
+                NewData = System.Text.Json.JsonSerializer.Serialize(new { action = "ChangePassword", username = user.Username, note = "Password updated successfully" }),
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.RegisterHistories.Add(historyRecord);
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "เปลี่ยนรหัสผ่านสำเร็จแล้ว" });
         }
 
         private static bool ValidateThaiNationalId(string id)

@@ -112,13 +112,14 @@ export function AuthProvider({ children }) {
       // Fallback defaults for standard roles if permissions not loaded
       if (user.role === 'Admin') return !['registration_form', 'my_registrations'].includes(menuKey);
       if (user.role === 'Viewer') return action === 'view' && ['dashboard', 'trainees', 'reports'].includes(menuKey);
-      if (user.role === 'Applicant') return ['registration_form', 'my_registrations'].includes(menuKey);
+      if (user.role === 'Applicant') return ['registration_form', 'my_registrations', 'trainees'].includes(menuKey);
       return false;
     }
 
     const perm = user.permissions.find(p => p.menuKey === menuKey);
     if (!perm) {
       if (user.role === 'Admin') return !['registration_form', 'my_registrations'].includes(menuKey);
+      if (user.role === 'Applicant' && menuKey === 'trainees') return true;
       return false;
     }
 

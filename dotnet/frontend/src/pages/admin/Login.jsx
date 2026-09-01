@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 
@@ -7,30 +8,26 @@ export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     
     try {
-      const response = await fetch('http://localhost:8085/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('admin_token', data.token);
-        localStorage.setItem('admin_role', data.role);
-        navigate('/admin');
+      const user = await login(username, password);
+      if (user.role === 'Applicant') {
+        navigate('/admin/trainees', { replace: true });
       } else {
-        const err = await response.json();
-        setError(err.message || 'เข้าสู่ระบบไม่สำเร็จ');
+        navigate('/admin', { replace: true });
       }
     } catch (err) {
-      setError('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+      setError(err.message || 'เข้าสู่ระบบไม่สำเร็จ');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -65,8 +62,8 @@ export default function Login() {
             required 
           />
           
-          <Button type="submit" className="w-full justify-center mt-6">
-            เข้าสู่ระบบ
+          <Button type="submit" disabled={loading} className="w-full justify-center mt-6">
+            {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
           </Button>
         </form>
       </div>

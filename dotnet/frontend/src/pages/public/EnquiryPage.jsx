@@ -130,7 +130,9 @@ export default function EnquiryPage() {
               <div className="space-y-3 text-sm">
                 <div className="flex">
                   <span className="w-1/3 text-gray-500">ชื่อ-นามสกุล</span>
-                  <span className="w-2/3 text-gray-900 font-medium">{result.titleTh}{result.firstNameTh} {result.lastNameTh}</span>
+                  <span className="w-2/3 text-gray-900 font-medium">
+                    {result.titleThName || (result.titleTh === '1' ? 'นาย' : result.titleTh === '2' ? 'นาง' : result.titleTh === '3' ? 'นางสาว' : result.titleTh || '')} {result.firstNameTh} {result.lastNameTh}
+                  </span>
                 </div>
                 <div className="flex">
                   <span className="w-1/3 text-gray-500">เบอร์โทรศัพท์</span>

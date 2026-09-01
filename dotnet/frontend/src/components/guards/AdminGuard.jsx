@@ -2,7 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 export default function AdminGuard({ children }) {
-  const { isAuthenticated, isAdminOrViewer, isLoading } = useAuth();
+  const { isAuthenticated, isAdminOrViewer, isLoading, user } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -13,8 +13,15 @@ export default function AdminGuard({ children }) {
     );
   }
 
-  if (!isAuthenticated || !isAdminOrViewer) {
+  if (!isAuthenticated) {
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
+  }
+
+  // If user is an Applicant, allow them into Admin area (e.g. /admin/trainees, /admin/profile)
+  if (!isAdminOrViewer && user?.role === 'Applicant') {
+    if (location.pathname === '/admin' || location.pathname === '/admin/') {
+      return <Navigate to="/admin/trainees" replace />;
+    }
   }
 
   return children;

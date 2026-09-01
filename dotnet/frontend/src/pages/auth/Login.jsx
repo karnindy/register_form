@@ -13,8 +13,8 @@ export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
   const from = location.state?.from?.pathname || null;
+  const isAdminLogin = location.pathname.startsWith('/admin');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,11 +24,13 @@ export default function Login() {
     try {
       const user = await login(username, password);
       
-      if (from) {
+      if (from && from !== '/login' && from !== '/admin/login') {
         navigate(from, { replace: true });
-      } else if (['Superadmin', 'Admin', 'Viewer'].includes(user.role)) {
+      } else if (isAdminLogin) {
+        // เข้า flow admin เสมอเมื่อ login ผ่าน /admin/login
         navigate('/admin', { replace: true });
       } else {
+        // เข้า flow หน้าสมัครเสมอเมื่อ login ผ่าน /login
         navigate('/', { replace: true });
       }
     } catch (err) {
@@ -56,10 +58,12 @@ export default function Login() {
           </div>
         </div>
         <h2 className="text-center text-2xl font-bold tracking-tight text-slate-800">
-          เข้าสู่ระบบ (Sign In)
+          {isAdminLogin ? 'เข้าสู่ระบบจัดการ (Admin Login)' : 'เข้าสู่ระบบ (Sign In)'}
         </h2>
         <p className="mt-1 text-center text-sm text-slate-500">
-          กรุณาเข้าสู่ระบบด้วยอีเมลหรือชื่อผู้ใช้งานเพื่อเริ่มทำรายการ
+          {isAdminLogin 
+            ? 'เข้าสู่ระบบสำหรับเจ้าหน้าที่และผู้สมัครเพื่อจัดการข้อมูล' 
+            : 'กรุณาเข้าสู่ระบบด้วยอีเมลหรือชื่อผู้ใช้งานเพื่อเริ่มทำรายการ'}
         </p>
       </div>
 

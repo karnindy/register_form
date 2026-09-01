@@ -27,7 +27,8 @@ export default function TraineesList() {
       try {
         const [
           provinces, districts, subdistricts, 
-          branches, renewcourses, companies, territories, expertises, renewother
+          branches, renewcourses, companies, territories, expertises, renewother,
+          basicCourses, genders, bloods, religions
         ] = await Promise.all([
           fetch('http://localhost:8085/api/masterdata/provinces').then(r => r.json()),
           fetch('http://localhost:8085/api/masterdata/districts').then(r => r.json()),
@@ -37,20 +38,31 @@ export default function TraineesList() {
           fetch('http://localhost:8085/api/masterdata/company').then(r => r.json()),
           fetch('http://localhost:8085/api/masterdata/territory').then(r => r.json()),
           fetch('http://localhost:8085/api/masterdata/expertise').then(r => r.json()),
-          fetch('http://localhost:8085/api/masterdata/renew-other-courses').then(r => r.json())
+          fetch('http://localhost:8085/api/masterdata/renew-other-courses').then(r => r.json()),
+          fetch('http://localhost:8085/api/masterdata/renew-courses').then(r => r.json()),
+          fetch('http://localhost:8085/api/masterdata/gender').then(r => r.json()),
+          fetch('http://localhost:8085/api/masterdata/blood').then(r => r.json()),
+          fetch('http://localhost:8085/api/masterdata/religion').then(r => r.json())
         ]);
         
         const map = {
-          ProvinceId: provinces.reduce((a,c) => ({...a, [c.provinceId]: c.provinceThai}), {}),
-          DistrictId: districts.reduce((a,c) => ({...a, [c.districtId]: c.districtThai}), {}),
-          SubDistrictId: subdistricts.reduce((a,c) => ({...a, [c.subDistrictId]: c.subDistrictThai}), {}),
-          BrokerBranch: branches.reduce((a,c) => ({...a, [c.branchId]: c.branchName}), {}),
-          AgentBranch: branches.reduce((a,c) => ({...a, [c.branchId]: c.branchName}), {}),
-          PreviousCourses: renewcourses.reduce((a,c) => ({...a, [c.id]: c.name || c.courseName}), {}),
-          OtherInsuranceCompanies: companies.reduce((a,c) => ({...a, [c.id]: c.name}), {}),
-          SalesArea: territories.reduce((a,c) => ({...a, [c.id]: c.name}), {}),
-          InsuranceSpecialty: expertises.reduce((a,c) => ({...a, [c.id]: c.name}), {}),
-          ExtraTrainingInterest: renewother.reduce((a,c) => ({...a, [c.id]: c.displayName || c.name || c.courseName}), {})
+          ProvinceId: provinces.reduce((a,c) => ({...a, [c.provinceId]: c.provinceThai, [String(c.provinceId)]: c.provinceThai}), {}),
+          DistrictId: districts.reduce((a,c) => ({...a, [c.districtId]: c.districtThai, [String(c.districtId)]: c.districtThai}), {}),
+          SubDistrictId: subdistricts.reduce((a,c) => ({...a, [c.subDistrictId]: c.subDistrictThai, [String(c.subDistrictId)]: c.subDistrictThai}), {}),
+          BrokerBranch: branches.reduce((a,c) => ({...a, [c.branchId]: c.branchName, [String(c.branchId)]: c.branchName}), {}),
+          AgentBranch: branches.reduce((a,c) => ({...a, [c.branchId]: c.branchName, [String(c.branchId)]: c.branchName}), {}),
+          PreviousCourses: renewcourses.reduce((a,c) => ({...a, [c.id]: c.name || c.courseName, [String(c.id)]: c.name || c.courseName}), {}),
+          OtherInsuranceCompanies: companies.reduce((a,c) => ({...a, [c.id]: c.name, [String(c.id)]: c.name}), {}),
+          SalesArea: territories.reduce((a,c) => ({...a, [c.id]: c.name, [String(c.id)]: c.name}), {}),
+          InsuranceSpecialty: expertises.reduce((a,c) => ({...a, [c.id]: c.name, [String(c.id)]: c.name}), {}),
+          ExtraTrainingInterest: {
+            ...renewcourses.reduce((a,c) => ({...a, [c.id]: c.name, [String(c.id)]: c.name}), {}),
+            ...renewother.reduce((a,c) => ({...a, [c.id]: c.displayName || c.name || c.courseName, [String(c.id)]: c.displayName || c.name || c.courseName}), {})
+          },
+          courseType: basicCourses.reduce((a,c) => ({...a, [c.id]: c.courseName || c.name, [String(c.id)]: c.courseName || c.name}), {}),
+          gender: genders.reduce((a,c) => ({...a, [c.id]: c.name, [String(c.id)]: c.name}), {}),
+          blood: bloods.reduce((a,c) => ({...a, [c.id]: c.name, [String(c.id)]: c.name}), {}),
+          religion: religions.reduce((a,c) => ({...a, [c.id]: c.name, [String(c.id)]: c.name}), {})
         };
         
         map.provinceId = map.ProvinceId;
@@ -67,6 +79,13 @@ export default function TraineesList() {
         map.AdditionalCourseRequirement = map.ExtraTrainingInterest;
         map.SelectedSubjects = map.ExtraTrainingInterest;
         map.selectedSubjects = map.ExtraTrainingInterest;
+        map.CourseType = map.courseType;
+        map.CourseId = map.courseType;
+        map.courseId = map.courseType;
+        map.agentType = { agent: 'ตัวแทน', broker: 'นายหน้า' };
+        map.AgentType = map.agentType;
+        map.brokerType = { individual: 'นายหน้าบุคคลธรรมดา', corporate: 'นายหน้านิติบุคคล' };
+        map.BrokerType = map.brokerType;
 
         setMasterMap(map);
       } catch (e) { console.error('Failed to load master data for mapping', e); }
@@ -81,7 +100,7 @@ export default function TraineesList() {
   const fetchTrainees = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('admin_token');
       const qs = new URLSearchParams({ search: searchTerm, page, pageSize: pageSize === 'All' ? 0 : pageSize, sortBy, sortDir });
       const response = await fetch(`http://localhost:8085/api/admin/trainees?${qs.toString()}`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -117,8 +136,8 @@ export default function TraineesList() {
     setSelectedTrainee(trainee);
     setDocuments([]);
     try {
-      const token = localStorage.getItem('admin_token');
-      const res = await fetch(`http://localhost:8085/api/admin/trainees/${trainee.idCard}/documents`, {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('admin_token');
+      const res = await fetch(`http://localhost:8085/api/admin/trainees/${trainee.idCard}/documents?_t=${Date.now()}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -140,7 +159,7 @@ export default function TraineesList() {
       formData.append('phone', '0000000000');
       formData.append(docType, file);
 
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('admin_token');
       const res = await fetch('http://localhost:8085/api/upload', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
@@ -150,6 +169,7 @@ export default function TraineesList() {
       if (res.ok) {
         alert('อัปโหลดไฟล์สำเร็จ');
         handleViewTrainee(selectedTrainee);
+        fetchTrainees();
       } else {
         alert('อัปโหลดไฟล์ไม่สำเร็จ');
       }
@@ -162,9 +182,9 @@ export default function TraineesList() {
   };
 
   const docTypes = [
-    { key: 'profile', label: 'ภาพถ่ายหน้าตรง (Profile)' },
-    { key: 'idCardWithFace', label: 'ภาพถ่ายคู่บัตร ปชช. (IDCardFace)' },
-    { key: 'idCard', label: 'ภาพถ่ายบัตร ปชช. (IDCard)' }
+    { key: 'Profile', altKeys: ['profile', 'Profile'], label: 'ภาพถ่ายหน้าตรง (Profile)' },
+    { key: 'IDCardFace', altKeys: ['idCardWithFace', 'IDCardFace', 'idcardface', 'idcardwithface'], label: 'ภาพถ่ายคู่บัตร ปชช. (IDCardFace)' },
+    { key: 'IDCard', altKeys: ['idCard', 'IDCard', 'idcard'], label: 'ภาพถ่ายบัตร ปชช. (IDCard)' }
   ];
 
   if (loading) return <div className="text-center p-10">กำลังโหลดข้อมูล...</div>;
@@ -172,7 +192,9 @@ export default function TraineesList() {
   return (
     <div>
       <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-        <h2 className="text-2xl font-bold text-primary">รายชื่อผู้ลงทะเบียนอบรม</h2>
+        <h2 className="text-2xl font-bold text-primary">
+          {user?.role === 'Applicant' ? 'ข้อมูลผู้สมัครของฉัน (My Trainee Profile)' : 'รายชื่อผู้ลงทะเบียนอบรม'}
+        </h2>
         
         <div className="flex flex-wrap items-center gap-4">
           <form onSubmit={handleSearch} className="flex">
@@ -319,141 +341,250 @@ export default function TraineesList() {
                                     let prevData = {};
                                     try { currentData = JSON.parse(trans.newData || '{}'); } catch(e){}
                                     if (i + 1 < t.transactions.length) {
-                                      try { prevData = JSON.parse(t.transactions[i+1].newData || '{}'); } catch(e){}
+                                      for (let j = i + 1; j < t.transactions.length; j++) {
+                                        try {
+                                          const candidate = JSON.parse(t.transactions[j].newData || '{}');
+                                          if (candidate) {
+                                            prevData = candidate;
+                                            const hasProfileKeys = Boolean(candidate.TitleTh || candidate.titleTh || candidate.FirstNameTh || candidate.firstNameTh || candidate.HouseNo || candidate.houseNo);
+                                            if (hasProfileKeys || j === t.transactions.length - 1) {
+                                              break;
+                                            }
+                                          }
+                                        } catch(e){}
+                                      }
                                     }
                                     
                                     // Compute diffs
                                     let diffs = [];
-                                    if (i + 1 < t.transactions.length) {
-                                      const keysToCheck = [
-                                        'TitleTh', 'titleTh', 'FirstNameTh', 'firstNameTh', 'LastNameTh', 'lastNameTh', 
-                                        'PhoneOtp', 'phone', 'EmailAlt', 'email', 'LineId', 'lineId', 
-                                        'EmergencyContactName', 'EmergencyContactPhone',
-                                        'HouseNo', 'Moo', 'Village', 'Soi', 'ProvinceId', 'DistrictId', 'SubDistrictId', 'Postcode', 'zipCode',
-                                        'BrokerBranch', 'AgentBranch', 'courseType', 'CourseType', 'trainingDate',
-                                        'SelectedSubjects', 'selectedSubjects',
-                                        'PreviousCourses', 'previousCourses', 'ExtraTrainingInterest', 'extraTrainingInterest',
-                                        'AdditionalCourseRequirement', 'additionalCourseRequirement', 'MainBusiness', 'mainBusiness',
-                                        'HasExperience', 'hasExperience', 'InsuranceExperienceYears', 'insuranceExperienceYears',
-                                        'SalesArea', 'salesArea', 'InsuranceSpecialty', 'insuranceSpecialty', 'OtherInsuranceCompanies', 'otherInsuranceCompanies',
-                                        'agentType', 'AgentType', 'deductionPrivilege', 'DeductionPrivilege', 'masterDegreeStatus', 'MasterDegreeStatus'
+                                    const isImageAction = currentData.Action && (currentData.Action.includes('รูปภาพ') || currentData.UploadedFiles);
+                                    
+                                    if (isImageAction) {
+                                      const fileList = currentData.UploadedFiles || [];
+                                      diffs.push(
+                                        <div key="upload-action" className="text-xs space-y-1">
+                                          <div className="font-bold text-primary flex items-center gap-1">
+                                            <i className="fas fa-camera text-blue-600"></i> อัปโหลด / เปลี่ยนรูปภาพเอกสาร:
+                                          </div>
+                                          {fileList.length > 0 ? (
+                                            <ul className="list-disc ml-5 text-gray-700 space-y-0.5">
+                                              {fileList.map((uf, idx) => (
+                                                <li key={idx}>
+                                                  <span className="font-semibold text-gray-800">
+                                                    {uf.DocumentType === 'Profile' ? 'ภาพถ่ายหน้าตรง (Profile)' :
+                                                     uf.DocumentType === 'IDCardFace' ? 'ภาพถ่ายคู่บัตร ปชช. (IDCardFace)' :
+                                                     uf.DocumentType === 'IDCard' ? 'ภาพถ่ายบัตร ปชช. (IDCard)' : uf.DocumentType}
+                                                  </span>
+                                                  {uf.FileName ? <span className="text-gray-500 text-[11px]"> ({uf.FileName})</span> : ''}
+                                                </li>
+                                              ))}
+                                            </ul>
+                                          ) : (
+                                            <div className="text-green-600 font-medium">อัปเดตไฟล์รูปภาพเรียบร้อย</div>
+                                          )}
+                                        </div>
+                                      );
+                                    } else if (i + 1 < t.transactions.length) {
+                                      const comparisonFields = [
+                                        { label: 'คำนำหน้า', keys: ['TitleTh', 'titleTh', 'title_th'] },
+                                        { label: 'ชื่อ', keys: ['FirstNameTh', 'firstNameTh', 'first_name_th'] },
+                                        { label: 'ชื่อกลาง', keys: ['MiddleNameTh', 'middleNameTh', 'middle_name_th'] },
+                                        { label: 'นามสกุล', keys: ['LastNameTh', 'lastNameTh', 'last_name_th'] },
+                                        { label: 'คำนำหน้าเดิม', keys: ['TitleOldTh', 'titleOldTh', 'title_old_th'] },
+                                        { label: 'ชื่อเดิม', keys: ['FirstNameOldTh', 'firstNameOldTh', 'first_name_old_th'] },
+                                        { label: 'ชื่อกลางเดิม', keys: ['MiddleNameOldTh', 'middleNameOldTh', 'middle_name_old_th'] },
+                                        { label: 'นามสกุลเดิม', keys: ['LastNameOldTh', 'lastNameOldTh', 'last_name_old_th'] },
+                                        { label: 'วันเกิด', keys: ['BirthDate', 'birthDate', 'birth_date'] },
+                                        { label: 'เพศ', keys: ['GenderId', 'genderId', 'gender_id', 'Gender', 'gender'], mapType: 'gender' },
+                                        { label: 'หมู่เลือด', keys: ['BloodGroupId', 'bloodGroupId', 'blood_group_id', 'BloodGroup', 'bloodGroup'], mapType: 'blood' },
+                                        { label: 'ศาสนา', keys: ['ReligionId', 'religionId', 'religion_id', 'Religion', 'religion'], mapType: 'religion' },
+                                        { label: 'แพ้อาหาร/ข้อจำกัด', keys: ['FoodAllergy', 'foodAllergy', 'food_allergy'] },
+                                        { label: 'โรคประจำตัว', keys: ['MedicalCondition', 'medicalCondition', 'medical_condition'] },
+                                        { label: 'วันหมดอายุบัตร ปชช.', keys: ['IdCardExpiry', 'idCardExpiry', 'id_card_expiry'] },
+                                        { label: 'เบอร์โทร', keys: ['PhoneOtp', 'phone', 'phoneOtp', 'phone_otp'] },
+                                        { label: 'อีเมล', keys: ['EmailAlt', 'email', 'emailAlt', 'email_alt'] },
+                                        { label: 'Line ID', keys: ['LineId', 'lineId', 'line_id'] },
+                                        { label: 'Facebook', keys: ['Facebook', 'facebook'] },
+                                        { label: 'Instagram', keys: ['Instagram', 'instagram'] },
+                                        { label: 'ชื่อ-สกุล ผู้ติดต่อฉุกเฉิน', keys: ['EmergencyContactName', 'emergencyContactName', 'emergency_contact_name'] },
+                                        { label: 'เบอร์โทรฉุกเฉิน', keys: ['EmergencyContactPhone', 'emergencyContactPhone', 'emergency_contact_phone'] },
+                                        { label: 'บ้านเลขที่', keys: ['HouseNo', 'houseNo', 'AddrHouseNo', 'addrHouseNo', 'addr_house_no'] },
+                                        { label: 'หมู่', keys: ['Moo', 'moo', 'AddrMoo', 'addrMoo', 'addr_moo'] },
+                                        { label: 'หมู่บ้าน/อาคาร', keys: ['Village', 'village', 'AddrVillage', 'addrVillage', 'addr_village'] },
+                                        { label: 'ซอย', keys: ['Soi', 'soi', 'AddrSoi', 'addrSoi', 'addr_soi'] },
+                                        { label: 'ถนน', keys: ['Road', 'road', 'AddrRoad', 'addrRoad', 'addr_road'] },
+                                        { label: 'จังหวัด', keys: ['ProvinceId', 'provinceId', 'AddrProvinceId', 'addrProvinceId', 'province_id'], mapType: 'ProvinceId' },
+                                        { label: 'อำเภอ/เขต', keys: ['DistrictId', 'districtId', 'AddrDistrictId', 'addrDistrictId', 'district_id'], mapType: 'DistrictId' },
+                                        { label: 'ตำบล/แขวง', keys: ['SubDistrictId', 'subDistrictId', 'AddrSubDistrictId', 'addrSubDistrictId', 'sub_district_id'], mapType: 'SubDistrictId' },
+                                        { label: 'รหัสไปรษณีย์', keys: ['Postcode', 'postcode', 'zipCode', 'ZipCode', 'AddrPostcode', 'addrPostcode', 'postal_code'] },
+                                        { label: 'บ้านเลขที่ (จัดส่งเอกสาร)', keys: ['ContactHouseNo', 'contactHouseNo', 'DeliveryHouseNo', 'deliveryHouseNo'] },
+                                        { label: 'หมู่ (จัดส่งเอกสาร)', keys: ['ContactMoo', 'contactMoo'] },
+                                        { label: 'หมู่บ้าน/อาคาร (จัดส่งเอกสาร)', keys: ['ContactVillage', 'contactVillage'] },
+                                        { label: 'ซอย (จัดส่งเอกสาร)', keys: ['ContactSoi', 'contactSoi'] },
+                                        { label: 'ถนน (จัดส่งเอกสาร)', keys: ['ContactRoad', 'contactRoad'] },
+                                        { label: 'จังหวัด (จัดส่งเอกสาร)', keys: ['ContactProvinceId', 'contactProvinceId'], mapType: 'ProvinceId' },
+                                        { label: 'อำเภอ/เขต (จัดส่งเอกสาร)', keys: ['ContactDistrictId', 'contactDistrictId'], mapType: 'DistrictId' },
+                                        { label: 'ตำบล/แขวง (จัดส่งเอกสาร)', keys: ['ContactSubDistrictId', 'contactSubDistrictId'], mapType: 'SubDistrictId' },
+                                        { label: 'รหัสไปรษณีย์ (จัดส่งเอกสาร)', keys: ['ContactPostcode', 'contactPostcode'] },
+                                        { label: 'สาขาวิริยะ', keys: ['AgentBranch', 'agentBranch', 'BranchId', 'branchId'], mapType: 'AgentBranch' },
+                                        { label: 'ประเภทนายหน้า', keys: ['BrokerType', 'brokerType'], mapType: 'brokerType' },
+                                        { label: 'ข้อมูลสังกัดบริษัทโบรกเกอร์', keys: ['BrokerCompany', 'brokerCompany', 'broker_company'] },
+                                        { label: 'สาขาของบริษัทนายหน้าที่สังกัด', keys: ['BrokerBranch', 'brokerBranch', 'broker_branch'] },
+                                        { label: 'รหัสตัวแทนวิริยะ', keys: ['viriyahAgentCode', 'ViriyahAgentCode', 'viriyah_agent_code'] },
+                                        { label: 'ระดับคอร์ส', keys: ['CourseId', 'courseId', 'CourseType', 'courseType', 'course_type'], mapType: 'courseType' },
+                                        { label: 'ประเภทใบอนุญาต', keys: ['AgentType', 'agentType', 'agent_type'], mapType: 'agentType' },
+                                        { label: 'เลขที่ใบอนุญาต', keys: ['LicenseNo', 'licenseNo', 'license_no'] },
+                                        { label: 'วันออกบัตรใบอนุญาต', keys: ['LicenseIssueDate', 'licenseIssueDate', 'license_issue_date'] },
+                                        { label: 'วันหมดอายุใบอนุญาต', keys: ['LicenseExpiryDate', 'licenseExpiryDate', 'license_expiry_date'] },
+                                        { label: 'วันที่อบรม', keys: ['TrainingDate', 'trainingDate', 'CourseDateId', 'courseDateId'] },
+                                        { label: 'วิชาลงทะเบียน', keys: ['SelectedSubjects', 'selectedSubjects'], mapType: 'ExtraTrainingInterest', isList: true },
+                                        { label: 'วิชาที่เคยอบรม', keys: ['PreviousCourses', 'previousCourses'], mapType: 'PreviousCourses', isList: true },
+                                        { label: 'วิชาที่ประสงค์จะอบรม', keys: ['ExtraTrainingInterest', 'extraTrainingInterest', 'AdditionalCourseRequirement', 'additionalCourseRequirement'], mapType: 'ExtraTrainingInterest', isList: true },
+                                        { label: 'ธุรกิจอื่น', keys: ['MainBusiness', 'mainBusiness', 'OtherBusiness', 'otherBusiness'] },
+                                        { label: 'ปีประสบการณ์', keys: ['InsuranceExperienceYears', 'insuranceExperienceYears'] },
+                                        { label: 'พื้นที่ขาย', keys: ['SalesArea', 'salesArea'], mapType: 'SalesArea', isList: true },
+                                        { label: 'ความเชี่ยวชาญ', keys: ['InsuranceSpecialty', 'insuranceSpecialty'], mapType: 'InsuranceSpecialty', isList: true },
+                                        { label: 'บริษัทประกันอื่น', keys: ['OtherInsuranceCompanies', 'otherInsuranceCompanies'], mapType: 'OtherInsuranceCompanies', isList: true },
+                                        { label: 'สำเร็จการศึกษาตั้งแต่ระดับปริญญาโทขึ้นไป หรือ ไม่', keys: ['DeductionPrivilege', 'deductionPrivilege'] },
+                                        { label: 'สถานะการยื่นเอกสาร', keys: ['MasterDegreeStatus', 'masterDegreeStatus'] }
                                       ];
-                                      const keyMap = {
-                                        TitleTh: 'คำนำหน้า', titleTh: 'คำนำหน้า', 
-                                        FirstNameTh: 'ชื่อ', firstNameTh: 'ชื่อ', 
-                                        LastNameTh: 'นามสกุล', lastNameTh: 'นามสกุล', 
-                                        PhoneOtp: 'เบอร์โทร', phone: 'เบอร์โทร', 
-                                        EmailAlt: 'อีเมล', email: 'อีเมล', 
-                                        LineId: 'Line ID', lineId: 'Line ID', 
-                                        EmergencyContactName: 'ชื่อ-สกุล ผู้ติดต่อฉุกเฉิน',
-                                        EmergencyContactPhone: 'เบอร์โทรฉุกเฉิน',
-                                        HouseNo: 'บ้านเลขที่', Moo: 'หมู่', Village: 'หมู่บ้าน/อาคาร', Soi: 'ซอย',
-                                        ProvinceId: 'จังหวัด', DistrictId: 'อำเภอ/เขต', SubDistrictId: 'ตำบล/แขวง', 
-                                        Postcode: 'รหัสไปรษณีย์', zipCode: 'รหัสไปรษณีย์',
-                                        BrokerBranch: 'สาขา', AgentBranch: 'สาขา',
-                                        courseType: 'ระดับคอร์ส', CourseType: 'ระดับคอร์ส', trainingDate: 'วันที่อบรม',
-                                        SelectedSubjects: 'วิชาลงทะเบียน', selectedSubjects: 'วิชาลงทะเบียน',
-                                        PreviousCourses: 'วิชาที่เคยอบรม', previousCourses: 'วิชาที่เคยอบรม',
-                                        ExtraTrainingInterest: 'วิชาที่ประสงค์จะอบรม', extraTrainingInterest: 'วิชาที่ประสงค์จะอบรม',
-                                        AdditionalCourseRequirement: 'วิชาที่ประสงค์จะอบรม', additionalCourseRequirement: 'วิชาที่ประสงค์จะอบรม',
-                                        MainBusiness: 'ธุรกิจอื่น', mainBusiness: 'ธุรกิจอื่น',
-                                        HasExperience: 'ประสบการณ์', hasExperience: 'ประสบการณ์',
-                                        InsuranceExperienceYears: 'ปีประสบการณ์', insuranceExperienceYears: 'ปีประสบการณ์',
-                                        SalesArea: 'พื้นที่ขาย', salesArea: 'พื้นที่ขาย',
-                                        InsuranceSpecialty: 'ความเชี่ยวชาญ', insuranceSpecialty: 'ความเชี่ยวชาญ',
-                                        OtherInsuranceCompanies: 'บริษัทประกันอื่น', otherInsuranceCompanies: 'บริษัทประกันอื่น',
-                                        agentType: 'ประเภทใบอนุญาต', AgentType: 'ประเภทใบอนุญาต',
-                                        deductionPrivilege: 'สำเร็จการศึกษาตั้งแต่ระดับปริญญาโทขึ้นไป หรือ ไม่', DeductionPrivilege: 'สำเร็จการศึกษาตั้งแต่ระดับปริญญาโทขึ้นไป หรือ ไม่',
-                                        masterDegreeStatus: 'สถานะการยื่นเอกสาร', MasterDegreeStatus: 'สถานะการยื่นเอกสาร'
-                                      };
-                                      
-                                      let checkedMappedKeys = new Set();
-                                      keysToCheck.forEach(k => {
-                                        const mappedKey = keyMap[k] || k;
-                                        if (checkedMappedKeys.has(mappedKey)) return; // Don't duplicate if both TitleTh and titleTh changed
-                                        
-                                        if (currentData[k] !== undefined && prevData[k] !== undefined && currentData[k] !== prevData[k]) {
-                                          let oldVal = prevData[k];
-                                          let newVal = currentData[k];
-                                          
-                                          const resolveValue = (key, val) => {
-                                            if (key === 'deductionPrivilege' || key === 'DeductionPrivilege') {
-                                              if (!val || val === '') return 'ไม่ใช่';
-                                              if (Array.isArray(val)) return val.includes('MasterDegree') ? 'ใช่' : 'ไม่ใช่';
-                                              if (typeof val === 'string') return val.includes('MasterDegree') ? 'ใช่' : 'ไม่ใช่';
-                                              return 'ไม่ใช่';
-                                            }
-                                            if (val === null || val === undefined || val === '') return val;
-                                            if (key === 'TitleTh' || key === 'titleTh') {
-                                              return [1, "1", 1].includes(val) ? 'นาย' : [2, "2", 2].includes(val) ? 'นาง' : [3, "3", 3].includes(val) ? 'นางสาว' : val;
-                                            }
-                                            if (key === 'masterDegreeStatus' || key === 'MasterDegreeStatus') {
-                                              if (val === 'เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว') return 'เคยยื่นเอกสาร';
-                                              if (val === 'ไม่เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว') return 'ไม่เคยยื่นเอกสาร';
-                                              return val;
-                                            }
-                                            const mapObj = masterMap[key];
-                                            if (mapObj) {
-                                              if (Array.isArray(val)) {
-                                                return val.map(id => mapObj[id] || id).join(', ');
-                                              }
-                                              if (typeof val === 'string' && val.includes(',')) {
-                                                return val.split(',').map(id => mapObj[id.trim()] || id).join(', ');
-                                              }
-                                              return mapObj[val] || val;
-                                            }
-                                            return val;
-                                          };
 
-                                          oldVal = resolveValue(k, oldVal);
-                                          newVal = resolveValue(k, newVal);
-                                          
-                                          const isMultiVal = (v) => typeof v === 'string' && v.includes(', ');
-                                          const shouldBeList = ['วิชาลงทะเบียน', 'วิชาที่เคยอบรม', 'วิชาที่ประสงค์จะอบรม', 'พื้นที่ขาย', 'บริษัทประกันอื่น', 'ความเชี่ยวชาญ'].includes(mappedKey);
-
-                                          if (shouldBeList && (isMultiVal(oldVal) || isMultiVal(newVal))) {
-                                            const renderList = (v) => {
-                                              if (!v) return '-';
-                                              return (
-                                                <ul className="list-disc ml-5 mt-1 mb-1">
-                                                  {v.split(', ').map((item, idx) => <li key={idx}>{item}</li>)}
-                                                </ul>
-                                              );
-                                            };
-                                            diffs.push(
-                                              <div key={k} className="mb-2 text-xs">
-                                                <div className="font-semibold text-gray-700">{mappedKey}:</div>
-                                                {oldVal && <div className="text-gray-400 line-through">{renderList(oldVal)}</div>}
-                                                {newVal && <div className="text-green-600 font-medium">{renderList(newVal)}</div>}
-                                              </div>
-                                            );
-                                          } else {
-                                            diffs.push(
-                                              <div key={k} className="mb-1 text-xs">
-                                                <span className="font-semibold text-gray-700">{mappedKey}:</span>{' '}
-                                                <span className="text-gray-400 line-through">{oldVal || '-'}</span>{' '}
-                                                <span className="text-green-600 font-medium">&rarr; {newVal || '-'}</span>
-                                              </div>
-                                            );
+                                      const getVal = (data, keys) => {
+                                        for (const k of keys) {
+                                          if (data && data[k] !== undefined && data[k] !== null && data[k] !== '') {
+                                            return data[k];
                                           }
-                                          checkedMappedKeys.add(mappedKey);
+                                        }
+                                        return undefined;
+                                      };
+
+                                      const getValFromHistory = (startIndex, keys) => {
+                                        for (let j = startIndex; j < t.transactions.length; j++) {
+                                          try {
+                                            const data = JSON.parse(t.transactions[j].newData || '{}');
+                                            const v = getVal(data, keys);
+                                            if (v !== undefined) return v;
+                                          } catch(e) {}
+                                        }
+                                        return undefined;
+                                      };
+
+                                      comparisonFields.forEach(field => {
+                                        const rawNew = getVal(currentData, field.keys);
+                                        if (rawNew === undefined) return;
+                                        const rawOld = getValFromHistory(i + 1, field.keys);
+
+                                        const resolveValue = (val, mapType, label) => {
+                                          if (val === null || val === undefined || val === '') return '';
+                                          if (['วันเกิด', 'วันหมดอายุบัตร ปชช.', 'วันออกบัตรใบอนุญาต', 'วันหมดอายุใบอนุญาต', 'วันที่อบรม'].includes(label)) {
+                                            const dStr = String(val).split('T')[0];
+                                            const parts = dStr.split('-');
+                                            if (parts.length === 3) {
+                                              let year = parseInt(parts[0], 10);
+                                              const month = parts[1];
+                                              const day = parts[2];
+                                              if (year < 2400) year += 543;
+                                              return `${day}/${month}/${year}`;
+                                            }
+                                            return dStr;
+                                          }
+                                          if (label === 'สำเร็จการศึกษาตั้งแต่ระดับปริญญาโทขึ้นไป หรือ ไม่') {
+                                            if (Array.isArray(val)) return val.includes('MasterDegree') ? 'ใช่' : 'ไม่ใช่';
+                                            if (typeof val === 'string') return val.includes('MasterDegree') ? 'ใช่' : 'ไม่ใช่';
+                                            return 'ไม่ใช่';
+                                          }
+                                          if (label === 'คำนำหน้า') {
+                                            return [1, "1", 1].includes(val) ? 'นาย' : [2, "2", 2].includes(val) ? 'นาง' : [3, "3", 3].includes(val) ? 'นางสาว' : val;
+                                          }
+                                          if (label === 'สถานะการยื่นเอกสาร') {
+                                            if (val === 'เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว') return 'เคยยื่นเอกสาร';
+                                            if (val === 'ไม่เคยยื่นเอกสารลดหย่อนก่อนหน้านี้แล้ว') return 'ไม่เคยยื่นเอกสาร';
+                                            return val;
+                                          }
+                                          const mapObj = mapType ? masterMap[mapType] : null;
+                                          if (mapObj) {
+                                            if (Array.isArray(val)) {
+                                              const unique = Array.from(new Set(val.map(id => mapObj[id] || id).filter(Boolean)));
+                                              return unique.join(', ');
+                                            }
+                                            if (typeof val === 'string' && val.includes(',')) {
+                                              const unique = Array.from(new Set(val.split(',').map(id => mapObj[id.trim()] || id.trim()).filter(Boolean)));
+                                              return unique.join(', ');
+                                            }
+                                            return mapObj[val] || val;
+                                          }
+                                          if (Array.isArray(val)) {
+                                            return Array.from(new Set(val.filter(Boolean))).join(', ');
+                                          }
+                                          if (typeof val === 'string' && val.includes(',')) {
+                                            return Array.from(new Set(val.split(',').map(s => s.trim()).filter(Boolean))).join(', ');
+                                          }
+                                          return val;
+                                        };
+
+                                        let oldVal = resolveValue(rawOld, field.mapType, field.label);
+                                        let newVal = resolveValue(rawNew, field.mapType, field.label);
+
+                                        if (field.isList) {
+                                          const norm = (v) => Array.from(new Set(String(v || '').split(',').map(s => s.trim()))).filter(Boolean).sort().join(', ');
+                                          oldVal = norm(oldVal);
+                                          newVal = norm(newVal);
+                                        }
+
+                                        // Only skip if both are empty or both are equal
+                                        if ((!oldVal && !newVal) || String(oldVal || '').trim() === String(newVal || '').trim()) {
+                                          return;
+                                        }
+
+                                        const isMultiVal = (v) => typeof v === 'string' && v.includes(', ');
+                                        if (field.isList && (isMultiVal(oldVal) || isMultiVal(newVal))) {
+                                          const renderList = (v) => {
+                                            if (!v) return '-';
+                                            return (
+                                              <ul className="list-disc ml-5 mt-1 mb-1">
+                                                {String(v).split(', ').map((item, idx) => <li key={idx}>{item}</li>)}
+                                              </ul>
+                                            );
+                                          };
+                                          diffs.push(
+                                            <div key={field.label} className="mb-2 text-xs">
+                                              <div className="font-semibold text-gray-700">{field.label}:</div>
+                                              {oldVal && <div className="text-gray-400 line-through">{renderList(oldVal)}</div>}
+                                              {newVal && <div className="text-green-600 font-medium">{renderList(newVal)}</div>}
+                                            </div>
+                                          );
+                                        } else {
+                                          diffs.push(
+                                            <div key={field.label} className="mb-1 text-xs">
+                                              <span className="font-semibold text-gray-700">{field.label}:</span>{' '}
+                                              <span className="text-gray-400 line-through">{oldVal || '-'}</span>{' '}
+                                              <span className="text-green-600 font-medium">&rarr; {newVal || '-'}</span>
+                                            </div>
+                                          );
                                         }
                                       });
                                     } else {
                                       diffs.push(<div key="first" className="text-blue-500 font-medium text-xs">ลงทะเบียนครั้งแรก</div>);
                                     }
 
+                                    const titleRaw = currentData.titleTh || currentData.TitleTh;
+                                    const titleResolved = [1, "1", 1].includes(titleRaw) ? 'นาย' : [2, "2", 2].includes(titleRaw) ? 'นาง' : [3, "3", 3].includes(titleRaw) ? 'นางสาว' : (titleRaw || '');
+                                    const fName = currentData.firstNameTh || currentData.FirstNameTh;
+                                    const lName = currentData.lastNameTh || currentData.LastNameTh;
+                                    const displayName = fName ? `${titleResolved}${fName} ${lName || ''}`.trim() : (t.name || '-');
+                                    const displayIdCard = currentData.idCard || currentData.NationalId || currentData.NationId || t.idCard || t.nationId || '-';
+                                    
+                                    const rawCourse = currentData.courseType || currentData.CourseType || currentData.CourseId || currentData.courseId || currentData.Course || currentData.course;
+                                    const displayCourse = (masterMap.courseType && masterMap.courseType[rawCourse]) 
+                                      ? masterMap.courseType[rawCourse] 
+                                      : ((rawCourse && isNaN(rawCourse) && rawCourse !== 'agent' && rawCourse !== 'broker') ? rawCourse : (t.course || '-'));
+
                                     return (
                                       <tr key={trans.id} className="border-b hover:bg-gray-50">
                                         <td className="px-4 py-2 border text-center">{t.transactions.length - i}</td>
-                                        <td className="px-4 py-2 border">
-                                          {[1, "1"].includes(currentData.titleTh || currentData.TitleTh) ? 'นาย' : 
-                                           [2, "2"].includes(currentData.titleTh || currentData.TitleTh) ? 'นาง' : 
-                                           [3, "3"].includes(currentData.titleTh || currentData.TitleTh) ? 'นางสาว' : 
-                                           (currentData.titleTh || currentData.TitleTh || '')}{(currentData.firstNameTh || currentData.FirstNameTh || '')} {(currentData.lastNameTh || currentData.LastNameTh || '')}
-                                        </td>
-                                        <td className="px-4 py-2 border">{currentData.idCard || currentData.NationalId || t.idCard || t.nationId}</td>
-                                        <td className="px-4 py-2 border">{currentData.courseType || currentData.CourseType || 'ไม่ระบุ'}</td>
+                                        <td className="px-4 py-2 border">{displayName}</td>
+                                        <td className="px-4 py-2 border">{displayIdCard}</td>
+                                        <td className="px-4 py-2 border">{displayCourse}</td>
                                         <td className="px-4 py-2 border">{trans.createdAt}</td>
                                         <td className="px-4 py-2 border">บันทึกระบบ</td>
                                         <td className="px-4 py-2 border text-left">
@@ -529,13 +660,20 @@ export default function TraineesList() {
             <div className="p-6 overflow-y-auto flex-1">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {docTypes.map(type => {
-                  const doc = documents.find(d => d.documentType === type.key);
+                  const doc = documents.find(d => 
+                    d.documentType?.toLowerCase() === type.key.toLowerCase() || 
+                    (type.altKeys && type.altKeys.some(k => k.toLowerCase() === d.documentType?.toLowerCase()))
+                  );
                   return (
                     <div key={type.key} className="border border-gray-200 rounded-lg p-4 flex flex-col items-center bg-gray-50">
                       <h4 className="font-semibold text-sm mb-3 text-center">{type.label}</h4>
                       <div className="w-full aspect-[3/4] bg-gray-200 rounded flex items-center justify-center mb-4 overflow-hidden border border-gray-300">
                         {doc ? (
-                          <img src={`http://localhost:8085${doc.filePath}`} alt={type.label} className="w-full h-full object-cover" />
+                          <img 
+                            src={`http://localhost:8085${doc.filePath}?t=${new Date(doc.uploadedAt || Date.now()).getTime()}`} 
+                            alt={type.label} 
+                            className="w-full h-full object-cover" 
+                          />
                         ) : (
                           <span className="text-gray-400 text-sm flex flex-col items-center">
                             <i className="fas fa-image text-3xl mb-2"></i>ไม่มีรูปภาพ
@@ -543,9 +681,9 @@ export default function TraineesList() {
                         )}
                       </div>
                       <div className="w-full mt-auto relative">
-                        {canEditTrainees && (
+                        {(canEditTrainees || user?.role === 'Applicant') && (
                           <label className={`w-full block text-center text-sm font-medium py-2 px-4 rounded cursor-pointer transition-colors ${isUploading ? 'bg-gray-300 text-gray-500' : 'bg-primary text-white hover:bg-primary-light'}`}>
-                            {isUploading ? 'กำลังอัปโหลด...' : 'อัปโหลดรูปใหม่'}
+                            {isUploading ? 'กำลังอัปโหลด...' : (doc ? 'เปลี่ยนรูปภาพ' : 'อัปโหลดรูปภาพ')}
                             <input 
                               type="file" 
                               accept="image/jpeg,image/png,image/gif" 

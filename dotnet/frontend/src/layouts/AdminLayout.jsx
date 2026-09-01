@@ -36,52 +36,69 @@ export default function AdminLayout() {
         </div>
 
         <nav className="flex-1 py-4 flex flex-col gap-1 text-[15px]">
-          {canViewMenu('dashboard') && (
-            <NavLink to="/admin" end className={navLinkClass}>
-              <i className="fas fa-home w-5 text-center"></i> หน้าแรก (Dashboard)
-            </NavLink>
-          )}
+          {user?.role === 'Applicant' ? (
+            <>
+              <NavLink to="/admin/trainees" className={navLinkClass}>
+                <i className="fas fa-history w-5 text-center"></i> ข้อมูลผู้สมัครของฉัน
+              </NavLink>
+              <NavLink to="/admin/profile" className={navLinkClass}>
+                <i className="fas fa-id-card w-5 text-center"></i> ข้อมูลส่วนตัว
+              </NavLink>
+            </>
+          ) : (
+            <>
+              <NavLink to="/admin/profile" className={navLinkClass}>
+                <i className="fas fa-id-card w-5 text-center"></i> ข้อมูลส่วนตัว (My Profile)
+              </NavLink>
 
-          {canViewMenu('trainees') && (
-            <NavLink to="/admin/trainees" className={navLinkClass}>
-              <i className="fas fa-users w-5 text-center"></i> ข้อมูลผู้สมัคร/ผู้อบรม
-            </NavLink>
-          )}
+              {canViewMenu('dashboard') && (
+                <NavLink to="/admin" end className={navLinkClass}>
+                  <i className="fas fa-home w-5 text-center"></i> หน้าแรก (Dashboard)
+                </NavLink>
+              )}
 
-          {canViewMenu('reports') && (
-            <NavLink to="/admin/reports" className={navLinkClass}>
-              <i className="fas fa-file-excel w-5 text-center"></i> รายงาน (Reports)
-            </NavLink>
-          )}
+              {canViewMenu('trainees') && (
+                <NavLink to="/admin/trainees" className={navLinkClass}>
+                  <i className="fas fa-users w-5 text-center"></i> ข้อมูลผู้สมัคร/ผู้อบรม
+                </NavLink>
+              )}
 
-          {canViewMenu('users') && (
-            <NavLink to="/admin/users" className={navLinkClass}>
-              <i className="fas fa-user-cog w-5 text-center"></i> จัดการผู้ใช้งาน & สิทธิ์
-            </NavLink>
-          )}
+              {canViewMenu('reports') && (
+                <NavLink to="/admin/reports" className={navLinkClass}>
+                  <i className="fas fa-file-excel w-5 text-center"></i> รายงาน (Reports)
+                </NavLink>
+              )}
 
-          {canViewMenu('config') && (
-            <NavLink to="/admin/config" className={navLinkClass}>
-              <i className="fas fa-cogs w-5 text-center"></i> ตั้งค่าระบบ (System Config)
-            </NavLink>
-          )}
+              {canViewMenu('users') && (
+                <NavLink to="/admin/users" className={navLinkClass}>
+                  <i className="fas fa-user-cog w-5 text-center"></i> จัดการผู้ใช้งาน & สิทธิ์
+                </NavLink>
+              )}
 
-          {canViewMenu('master_data') && (
-            <NavLink to="/admin/master-data" className={navLinkClass}>
-              <i className="fas fa-database w-5 text-center"></i> จัดการข้อมูล (Master Data)
-            </NavLink>
-          )}
+              {canViewMenu('config') && (
+                <NavLink to="/admin/config" className={navLinkClass}>
+                  <i className="fas fa-cogs w-5 text-center"></i> ตั้งค่าระบบ (System Config)
+                </NavLink>
+              )}
 
-          {canViewMenu('audit_logs') && (
-            <NavLink to="/admin/audit-logs" className={navLinkClass}>
-              <i className="fas fa-history w-5 text-center"></i> ประวัติการแก้ไข (Audit Logs)
-            </NavLink>
-          )}
+              {canViewMenu('master_data') && (
+                <NavLink to="/admin/master-data" className={navLinkClass}>
+                  <i className="fas fa-database w-5 text-center"></i> จัดการข้อมูล (Master Data)
+                </NavLink>
+              )}
 
-          {canViewMenu('system_logs') && (
-            <NavLink to="/admin/system-logs" className={navLinkClass}>
-              <i className="fas fa-terminal w-5 text-center"></i> บันทึกระบบ (System Logs)
-            </NavLink>
+              {canViewMenu('audit_logs') && (
+                <NavLink to="/admin/audit-logs" className={navLinkClass}>
+                  <i className="fas fa-history w-5 text-center"></i> ประวัติการแก้ไข (Audit Logs)
+                </NavLink>
+              )}
+
+              {canViewMenu('system_logs') && (
+                <NavLink to="/admin/system-logs" className={navLinkClass}>
+                  <i className="fas fa-terminal w-5 text-center"></i> บันทึกระบบ (System Logs)
+                </NavLink>
+              )}
+            </>
           )}
         </nav>
 

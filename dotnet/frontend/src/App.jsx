@@ -35,6 +35,7 @@ import OicValueMappingCrud from './pages/admin/OicValueMappingCrud';
 import ReportsDashboard from './pages/admin/ReportsDashboard';
 import ReportRemarks from './pages/admin/ReportRemarks';
 import ExportDataReport from './pages/admin/ExportDataReport';
+import UserProfile from './pages/admin/UserProfile';
 import ErrorBoundary from './components/ErrorBoundary';
 
 export default function App() {
@@ -70,6 +71,7 @@ export default function App() {
             </AdminGuard>
           }>
             <Route index element={<Dashboard />} />
+            <Route path="profile" element={<UserProfile />} />
             <Route path="trainees" element={<TraineesList />} />
             <Route path="users" element={<UserManagement />} />
             <Route path="audit-logs" element={<AuditLogs />} />
