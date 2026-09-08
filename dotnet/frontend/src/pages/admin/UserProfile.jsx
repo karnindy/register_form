@@ -608,6 +608,8 @@ export default function UserProfile() {
         errors.push({ tab: 'affiliation', msg: 'คอร์สขอต่อใบอนุญาตต้องระบุ "เลขที่ใบอนุญาต" (10 หลัก)' });
       } else if (!/^\d{10}$/.test(lic.licenseNo.trim())) {
         errors.push({ tab: 'affiliation', msg: 'เลขที่ใบอนุญาตต้องเป็นตัวเลข 10 หลัก' });
+      } else if (!/^\d{2}(02|04|06)\d{6}$/.test(lic.licenseNo.trim())) {
+        errors.push({ tab: 'affiliation', msg: 'เลขที่ใบอนุญาตในหลักที่ 3 และ 4 ต้องเป็น 02, 04 หรือ 06 เท่านั้น' });
       }
 
       if (!lic.licenseExpiryDate) {
@@ -624,6 +626,8 @@ export default function UserProfile() {
       if (lic.licenseNo?.trim()) {
         if (!/^\d{10}$/.test(lic.licenseNo.trim())) {
           errors.push({ tab: 'affiliation', msg: 'เลขที่ใบอนุญาตต้องเป็นตัวเลข 10 หลัก' });
+        } else if (!/^\d{2}(02|04|06)\d{6}$/.test(lic.licenseNo.trim())) {
+          errors.push({ tab: 'affiliation', msg: 'เลขที่ใบอนุญาตในหลักที่ 3 และ 4 ต้องเป็น 02, 04 หรือ 06 เท่านั้น' });
         }
         if (lic.licenseExpiryDate) {
           const expDate = new Date(lic.licenseExpiryDate);

@@ -47,15 +47,15 @@ export default function AdminLayout() {
             </>
           ) : (
             <>
-              <NavLink to="/admin/profile" className={navLinkClass}>
-                <i className="fas fa-id-card w-5 text-center"></i> ข้อมูลส่วนตัว (My Profile)
-              </NavLink>
-
               {canViewMenu('dashboard') && (
                 <NavLink to="/admin" end className={navLinkClass}>
                   <i className="fas fa-home w-5 text-center"></i> หน้าแรก (Dashboard)
                 </NavLink>
               )}
+
+              <NavLink to="/admin/profile" className={navLinkClass}>
+                <i className="fas fa-id-card w-5 text-center"></i> ข้อมูลส่วนตัว (My Profile)
+              </NavLink>
 
               {canViewMenu('trainees') && (
                 <NavLink to="/admin/trainees" className={navLinkClass}>

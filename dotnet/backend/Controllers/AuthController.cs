@@ -560,6 +560,21 @@ namespace backend.Controllers
             // 3. Update or Create Person Data if provided
             if (request.PersonData != null)
             {
+                if (request.PersonData.Licenses != null)
+                {
+                    foreach (var lItem in request.PersonData.Licenses)
+                    {
+                        if (!string.IsNullOrWhiteSpace(lItem.LicenseNo))
+                        {
+                            var cleanLic = lItem.LicenseNo.Trim();
+                            if (!System.Text.RegularExpressions.Regex.IsMatch(cleanLic, @"^\d{2}(02|04|06)\d{6}$"))
+                            {
+                                return BadRequest(new { message = "เลขที่ใบอนุญาตต้องเป็นตัวเลข 10 หลัก และหลักที่ 3 และ 4 ต้องเป็น 02, 04 หรือ 06 เท่านั้น" });
+                            }
+                        }
+                    }
+                }
+
                 nationId = user.NationId ?? request.PersonData.NationId;
                 if (!string.IsNullOrEmpty(nationId))
                 {

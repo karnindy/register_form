@@ -109,6 +109,8 @@ export default function Tab4License() {
         newErrors.licenseNo = 'กรุณาระบุเลขที่ใบอนุญาต';
       } else if (!/^\d{10}$/.test(formData.licenseNo)) {
         newErrors.licenseNo = 'กรุณาระบุตัวเลข 10 หลัก';
+      } else if (!/^\d{2}(02|04|06)\d{6}$/.test(formData.licenseNo)) {
+        newErrors.licenseNo = 'เลขที่ใบอนุญาตในหลักที่ 3 และ 4 ต้องเป็น 02, 04 หรือ 06 เท่านั้น';
       }
       if (!formData.licenseExpire) {
         newErrors.licenseExpire = 'กรุณาระบุวันที่บัตรหมดอายุ';
@@ -125,6 +127,8 @@ export default function Tab4License() {
       if (formData.licenseNo?.trim()) {
         if (!/^\d{10}$/.test(formData.licenseNo)) {
           newErrors.licenseNo = 'กรุณาระบุตัวเลข 10 หลัก';
+        } else if (!/^\d{2}(02|04|06)\d{6}$/.test(formData.licenseNo)) {
+          newErrors.licenseNo = 'เลขที่ใบอนุญาตในหลักที่ 3 และ 4 ต้องเป็น 02, 04 หรือ 06 เท่านั้น';
         }
         if (!formData.licenseExpire) {
           newErrors.licenseExpire = 'กรุณาระบุวันที่บัตรหมดอายุเมื่อกรอกเลขที่ใบอนุญาต';

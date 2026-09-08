@@ -61,6 +61,241 @@ namespace backend.Controllers
             return (null, null, null, null);
         }
 
+        [HttpGet("dashboard-stats")]
+        public async Task<IActionResult> GetDashboardStats(
+            [FromServices] AppDbContext context,
+            [FromQuery] string? trendStartDate = null,
+            [FromQuery] string? trendEndDate = null,
+            [FromQuery] string? courseStartDate = null,
+            [FromQuery] string? courseEndDate = null)
+        {
+            var totalApplicants = await context.Persons.CountAsync();
+            
+            var today = DateTime.UtcNow.Date;
+            var startOfMonth = new DateTime(today.Year, today.Month, 1);
+
+            // Today registrations
+            var todayApplicants = await context.PersonRegistrations
+                .Where(r => r.start_time != null && r.start_time.Value.Date == today)
+                .Select(r => r.NationId)
+                .Distinct()
+                .CountAsync();
+
+            var thisMonthApplicants = await context.PersonRegistrations
+                .Where(r => r.start_time != null && r.start_time.Value >= startOfMonth)
+                .Select(r => r.NationId)
+                .Distinct()
+                .CountAsync();
+
+            var confirmedCount = await context.PersonRegistrations
+                .Where(r => r.confirmed == true)
+                .Select(r => r.NationId)
+                .Distinct()
+                .CountAsync();
+
+            var pendingCount = totalApplicants - confirmedCount;
+            if (pendingCount < 0) pendingCount = 0;
+
+            // License Type Breakdown
+            var agentCount = await context.PersonLicenses
+                .Where(l => l.CourseType != null && (l.CourseType.ToLower().Contains("agent") || l.CourseType.Contains("ตัวแทน")))
+                .Select(l => l.NationId)
+                .Distinct()
+                .CountAsync();
+
+            var brokerCount = await context.PersonLicenses
+                .Where(l => l.CourseType != null && (l.CourseType.ToLower().Contains("broker") || l.CourseType.Contains("นายหน้า")))
+                .Select(l => l.NationId)
+                .Distinct()
+                .CountAsync();
+
+            // Course & Subject Distribution (สัดส่วนแยกตามวิชา / หลักสูตร พร้อม Filter ช่วงวันที่)
+            var renewBasics = await context.RenewBasics.ToListAsync();
+            var basicDict = renewBasics.ToDictionary(b => b.Id, b => b.CourseName ?? $"หลักสูตร {b.Id}");
+
+            var renewOthers = await context.RenewOthers.ToListAsync();
+            var renewCourses = await context.RenewCourses.ToListAsync();
+            var renewPillars = await context.RenewPillars.ToListAsync();
+            var renewDates = await context.RenewDates.ToListAsync();
+
+            var allPersonCourses = await context.PersonCourses.ToListAsync();
+            
+            // Filter by Course Date Range if specified
+            int baseApplicantsForPercentage = totalApplicants;
+            if (DateTime.TryParse(courseStartDate, out var cStart) && DateTime.TryParse(courseEndDate, out var cEnd))
+            {
+                cStart = cStart.Date;
+                cEnd = cEnd.Date;
+                var filteredNations = await context.PersonRegistrations
+                    .Where(r => r.start_time != null && r.start_time.Value.Date >= cStart && r.start_time.Value.Date <= cEnd)
+                    .Select(r => r.NationId)
+                    .Distinct()
+                    .ToListAsync();
+
+                allPersonCourses = allPersonCourses.Where(pc => filteredNations.Contains(pc.NationId)).ToList();
+                baseApplicantsForPercentage = filteredNations.Count;
+            }
+
+            var subjectGroups = new Dictionary<string, (string Name, HashSet<string> Nations)>();
+
+            foreach (var pc in allPersonCourses)
+            {
+                if (string.IsNullOrEmpty(pc.NationId)) continue;
+                string? sKey = null;
+                string? sName = null;
+
+                if (pc.RenewOtherId.HasValue)
+                {
+                    sKey = $"subj_{pc.RenewOtherId.Value}";
+                    var ro = renewOthers.FirstOrDefault(x => x.Id == pc.RenewOtherId.Value);
+                    if (ro != null)
+                    {
+                        var sObj = renewCourses.FirstOrDefault(c => c.Id == ro.SubjectId);
+                        var pObj = renewPillars.FirstOrDefault(p => p.Id == ro.PillarId);
+                        sName = !string.IsNullOrEmpty(pObj?.Name) ? $"[{pObj.Name}] {sObj?.Name ?? $"วิชา {ro.SubjectId}"}" : (sObj?.Name ?? $"วิชา {ro.SubjectId}");
+                    }
+                    else
+                    {
+                        var sObj = renewCourses.FirstOrDefault(c => c.Id == pc.RenewOtherId.Value);
+                        sName = sObj?.Name ?? $"วิชาที่ {pc.RenewOtherId.Value}";
+                    }
+                }
+                else if (pc.CourseId.HasValue)
+                {
+                    sKey = $"course_{pc.CourseId.Value}";
+                    if (basicDict.ContainsKey(pc.CourseId.Value))
+                    {
+                        sName = basicDict[pc.CourseId.Value];
+                    }
+                    else
+                    {
+                        var sObj = renewCourses.FirstOrDefault(c => c.Id == pc.CourseId.Value);
+                        sName = sObj?.Name ?? $"หลักสูตรที่ {pc.CourseId.Value}";
+                    }
+                }
+                else if (pc.CourseDateId.HasValue)
+                {
+                    sKey = $"date_{pc.CourseDateId.Value}";
+                    sName = renewDates.FirstOrDefault(d => d.Id == pc.CourseDateId.Value)?.CourseDateDisplay ?? $"รอบอบรม {pc.CourseDateId.Value}";
+                }
+
+                if (!string.IsNullOrEmpty(sKey) && !string.IsNullOrEmpty(sName))
+                {
+                    if (!subjectGroups.ContainsKey(sKey))
+                    {
+                        subjectGroups[sKey] = (sName, new HashSet<string>());
+                    }
+                    subjectGroups[sKey].Nations.Add(pc.NationId);
+                }
+            }
+
+            var courseDistribution = subjectGroups.Select(sg => new
+            {
+                courseId = sg.Key,
+                courseName = sg.Value.Name,
+                count = sg.Value.Nations.Count,
+                percentage = baseApplicantsForPercentage > 0 ? Math.Round((double)sg.Value.Nations.Count * 100 / baseApplicantsForPercentage, 1) : 0
+            }).OrderByDescending(x => x.count).ToList();
+
+            // Daily Trend (รองรับการเลือกช่วงวันที่ และ Scroll เลื่อนดู)
+            DateTime tStart = today.AddDays(-29);
+            DateTime tEnd = today;
+
+            if (DateTime.TryParse(trendStartDate, out var parsedTStart)) tStart = parsedTStart.Date;
+            if (DateTime.TryParse(trendEndDate, out var parsedTEnd)) tEnd = parsedTEnd.Date;
+
+            if (tEnd < tStart)
+            {
+                var temp = tStart;
+                tStart = tEnd;
+                tEnd = temp;
+            }
+
+            // Max 180 days range
+            if ((tEnd - tStart).TotalDays > 180)
+            {
+                tStart = tEnd.AddDays(-180);
+            }
+
+            var daysCount = (int)(tEnd - tStart).TotalDays + 1;
+            var daysList = Enumerable.Range(0, daysCount)
+                .Select(i => tStart.AddDays(i))
+                .ToList();
+
+            var regDatesRaw = await context.PersonRegistrations
+                .Where(r => r.start_time != null && r.start_time.Value.Date >= tStart && r.start_time.Value.Date <= tEnd)
+                .Select(r => new { r.NationId, Date = r.start_time!.Value.Date })
+                .ToListAsync();
+
+            var thaiMonths = new[] { "", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค." };
+
+            var dailyTrend = daysList.Select(d => {
+                var count = regDatesRaw.Where(r => r.Date == d).Select(r => r.NationId).Distinct().Count();
+                var label = $"{d.Day} {thaiMonths[d.Month]}";
+                return new {
+                    Date = d.ToString("yyyy-MM-dd"),
+                    Label = label,
+                    Count = count
+                };
+            }).ToList();
+
+            // Recent Registrations (latest 7)
+            var recentPersons = await context.Persons
+                .Include(p => p.Registrations)
+                .Include(p => p.Courses)
+                .OrderByDescending(p => p.Registrations.Max(r => (DateTime?)r.start_time) ?? DateTime.MinValue)
+                .Take(7)
+                .ToListAsync();
+
+            var recentRegistrations = recentPersons.Select(p => {
+                var reg = p.Registrations.OrderByDescending(r => r.Id).FirstOrDefault();
+                var crs = p.Courses.OrderByDescending(c => c.PersonCourseId).FirstOrDefault();
+                string? cName = null;
+                if (crs?.RenewOtherId.HasValue == true)
+                {
+                    var ro = renewOthers.FirstOrDefault(x => x.Id == crs.RenewOtherId.Value);
+                    if (ro != null)
+                    {
+                        var sObj = renewCourses.FirstOrDefault(c => c.Id == ro.SubjectId);
+                        var pObj = renewPillars.FirstOrDefault(p => p.Id == ro.PillarId);
+                        cName = !string.IsNullOrEmpty(pObj?.Name) ? $"[{pObj.Name}] {sObj?.Name ?? $"วิชา {ro.SubjectId}"}" : (sObj?.Name ?? $"วิชา {ro.SubjectId}");
+                    }
+                    else
+                    {
+                        var sObj = renewCourses.FirstOrDefault(c => c.Id == crs.RenewOtherId.Value);
+                        cName = sObj?.Name ?? $"วิชาที่ {crs.RenewOtherId.Value}";
+                    }
+                }
+                else if (crs?.CourseId.HasValue == true && basicDict.ContainsKey(crs.CourseId.Value))
+                {
+                    cName = basicDict[crs.CourseId.Value];
+                }
+
+                return new {
+                    NationId = p.NationId,
+                    Name = $"{p.FirstNameTh} {p.LastNameTh}".Trim(),
+                    CourseName = cName ?? "ไม่ระบุหลักสูตร/วิชา",
+                    Date = reg?.start_time?.ToString("yyyy-MM-dd HH:mm") ?? "-",
+                    Confirmed = reg?.confirmed ?? false,
+                    Phone = p.PhoneOtp ?? "-"
+                };
+            }).ToList();
+
+            return Ok(new
+            {
+                totalApplicants,
+                todayApplicants,
+                thisMonthApplicants,
+                confirmedCount,
+                pendingCount,
+                agentCount,
+                brokerCount,
+                courseDistribution,
+                dailyTrend,
+                recentRegistrations
+            });
+        }
+
         [HttpGet("trainees")]
         public async Task<IActionResult> GetTrainees(
             [FromServices] AppDbContext context,
@@ -294,6 +529,21 @@ namespace backend.Controllers
                 .FirstOrDefaultAsync(x => x.NationId == nationId);
                 
             if (p == null) return NotFound();
+
+            if (updatedPerson.Licenses != null)
+            {
+                foreach (var lItem in updatedPerson.Licenses)
+                {
+                    if (!string.IsNullOrWhiteSpace(lItem.LicenseNo))
+                    {
+                        var cleanLic = lItem.LicenseNo.Trim();
+                        if (!System.Text.RegularExpressions.Regex.IsMatch(cleanLic, @"^\d{2}(02|04|06)\d{6}$"))
+                        {
+                            return BadRequest(new { message = "เลขที่ใบอนุญาตต้องเป็นตัวเลข 10 หลัก และหลักที่ 3 และ 4 ต้องเป็น 02, 04 หรือ 06 เท่านั้น" });
+                        }
+                    }
+                }
+            }
 
             // 1. Snapshot OLD Data for History
             var oldSnapshot = new

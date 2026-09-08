@@ -22,7 +22,24 @@ namespace backend.Controllers
             var data = await _context.RenewBasics
                 .OrderBy(x => x.CourseName)
                 .ToListAsync();
-            return Ok(data);
+
+            var details = await _context.CourseDetails
+                .Where(d => d.CourseType == "basic")
+                .OrderBy(d => d.DisplayOrder)
+                .ToListAsync();
+
+            var detailsByCourseId = details.GroupBy(d => d.CourseId).ToDictionary(g => g.Key, g => g.ToList());
+
+            var result = data.Select(b => new {
+                b.Id,
+                b.CourseName,
+                b.Status,
+                b.DateId,
+                b.AgentType,
+                Details = detailsByCourseId.GetValueOrDefault(b.Id, new List<MstCourseDetail>())
+            });
+
+            return Ok(result);
         }
 
         [HttpPost]
@@ -38,7 +55,6 @@ namespace backend.Controllers
         {
             var existing = await _context.RenewBasics.FindAsync(id);
             if (existing == null) return NotFound();
-            
             existing.CourseName = model.CourseName;
             existing.AgentType = model.AgentType;
             existing.DateId = model.DateId;

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using backend.Data;
+using backend.Models;
 
 namespace backend.Controllers
 {
@@ -116,6 +117,12 @@ namespace backend.Controllers
                         orderby o.DisplayOrder ascending
                         select new {
                             id = o.Id,
+                            subjectId = c.Id,
+                            subjectName = c.Name,
+                            pillarId = p.Id,
+                            pillarName = p.Name,
+                            dateId = d.Id,
+                            dateDisplay = d.CourseDateDisplay,
                             displayName = $"[{p.Name}][{d.CourseDateDisplay}] : {c.Name}"
                         };
 
@@ -127,9 +134,12 @@ namespace backend.Controllers
         public class MasterDataDto
         {
             public int Id { get; set; }
+            public int? DefaultPillarId { get; set; }
+            public string? DefaultPillarName { get; set; }
             public string Name { get; set; } = string.Empty;
             public string Status { get; set; } = "active";
             public int DisplayOrder { get; set; }
+            public List<MstCourseDetail> Details { get; set; } = new();
         }
 
         [HttpGet("{type}")]
@@ -181,11 +191,37 @@ namespace backend.Controllers
                         .Select(c => new MasterDataDto { Id = c.Id, Name = c.Name, Status = c.Status, DisplayOrder = c.DisplayOrder })
                         .ToListAsync());
                 case "renewcourse":
-                    return Ok(await _context.RenewCourses
+                    var renewCourses = await _context.RenewCourses
                         .Where(c => queryStatus == null || c.Status == queryStatus)
                         .OrderBy(c => c.DisplayOrder)
-                        .Select(c => new MasterDataDto { Id = c.Id, Name = c.Name, Status = c.Status, DisplayOrder = c.DisplayOrder })
-                        .ToListAsync());
+                        .Select(c => new MasterDataDto { 
+                            Id = c.Id, 
+                            Name = c.Name, 
+                            DefaultPillarId = c.DefaultPillarId,
+                            Status = c.Status, 
+                            DisplayOrder = c.DisplayOrder 
+                        })
+                        .ToListAsync();
+
+                    var pillarDict = await _context.RenewPillars.ToDictionaryAsync(p => p.Id, p => p.Name);
+                    var details = await _context.CourseDetails
+                        .Where(d => d.CourseType == "renew" && (queryStatus == null || d.Status == queryStatus))
+                        .OrderBy(d => d.DisplayOrder)
+                        .ToListAsync();
+                    var detailsByCourseId = details.GroupBy(d => d.CourseId).ToDictionary(g => g.Key, g => g.ToList());
+
+                    foreach (var c in renewCourses)
+                    {
+                        if (c.DefaultPillarId.HasValue && pillarDict.TryGetValue(c.DefaultPillarId.Value, out var pName))
+                        {
+                            c.DefaultPillarName = pName;
+                        }
+                        if (detailsByCourseId.TryGetValue(c.Id, out var dList))
+                        {
+                            c.Details = dList;
+                        }
+                    }
+                    return Ok(renewCourses);
                 case "pillars":
                     return Ok(await _context.RenewPillars
                         .Where(p => queryStatus == null || p.Status == queryStatus)
@@ -215,7 +251,12 @@ namespace backend.Controllers
                     var t = new Models.MstTitle { Name = dto.Name, Status = dto.Status, DisplayOrder = dto.DisplayOrder };
                     _context.Titles.Add(t); break;
                 case "renewcourse":
-                    var c = new Models.MstRenewCourse { Name = dto.Name, Status = dto.Status, DisplayOrder = dto.DisplayOrder };
+                    var c = new Models.MstRenewCourse { 
+                        Name = dto.Name, 
+                        DefaultPillarId = dto.DefaultPillarId,
+                        Status = dto.Status, 
+                        DisplayOrder = dto.DisplayOrder 
+                    };
                     _context.RenewCourses.Add(c); break;
                 case "territory":
                     var territory = new Models.MstTerritory { Name = dto.Name, Status = dto.Status, DisplayOrder = dto.DisplayOrder };
@@ -264,7 +305,10 @@ namespace backend.Controllers
                 case "renewcourse":
                     var c = await _context.RenewCourses.FindAsync(id);
                     if (c == null) return NotFound();
-                    c.Name = dto.Name; c.Status = dto.Status; c.DisplayOrder = dto.DisplayOrder;
+                    c.Name = dto.Name; 
+                    c.DefaultPillarId = dto.DefaultPillarId;
+                    c.Status = dto.Status; 
+                    c.DisplayOrder = dto.DisplayOrder;
                     break;
                 case "territory":
                     var territory = await _context.Territories.FindAsync(id);

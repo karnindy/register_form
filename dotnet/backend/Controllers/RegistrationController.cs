@@ -54,6 +54,15 @@ namespace backend.Controllers
                 }
             }
 
+            if (!string.IsNullOrWhiteSpace(register.LicenseNo))
+            {
+                var cleanLic = register.LicenseNo.Trim();
+                if (!System.Text.RegularExpressions.Regex.IsMatch(cleanLic, @"^\d{2}(02|04|06)\d{6}$"))
+                {
+                    return BadRequest(new { message = "เลขที่ใบอนุญาตต้องเป็นตัวเลข 10 หลัก และหลักที่ 3 และ 4 ต้องเป็น 02, 04 หรือ 06 เท่านั้น" });
+                }
+            }
+
             var id = await _repository.CreateAsync(register);
             return CreatedAtAction(nameof(Get), new { id = id }, register);
         }

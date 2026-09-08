@@ -55,6 +55,7 @@ namespace backend.Data
         public DbSet<MstRenewBasic> RenewBasics { get; set; }
         public DbSet<MstRenewPillar> RenewPillars { get; set; }
         public DbSet<MstRenewOther> RenewOthers { get; set; }
+        public DbSet<MstCourseDetail> CourseDetails { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

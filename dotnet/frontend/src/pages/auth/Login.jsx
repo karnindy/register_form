@@ -27,11 +27,17 @@ export default function Login() {
       if (from && from !== '/login' && from !== '/admin/login') {
         navigate(from, { replace: true });
       } else if (isAdminLogin) {
-        // เข้า flow admin เสมอเมื่อ login ผ่าน /admin/login
-        navigate('/admin', { replace: true });
+        if (user?.role === 'Applicant') {
+          navigate('/admin/trainees', { replace: true });
+        } else {
+          navigate('/admin', { replace: true });
+        }
       } else {
-        // เข้า flow หน้าสมัครเสมอเมื่อ login ผ่าน /login
-        navigate('/', { replace: true });
+        if (user?.role && user.role !== 'Applicant') {
+          navigate('/admin', { replace: true });
+        } else {
+          navigate('/', { replace: true });
+        }
       }
     } catch (err) {
       setError(err.message || 'เข้าสู่ระบบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');

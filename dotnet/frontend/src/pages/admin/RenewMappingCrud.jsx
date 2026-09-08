@@ -66,7 +66,16 @@ export default function RenewMappingCrud() {
       if (data.type === targetType) {
         if (targetType === 'pillar') setSelectedPillar(data.item);
         if (targetType === 'date') setSelectedDate(data.item);
-        if (targetType === 'subject') setSelectedSubject(data.item);
+        if (targetType === 'subject') {
+          setSelectedSubject(data.item);
+          // If subject has default pillar defined, auto-fill the pillar slot
+          if (data.item.defaultPillarId) {
+            const foundPillar = pillars.find(p => p.id === data.item.defaultPillarId);
+            if (foundPillar) {
+              setSelectedPillar(foundPillar);
+            }
+          }
+        }
       } else {
         alert('กรุณาวางในช่องที่ตรงกับประเภทคำศัพท์');
       }
@@ -124,16 +133,38 @@ export default function RenewMappingCrud() {
   };
 
   // Draggable pill component
-  const DraggablePill = ({ item, type, colorClass }) => (
-    <div 
-      draggable
-      onDragStart={(e) => handleDragStart(e, item, type)}
-      className={`px-3 py-2 mb-2 rounded cursor-grab shadow-sm border text-sm hover:opacity-80 active:cursor-grabbing bg-white ${colorClass}`}
-    >
-      <i className="fas fa-grip-vertical text-gray-400 mr-2"></i>
-      {item.name || item.courseDateDisplay}
-    </div>
-  );
+  const DraggablePill = ({ item, type, colorClass }) => {
+    const details = item.details || [];
+    return (
+      <div 
+        draggable
+        onDragStart={(e) => handleDragStart(e, item, type)}
+        className={`px-3 py-2 mb-2 rounded cursor-grab shadow-sm border text-sm hover:opacity-80 active:cursor-grabbing bg-white ${colorClass}`}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <i className="fas fa-grip-vertical text-gray-400 mr-2"></i>
+            <span className="font-medium">{item.name || item.courseDateDisplay}</span>
+          </div>
+        </div>
+        {(details.length > 0 || (type === 'subject' && (item.defaultPillarName || item.defaultPillarId))) && (
+          <div className="flex flex-wrap gap-1 mt-1 pl-5">
+            {type === 'subject' && (item.defaultPillarName || item.defaultPillarId) && (
+              <span className="text-[11px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-medium" title="เสาหลักเริ่มต้น">
+                <i className="fas fa-landmark mr-1 text-[10px]"></i>{item.defaultPillarName || `Pillar #${item.defaultPillarId}`}
+              </span>
+            )}
+            {details.map(d => (
+              <span key={d.id} className="text-[10px] bg-purple-50 text-purple-800 border border-purple-200 px-1.5 py-0.5 rounded font-mono" title={`ประเภท: ${d.agentType === 'broker' ? 'นายหน้า' : d.agentType === 'both' ? 'ทั้งสองประเภท' : 'ตัวแทน'} | รหัส OIC: ${d.oicCourseCode || '-'} | วิชา: ${d.courseCode || '-'}`}>
+                {d.agentType === 'broker' ? <span className="text-amber-700 font-bold mr-0.5">[B]</span> : d.agentType === 'both' ? <span className="text-indigo-700 font-bold mr-0.5">[A+B]</span> : <span className="text-blue-700 font-bold mr-0.5">[A]</span>}
+                {d.oicCourseCode ? <><i className="fas fa-certificate text-[9px] mr-0.5 text-rose-600"></i>{d.oicCourseCode}</> : (d.courseCode || d.curriculumCode)}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   // Drop zone slot
   const DropSlot = ({ type, selectedItem, placeholder, colorBorder }) => (

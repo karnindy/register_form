@@ -121,6 +121,55 @@ namespace backend.Models
     [Table("mst_renew_course")]
     public class MstRenewCourse : BaseMasterData
     {
+        [Column("default_pillar_id")]
+        public int? DefaultPillarId { get; set; }
+    }
+
+    [Table("mst_course_detail")]
+    public class MstCourseDetail
+    {
+        [Key]
+        [Column("id")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+
+        [Column("course_type")]
+        [MaxLength(20)]
+        public string CourseType { get; set; } = null!; // "basic" or "renew"
+
+        [Column("course_id")]
+        public int CourseId { get; set; } // FK to mst_renew_basic.id or mst_renew_course.id
+
+        [Column("agent_type")]
+        [MaxLength(20)]
+        public string? AgentType { get; set; } // "agent", "broker", "both"
+
+        [Column("announcement_code")]
+        [MaxLength(100)]
+        public string? AnnouncementCode { get; set; }
+
+        [Column("course_short_name")]
+        [MaxLength(100)]
+        public string? CourseShortName { get; set; }
+
+        [Column("curriculum_code")]
+        [MaxLength(100)]
+        public string? CurriculumCode { get; set; }
+
+        [Column("course_code")]
+        [MaxLength(100)]
+        public string? CourseCode { get; set; }
+
+        [Column("oic_course_code")]
+        [MaxLength(100)]
+        public string? OicCourseCode { get; set; }
+
+        [Column("display_order")]
+        public int DisplayOrder { get; set; } = 0;
+
+        [Column("status")]
+        [MaxLength(20)]
+        public string Status { get; set; } = "active";
     }
 
     [Table("mst_renew_dates")]

@@ -89,15 +89,36 @@ using (var scope = app.Services.CreateScope())
     context.Database.EnsureCreated();
 
     // Ensure new columns exist
-    try
+    string[] schemaMigrations = new[]
     {
-        context.Database.ExecuteSqlRaw("IF COL_LENGTH('personregistration', 'DeductionPrivilege') IS NULL BEGIN ALTER TABLE personregistration ADD DeductionPrivilege NVARCHAR(MAX) NULL; END");
-        context.Database.ExecuteSqlRaw("IF COL_LENGTH('personregistration', 'MasterDegreeStatus') IS NULL BEGIN ALTER TABLE personregistration ADD MasterDegreeStatus NVARCHAR(MAX) NULL; END");
-        context.Database.ExecuteSqlRaw("IF COL_LENGTH('registrations', 'master_degree_status') IS NULL BEGIN ALTER TABLE registrations ADD master_degree_status NVARCHAR(MAX) NULL; END");
-    }
-    catch (Exception ex)
+        "IF OBJECT_ID('personregistration', 'U') IS NOT NULL AND COL_LENGTH('personregistration', 'DeductionPrivilege') IS NULL BEGIN ALTER TABLE personregistration ADD DeductionPrivilege NVARCHAR(MAX) NULL; END",
+        "IF OBJECT_ID('personregistration', 'U') IS NOT NULL AND COL_LENGTH('personregistration', 'MasterDegreeStatus') IS NULL BEGIN ALTER TABLE personregistration ADD MasterDegreeStatus NVARCHAR(MAX) NULL; END",
+        "IF OBJECT_ID('registrations', 'U') IS NOT NULL AND COL_LENGTH('registrations', 'master_degree_status') IS NULL BEGIN ALTER TABLE registrations ADD master_degree_status NVARCHAR(MAX) NULL; END",
+        "IF OBJECT_ID('mst_renew_course', 'U') IS NOT NULL AND COL_LENGTH('mst_renew_course', 'default_pillar_id') IS NULL BEGIN ALTER TABLE mst_renew_course ADD default_pillar_id INT NULL; END",
+        "IF OBJECT_ID('mst_renew_course', 'U') IS NOT NULL AND COL_LENGTH('mst_renew_course', 'course_code') IS NOT NULL BEGIN ALTER TABLE mst_renew_course DROP COLUMN course_code; END",
+        "IF OBJECT_ID('mst_renew_course', 'U') IS NOT NULL AND COL_LENGTH('mst_renew_course', 'announcement_code') IS NOT NULL BEGIN ALTER TABLE mst_renew_course DROP COLUMN announcement_code; END",
+        "IF OBJECT_ID('mst_renew_course', 'U') IS NOT NULL AND COL_LENGTH('mst_renew_course', 'course_short_name') IS NOT NULL BEGIN ALTER TABLE mst_renew_course DROP COLUMN course_short_name; END",
+        "IF OBJECT_ID('mst_renew_course', 'U') IS NOT NULL AND COL_LENGTH('mst_renew_course', 'curriculum_code') IS NOT NULL BEGIN ALTER TABLE mst_renew_course DROP COLUMN curriculum_code; END",
+        "IF OBJECT_ID('mst_renew_course', 'U') IS NOT NULL AND COL_LENGTH('mst_renew_course', 'oic_course_code') IS NOT NULL BEGIN ALTER TABLE mst_renew_course DROP COLUMN oic_course_code; END",
+        "IF OBJECT_ID('mst_renew_basic', 'U') IS NOT NULL AND COL_LENGTH('mst_renew_basic', 'course_code') IS NOT NULL BEGIN ALTER TABLE mst_renew_basic DROP COLUMN course_code; END",
+        "IF OBJECT_ID('mst_renew_basic', 'U') IS NOT NULL AND COL_LENGTH('mst_renew_basic', 'announcement_code') IS NOT NULL BEGIN ALTER TABLE mst_renew_basic DROP COLUMN announcement_code; END",
+        "IF OBJECT_ID('mst_renew_basic', 'U') IS NOT NULL AND COL_LENGTH('mst_renew_basic', 'course_short_name') IS NOT NULL BEGIN ALTER TABLE mst_renew_basic DROP COLUMN course_short_name; END",
+        "IF OBJECT_ID('mst_renew_basic', 'U') IS NOT NULL AND COL_LENGTH('mst_renew_basic', 'curriculum_code') IS NOT NULL BEGIN ALTER TABLE mst_renew_basic DROP COLUMN curriculum_code; END",
+        "IF OBJECT_ID('mst_renew_basic', 'U') IS NOT NULL AND COL_LENGTH('mst_renew_basic', 'oic_course_code') IS NOT NULL BEGIN ALTER TABLE mst_renew_basic DROP COLUMN oic_course_code; END",
+        "IF OBJECT_ID('mst_course_detail', 'U') IS NULL BEGIN CREATE TABLE mst_course_detail (id INT IDENTITY(1,1) PRIMARY KEY, course_type NVARCHAR(20) NOT NULL, course_id INT NOT NULL, agent_type NVARCHAR(20) NULL, announcement_code NVARCHAR(100) NULL, course_short_name NVARCHAR(100) NULL, curriculum_code NVARCHAR(100) NULL, course_code NVARCHAR(100) NULL, oic_course_code NVARCHAR(100) NULL, display_order INT DEFAULT 0, status NVARCHAR(20) DEFAULT 'active'); END",
+        "IF OBJECT_ID('mst_course_detail', 'U') IS NOT NULL AND COL_LENGTH('mst_course_detail', 'agent_type') IS NULL BEGIN ALTER TABLE mst_course_detail ADD agent_type NVARCHAR(20) NULL; END"
+    };
+
+    foreach (var sql in schemaMigrations)
     {
-        Console.WriteLine("Warning: Could not add columns: " + ex.Message);
+        try
+        {
+            context.Database.ExecuteSqlRaw(sql);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Warning: Migration '{sql}' skipped: {ex.Message}");
+        }
     }
 
     try 
