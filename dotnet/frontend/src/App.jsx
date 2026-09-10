@@ -36,6 +36,7 @@ import ReportsDashboard from './pages/admin/ReportsDashboard';
 import ReportRemarks from './pages/admin/ReportRemarks';
 import ExportDataReport from './pages/admin/ExportDataReport';
 import UserProfile from './pages/admin/UserProfile';
+import TrainingImport from './pages/admin/TrainingImport';
 import ErrorBoundary from './components/ErrorBoundary';
 
 export default function App() {
@@ -77,6 +78,9 @@ export default function App() {
             <Route path="audit-logs" element={<AuditLogs />} />
             <Route path="system-logs" element={<SystemLogs />} />
             <Route path="config" element={<ConfigPage />} />
+            
+            {/* Training Stamp Import Route */}
+            <Route path="training-import" element={<TrainingImport />} />
             
             {/* Reports Routes */}
             <Route path="reports" element={<ReportsDashboard />} />

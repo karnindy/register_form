@@ -134,7 +134,16 @@ export default function RenewMappingCrud() {
 
   // Draggable pill component
   const DraggablePill = ({ item, type, colorClass }) => {
-    const details = item.details || [];
+    const details = item.curriculums && item.curriculums.length > 0
+      ? item.curriculums.map(c => ({
+          id: c.id,
+          agentType: c.agentType,
+          courseCode: c.trainingCourseCode,
+          curriculumCode: c.curriculumCode,
+          oicCourseCode: c.subDetails?.[0]?.oicCourseCode,
+          subCourseName: c.subDetails?.[0]?.subCourseName
+        }))
+      : (item.details || []);
     return (
       <div 
         draggable
@@ -155,8 +164,9 @@ export default function RenewMappingCrud() {
               </span>
             )}
             {details.map(d => (
-              <span key={d.id} className="text-[10px] bg-purple-50 text-purple-800 border border-purple-200 px-1.5 py-0.5 rounded font-mono" title={`ประเภท: ${d.agentType === 'broker' ? 'นายหน้า' : d.agentType === 'both' ? 'ทั้งสองประเภท' : 'ตัวแทน'} | รหัส OIC: ${d.oicCourseCode || '-'} | วิชา: ${d.courseCode || '-'}`}>
+              <span key={d.id} className="text-[10px] bg-purple-50 text-purple-800 border border-purple-200 px-1.5 py-0.5 rounded font-mono" title={`ประเภท: ${d.agentType === 'broker' ? 'นายหน้า' : d.agentType === 'both' ? 'ทั้งสองประเภท' : 'ตัวแทน'} | ชื่อวิชาย่อย: ${d.subCourseName || '-'} | รหัส OIC: ${d.oicCourseCode || '-'} | วิชา: ${d.courseCode || '-'}`}>
                 {d.agentType === 'broker' ? <span className="text-amber-700 font-bold mr-0.5">[B]</span> : d.agentType === 'both' ? <span className="text-indigo-700 font-bold mr-0.5">[A+B]</span> : <span className="text-blue-700 font-bold mr-0.5">[A]</span>}
+                {d.subCourseName && <span className="font-sans font-semibold text-gray-800 mr-1">{d.subCourseName}</span>}
                 {d.oicCourseCode ? <><i className="fas fa-certificate text-[9px] mr-0.5 text-rose-600"></i>{d.oicCourseCode}</> : (d.courseCode || d.curriculumCode)}
               </span>
             ))}

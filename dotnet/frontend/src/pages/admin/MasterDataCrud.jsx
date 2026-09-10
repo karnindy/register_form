@@ -33,6 +33,7 @@ export default function MasterDataCrud() {
     curriculumCode: '',
     courseCode: '',
     oicCourseCode: '',
+    subCourseName: '',
     displayOrder: 1,
     status: 'active'
   });
@@ -163,6 +164,7 @@ export default function MasterDataCrud() {
       curriculumCode: '',
       courseCode: '',
       oicCourseCode: '',
+      subCourseName: '',
       displayOrder: (course.details?.length || 0) + 1,
       status: 'active'
     });
@@ -173,10 +175,24 @@ export default function MasterDataCrud() {
   const fetchCourseDetails = async (courseId) => {
     try {
       setDetailsLoading(true);
-      const res = await fetch(`${API_BASE_URL}/CourseDetail?courseType=renew&courseId=${courseId}&all=true`);
+      const res = await fetch(`${API_BASE_URL}/CourseCurriculum?courseType=renew&courseId=${courseId}&all=true`);
       if (res.ok) {
         const json = await res.json();
-        setCourseDetailsList(json);
+        // Flatten or map for modal table display
+        const mapped = json.map(c => ({
+          id: c.id,
+          agentType: c.agentType,
+          announcementCode: c.announcementCode,
+          courseShortName: c.courseShortName,
+          curriculumCode: c.curriculumCode,
+          courseCode: c.trainingCourseCode,
+          oicCourseCode: c.subDetails?.[0]?.oicCourseCode || '',
+          subCourseName: c.subDetails?.[0]?.subCourseName || '',
+          displayOrder: c.displayOrder,
+          status: c.status,
+          rawCurriculum: c
+        }));
+        setCourseDetailsList(mapped);
       }
     } catch (err) {
       console.error('Failed to load course details', err);
@@ -189,11 +205,12 @@ export default function MasterDataCrud() {
     setEditingDetailId(null);
     setDetailFormData({
       agentType: 'agent',
-      announcementCode: '',
-      courseShortName: '',
-      curriculumCode: '',
+      announcementCode: 'NLGA-2564',
+      courseShortName: 'ตนว4',
+      curriculumCode: 'ตนว4642037',
       courseCode: '',
       oicCourseCode: '',
+      subCourseName: '',
       displayOrder: courseDetailsList.length + 1,
       status: 'active'
     });
@@ -208,6 +225,7 @@ export default function MasterDataCrud() {
       curriculumCode: detail.curriculumCode || '',
       courseCode: detail.courseCode || '',
       oicCourseCode: detail.oicCourseCode || '',
+      subCourseName: detail.subCourseName || '',
       displayOrder: detail.displayOrder || 1,
       status: detail.status || 'active'
     });
@@ -220,15 +238,30 @@ export default function MasterDataCrud() {
     try {
       const method = editingDetailId ? 'PUT' : 'POST';
       const url = editingDetailId 
-        ? `${API_BASE_URL}/CourseDetail/${editingDetailId}` 
-        : `${API_BASE_URL}/CourseDetail`;
+        ? `${API_BASE_URL}/CourseCurriculum/${editingDetailId}` 
+        : `${API_BASE_URL}/CourseCurriculum`;
 
       const payload = {
         id: editingDetailId || 0,
         courseType: 'renew',
         courseId: selectedCourseForDetails.id,
-        ...detailFormData,
-        displayOrder: parseInt(detailFormData.displayOrder) || 1
+        agentType: detailFormData.agentType,
+        trainingCourseCode: detailFormData.courseCode,
+        announcementCode: detailFormData.announcementCode,
+        curriculumCode: detailFormData.curriculumCode,
+        courseShortName: detailFormData.courseShortName,
+        displayOrder: parseInt(detailFormData.displayOrder) || 1,
+        status: detailFormData.status || 'active',
+        subDetails: [
+          {
+            id: editingDetailId ? (courseDetailsList.find(d => d.id === editingDetailId)?.rawCurriculum?.subDetails?.[0]?.id || 0) : 0,
+            curriculumId: editingDetailId || 0,
+            oicCourseCode: detailFormData.oicCourseCode,
+            subCourseName: detailFormData.subCourseName,
+            displayOrder: 1,
+            status: 'active'
+          }
+        ]
       };
 
       const res = await fetch(url, {
@@ -237,7 +270,7 @@ export default function MasterDataCrud() {
         body: JSON.stringify(payload)
       });
 
-      if (!res.ok) throw new Error('Save detail failed');
+      if (!res.ok) throw new Error('Save curriculum failed');
 
       resetDetailForm();
       await fetchCourseDetails(selectedCourseForDetails.id);
@@ -250,7 +283,7 @@ export default function MasterDataCrud() {
   const handleDeleteDetail = async (detailId) => {
     if (!window.confirm('คุณต้องการลบรหัส OIC รายการนี้ใช่หรือไม่?')) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/CourseDetail/${detailId}`, {
+      const res = await fetch(`${API_BASE_URL}/CourseCurriculum/${detailId}`, {
         method: 'DELETE'
       });
       if (!res.ok) throw new Error('Delete detail failed');
@@ -317,34 +350,81 @@ export default function MasterDataCrud() {
                       <>
                         <td className="p-3">
                           <div className="flex flex-col gap-1.5">
-                            {item.details && item.details.length > 0 ? (
+                            {item.curriculums && item.curriculums.length > 0 ? (
+                              <div className="flex flex-wrap gap-1.5 items-center">
+                                {item.curriculums.map(c => {
+                                  const sub = c.subDetails?.[0];
+                                  return (
+                                    <div key={c.id} className="inline-flex items-center gap-1.5 px-2 py-1 bg-purple-50 text-purple-800 border border-purple-200 rounded text-xs shadow-xs">
+                                      {c.agentType === 'broker' ? (
+                                        <span className="px-1.5 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 rounded">นายหน้า</span>
+                                      ) : c.agentType === 'both' ? (
+                                        <span className="px-1.5 py-0.5 text-[10px] font-bold bg-indigo-100 text-indigo-800 rounded">Agent+Broker</span>
+                                      ) : (
+                                        <span className="px-1.5 py-0.5 text-[10px] font-bold bg-blue-100 text-blue-800 rounded">ตัวแทน</span>
+                                      )}
+                                      {sub?.subCourseName && (
+                                        <span className="font-semibold text-gray-900" title="รายวิชาย่อย">
+                                          {sub.subCourseName}
+                                        </span>
+                                      )}
+                                      {sub?.oicCourseCode && (
+                                        <span className="font-bold text-rose-700 font-mono" title="รหัสวิชา OIC">
+                                          <i className="fas fa-certificate text-[10px] mr-1"></i>{sub.oicCourseCode}
+                                        </span>
+                                      )}
+                                      {c.trainingCourseCode && (
+                                        <span className="text-blue-700 font-mono font-bold" title="รหัสวิชาระบบอบรม">
+                                          ({c.trainingCourseCode})
+                                        </span>
+                                      )}
+                                      {c.curriculumCode && (
+                                        <span className="text-teal-700 bg-teal-50 px-1 rounded text-[11px] font-mono" title="รหัสหลักสูตร">
+                                          {c.curriculumCode}
+                                        </span>
+                                      )}
+                                      {c.announcementCode && (
+                                        <span className="text-amber-700 text-[10px] font-mono" title="รหัสประกาศ">
+                                          [{c.announcementCode}]
+                                        </span>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : item.details && item.details.length > 0 ? (
                               <div className="flex flex-wrap gap-1.5 items-center">
                                 {item.details.map(d => (
-                                  <div key={d.id} className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-50 text-purple-800 border border-purple-200 rounded text-xs font-mono">
+                                  <div key={d.id} className="inline-flex items-center gap-1.5 px-2 py-1 bg-purple-50 text-purple-800 border border-purple-200 rounded text-xs shadow-xs">
                                     {d.agentType === 'broker' ? (
-                                      <span className="px-1 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 rounded">นายหน้า</span>
+                                      <span className="px-1.5 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 rounded">นายหน้า</span>
                                     ) : d.agentType === 'both' ? (
-                                      <span className="px-1 py-0.5 text-[10px] font-bold bg-indigo-100 text-indigo-800 rounded">Agent+Broker</span>
+                                      <span className="px-1.5 py-0.5 text-[10px] font-bold bg-indigo-100 text-indigo-800 rounded">Agent+Broker</span>
                                     ) : (
-                                      <span className="px-1 py-0.5 text-[10px] font-bold bg-blue-100 text-blue-800 rounded">ตัวแทน</span>
+                                      <span className="px-1.5 py-0.5 text-[10px] font-bold bg-blue-100 text-blue-800 rounded">ตัวแทน</span>
+                                    )}
+                                    {d.subCourseName && (
+                                      <span className="font-semibold text-gray-900" title="รายวิชาย่อย">
+                                        {d.subCourseName}
+                                      </span>
                                     )}
                                     {d.oicCourseCode && (
-                                      <span className="font-bold text-rose-700" title="รหัสวิชา OIC">
+                                      <span className="font-bold text-rose-700 font-mono" title="รหัสวิชา OIC">
                                         <i className="fas fa-certificate text-[10px] mr-1"></i>{d.oicCourseCode}
                                       </span>
                                     )}
                                     {d.courseCode && (
-                                      <span className="text-blue-700" title="รหัสวิชา">
+                                      <span className="text-blue-700 font-mono" title="รหัสวิชา">
                                         ({d.courseCode})
                                       </span>
                                     )}
                                     {d.curriculumCode && (
-                                      <span className="text-teal-700 bg-teal-50 px-1 rounded text-[11px]" title="รหัสหลักสูตร">
+                                      <span className="text-teal-700 bg-teal-50 px-1 rounded text-[11px] font-mono" title="รหัสหลักสูตร">
                                         {d.curriculumCode}
                                       </span>
                                     )}
                                     {d.announcementCode && (
-                                      <span className="text-amber-700 text-[10px]" title="รหัสประกาศ">
+                                      <span className="text-amber-700 text-[10px] font-mono" title="รหัสประกาศ">
                                         [{d.announcementCode}]
                                       </span>
                                     )}
@@ -360,7 +440,7 @@ export default function MasterDataCrud() {
                                 className="inline-flex items-center text-xs text-indigo-600 hover:text-indigo-800 font-medium hover:underline mt-0.5"
                               >
                                 <i className="fas fa-tags mr-1"></i>
-                                จัดการรหัส OIC ({item.details?.length || 0} รายการ)
+                                จัดการรหัส OIC ({item.curriculums?.length || item.details?.length || 0} รายการ)
                               </button>
                             </div>
                           </div>
@@ -532,6 +612,7 @@ export default function MasterDataCrud() {
                         <th className="p-2.5 border-b">รหัสหลักสูตร</th>
                         <th className="p-2.5 border-b">รหัสวิชา</th>
                         <th className="p-2.5 border-b">รหัสวิชา OIC</th>
+                        <th className="p-2.5 border-b">รายวิชาย่อย</th>
                         <th className="p-2.5 border-b text-center w-16">สถานะ</th>
                         <th className="p-2.5 border-b text-center w-20">จัดการ</th>
                       </tr>
@@ -553,6 +634,7 @@ export default function MasterDataCrud() {
                           <td className="p-2.5 font-mono">{detail.curriculumCode || <span className="text-gray-400">-</span>}</td>
                           <td className="p-2.5 font-mono">{detail.courseCode || <span className="text-gray-400">-</span>}</td>
                           <td className="p-2.5 font-mono font-bold text-rose-700">{detail.oicCourseCode || <span className="text-gray-400 font-normal">-</span>}</td>
+                          <td className="p-2.5 font-medium text-gray-800">{detail.subCourseName || <span className="text-gray-400 font-normal">-</span>}</td>
                           <td className="p-2.5 text-center">
                             <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${detail.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                               {detail.status?.toUpperCase()}
@@ -578,7 +660,7 @@ export default function MasterDataCrud() {
                       ))}
                       {courseDetailsList.length === 0 && (
                         <tr>
-                          <td colSpan="8" className="text-center p-6 text-gray-500">
+                          <td colSpan="9" className="text-center p-6 text-gray-500">
                             ยังไม่มีรายการรหัส OIC กรุณาเพิ่มข้อมูลด้านล่าง
                           </td>
                         </tr>
@@ -607,7 +689,7 @@ export default function MasterDataCrud() {
                 )}
               </h4>
               <form onSubmit={handleSaveDetail}>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-3">
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">ประเภท (Agent / Broker)</label>
                     <select 
@@ -668,6 +750,17 @@ export default function MasterDataCrud() {
                       onChange={e => setDetailFormData({...detailFormData, oicCourseCode: e.target.value})}
                       placeholder="เช่น OIC-SUBJ-001"
                       className="w-full border rounded p-2 text-xs font-mono focus:ring-1 focus:ring-indigo-500 outline-none bg-white" 
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">รายวิชาย่อย</label>
+                    <input 
+                      type="text" 
+                      value={detailFormData.subCourseName} 
+                      onChange={e => setDetailFormData({...detailFormData, subCourseName: e.target.value})}
+                      placeholder="ระบุชื่อรายวิชาย่อย (ถ้ามี)"
+                      maxLength={500}
+                      className="w-full border rounded p-2 text-xs focus:ring-1 focus:ring-indigo-500 outline-none bg-white" 
                     />
                   </div>
                   <div>

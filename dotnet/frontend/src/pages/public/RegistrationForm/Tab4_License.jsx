@@ -1,6 +1,6 @@
 import { useRegistration } from '../../../context/RegistrationContext';
 import Button from '../../../components/Button';
-import Input from '../../../components/Input';
+import Input, { renderLabelWithAsterisk } from '../../../components/Input';
 import ThaiDatePicker from '../../../components/ThaiDatePicker';
 import { useEffect, useState } from 'react';
 import Select from 'react-select';
@@ -165,7 +165,7 @@ export default function Tab4License() {
       
       <form onSubmit={handleNext} noValidate>
         <div className="mb-6">
-          <label className="block mb-2 font-medium text-textMain after:content-['_*'] after:text-error">ประเภทใบอนุญาต</label>
+          <label className="block mb-2 font-medium text-textMain">ประเภทใบอนุญาต <span className="text-red-500 font-bold">*</span></label>
           
           {true && (
             <div className="border border-border rounded-md p-3 mb-2 flex items-center gap-3 bg-white hover:bg-gray-50 cursor-pointer" onClick={() => updateData({ agentType: 'agent', brokerType: '' })}>
@@ -197,7 +197,7 @@ export default function Tab4License() {
 
               {formData.agentType === 'broker' && (
               <div className="pl-8 pt-3 pb-2 border-t border-gray-100 flex flex-col gap-4 animate-[fadeIn_0.3s]">
-                <label className="block font-medium text-textMain after:content-['_*'] after:text-error">ประเภทนายหน้า</label>
+                <label className="block font-medium text-textMain">ประเภทนายหน้า <span className="text-red-500 font-bold">*</span></label>
                 
                 <div className="flex items-center gap-3 cursor-pointer" onClick={() => { updateData({ brokerType: 'individual' }); if (errors.brokerType) setErrors(prev => ({...prev, brokerType: ''})) }}>
                   <input 
@@ -232,7 +232,9 @@ export default function Tab4License() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
           <div id="agentBranch">
-            <label htmlFor="agentBranch" className="block text-sm font-medium text-textMain mb-1">{sysConfig?.tab4_label_branch || 'สาขา *'}</label>
+            <label htmlFor="agentBranch" className="block text-sm font-medium text-textMain mb-1">
+              {renderLabelWithAsterisk(sysConfig?.tab4_label_branch || 'สาขา', true)}
+            </label>
             <p className="text-[13px] text-gray-500 mb-2 mt-[-4px]">{sysConfig?.tab4_hint_branch || 'พิมพ์เพื่อค้นหาสาขา'}</p>
             <Select
               options={branchOptions}
@@ -260,7 +262,9 @@ export default function Tab4License() {
           </div>
           
           <div>
-            <label htmlFor="agentRegion" className="block text-sm font-medium text-textMain mb-1">{sysConfig?.tab4_label_region || 'ภาค *'}</label>
+            <label htmlFor="agentRegion" className="block text-sm font-medium text-textMain mb-1">
+              {renderLabelWithAsterisk(sysConfig?.tab4_label_region || 'ภาค', true)}
+            </label>
             <p className="text-[13px] text-gray-500 mb-2 mt-[-4px]">{sysConfig?.tab4_hint_region || 'ระบบจะเติมให้อัตโนมัติ'}</p>
             <input
               type="text"
@@ -275,7 +279,9 @@ export default function Tab4License() {
         </div>
 
         <div className="mt-4 mb-6">
-          <label htmlFor="viriyaContractCode" className="block mb-1 font-medium text-textMain">{sysConfig?.tab4_label_agentcode || 'รหัสที่มีสัญญากับ บมจ.วิริยะประกันภัย *'}</label>
+          <label htmlFor="viriyaContractCode" className="block mb-1 font-medium text-textMain">
+            {renderLabelWithAsterisk(sysConfig?.tab4_label_agentcode || 'รหัสที่มีสัญญากับ บมจ.วิริยะประกันภัย', true)}
+          </label>
           <span className="text-sm text-gray-500 block mb-2">{sysConfig?.tab4_hint_agentcode || 'ถ้าไม่ทราบ สอบถามสาขา หรือตัวแทน/นายหน้าที่ท่านสังกัด, ถ้าเป็นขอรับใบอนุญาต และยังไม่มีรหัส ให้กรอก 00000'}</span>
           <input 
             type="text"

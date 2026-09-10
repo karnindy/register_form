@@ -34,7 +34,9 @@ export default function Tab1Consent() {
       </div>
 
       <div className="mb-6">
-        <label className="block mb-2 font-medium text-textMain after:content-['_*'] after:text-error">รับทราบ</label>
+        <label className="block mb-2 font-medium text-textMain">
+          รับทราบ <span className="text-red-500 font-bold">*</span>
+        </label>
         <label 
           className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
             formData.pdpaConsent 

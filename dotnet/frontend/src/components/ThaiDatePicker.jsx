@@ -2,6 +2,7 @@ import React from 'react';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import th from 'date-fns/locale/th';
+import { renderLabelWithAsterisk } from './Input';
 
 registerLocale('th', th);
 
@@ -90,8 +91,8 @@ export default function ThaiDatePicker({
   return (
     <div className={`mb-5 ${className}`}>
       {label && (
-        <label htmlFor={id} className={`block mb-2 font-medium text-textMain ${required ? "after:content-['_*'] after:text-error" : ""}`}>
-          {label}
+        <label htmlFor={id} className="block mb-2 font-medium text-textMain">
+          {renderLabelWithAsterisk(label, required)}
         </label>
       )}
       <div className="w-full">

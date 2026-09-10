@@ -1,9 +1,11 @@
+import { renderLabelWithAsterisk } from './Input';
+
 export default function Select({ label, id, required, error, options = [], className = "", ...props }) {
   return (
     <div className={`mb-5 ${className}`}>
       {label && (
-        <label htmlFor={id} className={`block mb-2 font-medium text-textMain ${required ? "after:content-['_*'] after:text-error" : ""}`}>
-          {label}
+        <label htmlFor={id} className="block mb-2 font-medium text-textMain">
+          {renderLabelWithAsterisk(label, required)}
         </label>
       )}
       <select

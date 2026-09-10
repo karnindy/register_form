@@ -48,6 +48,7 @@ namespace backend.Models
         public ICollection<PersonOther> Others { get; set; } = new List<PersonOther>();
         public ICollection<PersonDocument> Documents { get; set; } = new List<PersonDocument>();
         public ICollection<RegistrationHistoryModel> RegistrationHistories { get; set; } = new List<RegistrationHistoryModel>();
+        public ICollection<TrnTrainingResult> TrainingResults { get; set; } = new List<TrnTrainingResult>();
     }
 
     [Table("personregistration")]
@@ -69,6 +70,8 @@ namespace backend.Models
         [System.Text.Json.Serialization.JsonIgnore]
         [Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidateNever]
         public Person? Person { get; set; }
+
+        public ICollection<TrnTrainingResult> TrainingResults { get; set; } = new List<TrnTrainingResult>();
     }
 
     [Table("personaddress")]

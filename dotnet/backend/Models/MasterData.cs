@@ -125,8 +125,8 @@ namespace backend.Models
         public int? DefaultPillarId { get; set; }
     }
 
-    [Table("mst_course_detail")]
-    public class MstCourseDetail
+    [Table("mst_course_curriculum")]
+    public class MstCourseCurriculum
     {
         [Key]
         [Column("id")]
@@ -144,25 +144,57 @@ namespace backend.Models
         [MaxLength(20)]
         public string? AgentType { get; set; } // "agent", "broker", "both"
 
+        [Column("training_course_code")]
+        [MaxLength(100)]
+        public string? TrainingCourseCode { get; set; } // Col R in training Excel (e.g. A4P1_04, B0N0O00)
+
         [Column("announcement_code")]
         [MaxLength(100)]
-        public string? AnnouncementCode { get; set; }
-
-        [Column("course_short_name")]
-        [MaxLength(100)]
-        public string? CourseShortName { get; set; }
+        public string? AnnouncementCode { get; set; } // e.g. NLGA-2564
 
         [Column("curriculum_code")]
         [MaxLength(100)]
-        public string? CurriculumCode { get; set; }
+        public string? CurriculumCode { get; set; } // e.g. นว0649991, ตนว4642037
 
-        [Column("course_code")]
+        [Column("course_short_name")]
         [MaxLength(100)]
-        public string? CourseCode { get; set; }
+        public string? CourseShortName { get; set; } // e.g. นว0, ตว0, ตนว4
+
+        [Column("display_order")]
+        public int DisplayOrder { get; set; } = 0;
+
+        [Column("status")]
+        [MaxLength(20)]
+        public string Status { get; set; } = "active";
+
+        public ICollection<MstCourseSubDetail> SubDetails { get; set; } = new List<MstCourseSubDetail>();
+    }
+
+    [Table("mst_course_sub_detail")]
+    public class MstCourseSubDetail
+    {
+        [Key]
+        [Column("id")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+
+        [Column("curriculum_id")]
+        public int CurriculumId { get; set; }
+
+        [ForeignKey("CurriculumId")]
+        [System.Text.Json.Serialization.JsonIgnore]
+        public MstCourseCurriculum? Curriculum { get; set; }
 
         [Column("oic_course_code")]
         [MaxLength(100)]
-        public string? OicCourseCode { get; set; }
+        public string? OicCourseCode { get; set; } // e.g. นว064ก, ตนว4164203720
+
+        [Column("sub_course_name")]
+        [MaxLength(500)]
+        public string? SubCourseName { get; set; }
+
+        [Column("hours", TypeName = "decimal(5,2)")]
+        public decimal? Hours { get; set; }
 
         [Column("display_order")]
         public int DisplayOrder { get; set; } = 0;

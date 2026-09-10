@@ -5,42 +5,58 @@ const API_BASE = 'http://localhost:8085/api';
 
 export default function RenewBasicCrud() {
   const [data, setData] = useState([]);
+  const [renewDates, setRenewDates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [renewDates, setRenewDates] = useState([]);
-
+  // Main CRUD modal state
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({
+    courseName: '',
+    status: 'active',
+    dateId: '',
+    agentType: 'agent'
+  });
 
-  // Course Details (OIC Codes) Modal for basic courses
+  // Normalized Curriculum & Sub-Details Modal State
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedCourseForDetails, setSelectedCourseForDetails] = useState(null);
-  const [courseDetailsList, setCourseDetailsList] = useState([]);
+  const [curriculumsList, setCurriculumsList] = useState([]);
   const [detailsLoading, setDetailsLoading] = useState(false);
-  const [editingDetailId, setEditingDetailId] = useState(null);
-  const [detailFormData, setDetailFormData] = useState({
+
+  // Curriculum Package Form State (Level 1)
+  const [editingCurriculumId, setEditingCurriculumId] = useState(null);
+  const [curriculumForm, setCurriculumForm] = useState({
     agentType: 'agent',
+    trainingCourseCode: '',
     announcementCode: '',
     courseShortName: '',
     curriculumCode: '',
-    courseCode: '',
+    displayOrder: 1,
+    status: 'active'
+  });
+
+  // Sub-detail Add/Edit State (Level 2)
+  const [selectedCurriculumForSub, setSelectedCurriculumForSub] = useState(null);
+  const [editingSubDetailId, setEditingSubDetailId] = useState(null);
+  const [subDetailForm, setSubDetailForm] = useState({
     oicCourseCode: '',
+    subCourseName: '',
     displayOrder: 1,
     status: 'active'
   });
 
   useEffect(() => {
     fetchData();
-    fetchDates();
+    fetchRenewDates();
   }, []);
 
   const fetchData = async () => {
     try {
       setLoading(true);
       const res = await fetch(`${API_BASE}/RenewBasic`);
-      if (!res.ok) throw new Error('Failed to fetch data');
+      if (!res.ok) throw new Error('Failed to fetch renew basic');
       const json = await res.json();
       setData(json);
       setError(null);
@@ -51,35 +67,36 @@ export default function RenewBasicCrud() {
     }
   };
 
-  const fetchDates = async () => {
+  const fetchRenewDates = async () => {
     try {
-      const res = await fetch(`${API_BASE}/RenewData/dates`);
+      const res = await fetch(`${API_BASE}/RenewData/dates?all=true`);
       if (res.ok) {
-        setRenewDates(await res.json());
+        const json = await res.json();
+        setRenewDates(json);
       }
     } catch (err) {
-      console.error(err);
+      console.error('Failed to load dates', err);
     }
   };
 
   const openAddModal = () => {
     setEditItem(null);
-    setFormData({ 
-      courseName: '', 
-      agentType: 'agent', 
-      dateId: '', 
-      status: 'active' 
+    setFormData({
+      courseName: '',
+      status: 'active',
+      dateId: '',
+      agentType: 'agent'
     });
     setShowModal(true);
   };
 
   const openEditModal = (item) => {
     setEditItem(item);
-    setFormData({ 
+    setFormData({
       courseName: item.courseName || '',
-      agentType: item.agentType || 'agent',
+      status: item.status || 'active',
       dateId: item.dateId || '',
-      status: item.status || 'active'
+      agentType: item.agentType || 'agent'
     });
     setShowModal(true);
   };
@@ -87,19 +104,19 @@ export default function RenewBasicCrud() {
   const handleSave = async (e) => {
     e.preventDefault();
     try {
-      const url = editItem 
-        ? `${API_BASE}/RenewBasic/${editItem.id}`
-        : `${API_BASE}/RenewBasic`;
-        
+      const method = editItem ? 'PUT' : 'POST';
+      const url = editItem ? `${API_BASE}/RenewBasic/${editItem.id}` : `${API_BASE}/RenewBasic`;
+      
       const payload = {
+        id: editItem ? editItem.id : 0,
         courseName: formData.courseName,
-        agentType: formData.agentType,
+        status: formData.status,
         dateId: formData.dateId ? parseInt(formData.dateId) : null,
-        status: formData.status
+        agentType: formData.agentType
       };
         
       const res = await fetch(url, {
-        method: editItem ? 'PUT' : 'POST',
+        method: method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
@@ -124,74 +141,72 @@ export default function RenewBasicCrud() {
     }
   };
 
-  // --- Course Details (OIC Codes) Handlers ---
+  // --- Normalized Course Curriculum & Sub-Courses Handlers ---
   const openDetailsModal = async (course) => {
     setSelectedCourseForDetails(course);
-    setEditingDetailId(null);
-    resetDetailForm();
+    resetCurriculumForm();
+    setSelectedCurriculumForSub(null);
     setShowDetailsModal(true);
-    await fetchCourseDetails(course.id);
+    await fetchCurriculums(course.id);
   };
 
-  const fetchCourseDetails = async (courseId) => {
+  const fetchCurriculums = async (courseId) => {
     try {
       setDetailsLoading(true);
-      const res = await fetch(`${API_BASE}/CourseDetail?courseType=basic&courseId=${courseId}&all=true`);
+      const res = await fetch(`${API_BASE}/CourseCurriculum?courseType=basic&courseId=${courseId}&all=true`);
       if (res.ok) {
         const json = await res.json();
-        setCourseDetailsList(json);
+        setCurriculumsList(json);
       }
     } catch (err) {
-      console.error('Failed to load course details', err);
+      console.error('Failed to load curriculums', err);
     } finally {
       setDetailsLoading(false);
     }
   };
 
-  const resetDetailForm = () => {
-    setEditingDetailId(null);
-    setDetailFormData({
+  const resetCurriculumForm = () => {
+    setEditingCurriculumId(null);
+    setCurriculumForm({
       agentType: selectedCourseForDetails?.agentType || 'agent',
-      announcementCode: '',
+      trainingCourseCode: '',
+      announcementCode: 'NLGA-2564',
       courseShortName: '',
       curriculumCode: '',
-      courseCode: '',
-      oicCourseCode: '',
-      displayOrder: courseDetailsList.length + 1,
+      displayOrder: curriculumsList.length + 1,
       status: 'active'
     });
   };
 
-  const handleEditDetail = (detail) => {
-    setEditingDetailId(detail.id);
-    setDetailFormData({
-      agentType: detail.agentType || 'agent',
-      announcementCode: detail.announcementCode || '',
-      courseShortName: detail.courseShortName || '',
-      curriculumCode: detail.curriculumCode || '',
-      courseCode: detail.courseCode || '',
-      oicCourseCode: detail.oicCourseCode || '',
-      displayOrder: detail.displayOrder || 1,
-      status: detail.status || 'active'
+  const handleEditCurriculum = (curr) => {
+    setEditingCurriculumId(curr.id);
+    setCurriculumForm({
+      agentType: curr.agentType || 'agent',
+      trainingCourseCode: curr.trainingCourseCode || '',
+      announcementCode: curr.announcementCode || '',
+      courseShortName: curr.courseShortName || '',
+      curriculumCode: curr.curriculumCode || '',
+      displayOrder: curr.displayOrder || 1,
+      status: curr.status || 'active'
     });
   };
 
-  const handleSaveDetail = async (e) => {
+  const handleSaveCurriculum = async (e) => {
     e.preventDefault();
     if (!selectedCourseForDetails) return;
 
     try {
-      const method = editingDetailId ? 'PUT' : 'POST';
-      const url = editingDetailId 
-        ? `${API_BASE}/CourseDetail/${editingDetailId}` 
-        : `${API_BASE}/CourseDetail`;
+      const method = editingCurriculumId ? 'PUT' : 'POST';
+      const url = editingCurriculumId 
+        ? `${API_BASE}/CourseCurriculum/${editingCurriculumId}` 
+        : `${API_BASE}/CourseCurriculum`;
 
       const payload = {
-        id: editingDetailId || 0,
+        id: editingCurriculumId || 0,
         courseType: 'basic',
         courseId: selectedCourseForDetails.id,
-        ...detailFormData,
-        displayOrder: parseInt(detailFormData.displayOrder) || 1
+        ...curriculumForm,
+        displayOrder: parseInt(curriculumForm.displayOrder) || 1
       };
 
       const res = await fetch(url, {
@@ -200,24 +215,95 @@ export default function RenewBasicCrud() {
         body: JSON.stringify(payload)
       });
 
-      if (!res.ok) throw new Error('Save detail failed');
+      if (!res.ok) throw new Error('Save curriculum failed');
 
-      resetDetailForm();
-      await fetchCourseDetails(selectedCourseForDetails.id);
+      resetCurriculumForm();
+      await fetchCurriculums(selectedCourseForDetails.id);
       await fetchData();
     } catch (err) {
-      alert('เกิดข้อผิดพลาดในการบันทึกรหัส OIC: ' + err.message);
+      alert('เกิดข้อผิดพลาดในการบันทึกหลักสูตร: ' + err.message);
     }
   };
 
-  const handleDeleteDetail = async (detailId) => {
-    if (!window.confirm('คุณต้องการลบรหัส OIC รายการนี้ใช่หรือไม่?')) return;
+  const handleDeleteCurriculum = async (curriculumId) => {
+    if (!window.confirm('คุณต้องการลบแพ็กเกจหลักสูตรนี้และวิชาย่อยทั้งหมดใช่หรือไม่?')) return;
     try {
-      const res = await fetch(`${API_BASE}/CourseDetail/${detailId}`, {
+      const res = await fetch(`${API_BASE}/CourseCurriculum/${curriculumId}`, {
         method: 'DELETE'
       });
-      if (!res.ok) throw new Error('Delete detail failed');
-      await fetchCourseDetails(selectedCourseForDetails.id);
+      if (!res.ok) throw new Error('Delete curriculum failed');
+      await fetchCurriculums(selectedCourseForDetails.id);
+      await fetchData();
+    } catch (err) {
+      alert('เกิดข้อผิดพลาดในการลบ: ' + err.message);
+    }
+  };
+
+  // Sub-detail handlers
+  const openAddSubDetail = (curr) => {
+    setSelectedCurriculumForSub(curr);
+    setEditingSubDetailId(null);
+    setSubDetailForm({
+      oicCourseCode: '',
+      subCourseName: '',
+      displayOrder: (curr.subDetails?.length || 0) + 1,
+      status: 'active'
+    });
+  };
+
+  const handleEditSubDetail = (curr, sub) => {
+    setSelectedCurriculumForSub(curr);
+    setEditingSubDetailId(sub.id);
+    setSubDetailForm({
+      oicCourseCode: sub.oicCourseCode || '',
+      subCourseName: sub.subCourseName || '',
+      displayOrder: sub.displayOrder || 1,
+      status: sub.status || 'active'
+    });
+  };
+
+  const handleSaveSubDetail = async (e) => {
+    e.preventDefault();
+    if (!selectedCurriculumForSub) return;
+
+    try {
+      const method = editingSubDetailId ? 'PUT' : 'POST';
+      const url = editingSubDetailId
+        ? `${API_BASE}/CourseCurriculum/sub-detail/${editingSubDetailId}`
+        : `${API_BASE}/CourseCurriculum/${selectedCurriculumForSub.id}/sub-detail`;
+
+      const payload = {
+        id: editingSubDetailId || 0,
+        curriculumId: selectedCurriculumForSub.id,
+        ...subDetailForm,
+        displayOrder: parseInt(subDetailForm.displayOrder) || 1
+      };
+
+      const res = await fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error('Save sub-course failed');
+
+      setSelectedCurriculumForSub(null);
+      setEditingSubDetailId(null);
+      await fetchCurriculums(selectedCourseForDetails.id);
+      await fetchData();
+    } catch (err) {
+      alert('เกิดข้อผิดพลาดในการบันทึกวิชาย่อย: ' + err.message);
+    }
+  };
+
+  const handleDeleteSubDetail = async (subId) => {
+    if (!window.confirm('คุณต้องการลบวิชาย่อยนี้ใช่หรือไม่?')) return;
+    try {
+      const res = await fetch(`${API_BASE}/CourseCurriculum/sub-detail/${subId}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) throw new Error('Delete sub-course failed');
+      await fetchCurriculums(selectedCourseForDetails.id);
       await fetchData();
     } catch (err) {
       alert('เกิดข้อผิดพลาดในการลบ: ' + err.message);
@@ -225,21 +311,23 @@ export default function RenewBasicCrud() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto pb-12">
       <div className="mb-6 border-b-2 border-warning pb-4 flex justify-between items-center">
         <div>
           <h2 className="text-3xl font-bold text-warning mb-2">จัดการหลักสูตรพื้นฐาน (Renew Basic)</h2>
-          <p className="text-gray-500 text-sm">เพิ่ม ลบ หรือแก้ไขข้อมูลหลักสูตร และจัดการรหัส OIC (1 หลักสูตร ผูกได้หลายรหัส OIC)</p>
+          <p className="text-gray-500 text-sm">
+            จัดการหลักสูตรพื้นฐานและโครงสร้างรหัสเชื่อมโยงระบบอบรม (Normalized Curriculum & Sub-Courses)
+          </p>
         </div>
-        <Link to="/admin/master-data" className="px-4 py-2 border border-gray-400 text-gray-600 rounded hover:bg-gray-100 transition-colors">
+        <Link to="/admin/master-data" className="px-4 py-2 border border-gray-400 text-gray-600 rounded hover:bg-gray-100 transition-colors text-sm">
           <i className="fas fa-arrow-left mr-2"></i> กลับหน้ารวม Master Data
         </Link>
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex justify-end mb-4">
-          <button onClick={openAddModal} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition">
-            <i className="fas fa-plus mr-2"></i> เพิ่มข้อมูล
+          <button onClick={openAddModal} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition text-sm">
+            <i className="fas fa-plus mr-2"></i> เพิ่มหลักสูตรพื้นฐาน
           </button>
         </div>
 
@@ -253,8 +341,8 @@ export default function RenewBasicCrud() {
               <thead>
                 <tr className="bg-gray-100 text-gray-700">
                   <th className="p-3 border-b w-14">ID</th>
-                  <th className="p-3 border-b min-w-[200px]">หลักสูตร</th>
-                  <th className="p-3 border-b min-w-[260px]">รหัสประกาศ / รหัสหลักสูตร / รหัสวิชา OIC</th>
+                  <th className="p-3 border-b min-w-[180px]">หลักสูตร</th>
+                  <th className="p-3 border-b min-w-[320px]">รหัสประกาศ / รหัสหลักสูตร / รหัสวิชา OIC (Normalized)</th>
                   <th className="p-3 border-b w-24">ประเภท</th>
                   <th className="p-3 border-b">วันที่อบรม</th>
                   <th className="p-3 border-b w-20 text-center">สถานะ</th>
@@ -262,88 +350,114 @@ export default function RenewBasicCrud() {
                 </tr>
               </thead>
               <tbody>
-                {data.map(item => (
-                  <tr key={item.id} className="border-b hover:bg-gray-50">
-                    <td className="p-3 text-gray-500 font-mono">#{item.id}</td>
-                    <td className="p-3 font-medium text-gray-800">{item.courseName}</td>
-                    <td className="p-3">
-                      <div className="flex flex-col gap-1.5">
-                        {item.details && item.details.length > 0 ? (
-                          <div className="flex flex-wrap gap-1.5 items-center">
-                            {item.details.map(d => (
-                              <div key={d.id} className="inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-50 text-yellow-900 border border-yellow-200 rounded text-xs font-mono">
-                                {d.agentType === 'broker' ? (
-                                  <span className="px-1 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 rounded">นายหน้า</span>
-                                ) : d.agentType === 'both' ? (
-                                  <span className="px-1 py-0.5 text-[10px] font-bold bg-indigo-100 text-indigo-800 rounded">Agent+Broker</span>
+                {data.map(item => {
+                  const curriculums = item.curriculums && item.curriculums.length > 0 ? item.curriculums : [];
+                  const legacyDetails = item.details || [];
+                  const totalSubCourses = curriculums.reduce((acc, c) => acc + (c.subDetails?.length || 0), 0);
+
+                  return (
+                    <tr key={item.id} className="border-b hover:bg-gray-50">
+                      <td className="p-3 text-gray-500 font-mono">#{item.id}</td>
+                      <td className="p-3 font-bold text-gray-800">{item.courseName}</td>
+                      <td className="p-3">
+                        <div className="flex flex-col gap-2">
+                          {curriculums.length > 0 ? (
+                            curriculums.map(c => (
+                              <div key={c.id} className="p-2 bg-blue-50/60 border border-blue-200 rounded-lg text-xs space-y-1.5 shadow-xs">
+                                <div className="flex items-center gap-2 flex-wrap font-medium">
+                                  {c.agentType === 'broker' ? (
+                                    <span className="px-1.5 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 rounded">นายหน้า (Broker)</span>
+                                  ) : c.agentType === 'both' ? (
+                                    <span className="px-1.5 py-0.5 text-[10px] font-bold bg-indigo-100 text-indigo-800 rounded">Agent+Broker</span>
+                                  ) : (
+                                    <span className="px-1.5 py-0.5 text-[10px] font-bold bg-blue-100 text-blue-800 rounded">ตัวแทน (Agent)</span>
+                                  )}
+                                  <span className="font-bold text-gray-900">{c.courseShortName || '-'}</span>
+                                  {c.trainingCourseCode && (
+                                    <span className="bg-purple-100 text-purple-800 font-mono px-1.5 py-0.5 rounded font-bold" title="รหัสคอร์สระบบอบรม (Col R)">
+                                      <i className="fas fa-desktop mr-1 text-[10px]"></i>{c.trainingCourseCode}
+                                    </span>
+                                  )}
+                                  {c.curriculumCode && (
+                                    <span className="bg-teal-50 text-teal-700 px-1.5 py-0.5 rounded font-mono text-[11px]" title="รหัสหลักสูตร คปภ.">
+                                      {c.curriculumCode}
+                                    </span>
+                                  )}
+                                  {c.announcementCode && (
+                                    <span className="text-amber-700 font-mono text-[10px]" title="รหัสประกาศ">
+                                      [{c.announcementCode}]
+                                    </span>
+                                  )}
+                                </div>
+
+                                {c.subDetails && c.subDetails.length > 0 ? (
+                                  <div className="flex flex-wrap gap-1 pl-2 border-l-2 border-blue-300">
+                                    {c.subDetails.map(s => (
+                                      <span key={s.id} className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[11px] text-gray-800 shadow-2xs">
+                                        <span className="font-bold text-rose-700 font-mono">{s.oicCourseCode}</span>
+                                        {s.subCourseName && <span className="text-gray-700">{s.subCourseName}</span>}
+                                      </span>
+                                    ))}
+                                  </div>
                                 ) : (
-                                  <span className="px-1 py-0.5 text-[10px] font-bold bg-blue-100 text-blue-800 rounded">ตัวแทน</span>
-                                )}
-                                {d.oicCourseCode && (
-                                  <span className="font-bold text-rose-700" title="รหัสวิชา OIC">
-                                    <i className="fas fa-certificate text-[10px] mr-1"></i>{d.oicCourseCode}
-                                  </span>
-                                )}
-                                {d.courseCode && (
-                                  <span className="text-blue-700" title="รหัสวิชา">
-                                    ({d.courseCode})
-                                  </span>
-                                )}
-                                {d.curriculumCode && (
-                                  <span className="text-teal-700 bg-teal-50 px-1 rounded text-[11px]" title="รหัสหลักสูตร">
-                                    {d.curriculumCode}
-                                  </span>
-                                )}
-                                {d.announcementCode && (
-                                  <span className="text-amber-700 text-[10px]" title="รหัสประกาศ">
-                                    [{d.announcementCode}]
-                                  </span>
+                                  <div className="text-gray-400 italic text-[11px] pl-2">ยังไม่มีวิชาย่อย</div>
                                 )}
                               </div>
-                            ))}
+                            ))
+                          ) : legacyDetails.length > 0 ? (
+                            <div className="flex flex-wrap gap-1.5 items-center">
+                              {legacyDetails.map(d => (
+                                <div key={d.id} className="inline-flex items-center gap-1.5 px-2 py-1 bg-yellow-50 text-yellow-900 border border-yellow-200 rounded text-xs">
+                                  {d.subCourseName && <span className="font-semibold text-gray-900">{d.subCourseName}</span>}
+                                  {d.oicCourseCode && <span className="font-bold text-rose-700 font-mono">{d.oicCourseCode}</span>}
+                                  {d.courseCode && <span className="text-blue-700 font-mono">({d.courseCode})</span>}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 italic text-xs">ยังไม่มีรหัสหลักสูตร/OIC ผูกไว้</span>
+                          )}
+
+                          <div>
+                            <button 
+                              onClick={() => openDetailsModal(item)}
+                              className="inline-flex items-center text-xs text-blue-700 hover:text-blue-900 font-semibold hover:underline mt-1"
+                            >
+                              <i className="fas fa-tags mr-1"></i>
+                              จัดการหลักสูตร & วิชาย่อย ({curriculums.length} แพ็กเกจ / {totalSubCourses || legacyDetails.length} วิชาย่อย)
+                            </button>
                           </div>
-                        ) : (
-                          <span className="text-gray-400 italic text-xs">ยังไม่มีรหัส OIC ผูกไว้</span>
-                        )}
-                        <div>
-                          <button 
-                            onClick={() => openDetailsModal(item)}
-                            className="inline-flex items-center text-xs text-yellow-700 hover:text-yellow-900 font-medium hover:underline mt-0.5"
-                          >
-                            <i className="fas fa-tags mr-1"></i>
-                            จัดการรหัส OIC ({item.details?.length || 0} รายการ)
-                          </button>
                         </div>
-                      </div>
-                    </td>
-                    <td className="p-3 text-gray-600 uppercase text-xs font-bold">
-                      {item.agentType === 'agent' ? <span className="text-blue-600">Agent</span> : <span className="text-purple-600">Broker</span>}
-                    </td>
-                    <td className="p-3 text-gray-600">
-                      {renewDates.find(d => d.id === item.dateId)?.courseDateDisplay || (item.dateId ? `ID: ${item.dateId}` : '-')}
-                    </td>
-                    <td className="p-3 text-center">
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${item.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        {item.status ? item.status.toUpperCase() : 'UNKNOWN'}
-                      </span>
-                    </td>
-                    <td className="p-3 text-center">
-                      <button 
-                        onClick={() => openDetailsModal(item)} 
-                        className="px-2 py-1 text-xs bg-yellow-50 text-yellow-800 border border-yellow-300 rounded hover:bg-yellow-100 mx-1"
-                        title="จัดการรหัส OIC"
-                      >
-                        <i className="fas fa-tags"></i>
-                      </button>
-                      <button onClick={() => openEditModal(item)} className="text-blue-600 hover:text-blue-800 mx-1.5" title="แก้ไข">
-                        <i className="fas fa-edit"></i>
-                      </button>
-                      <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-800 mx-1.5" title="ลบ">
-                        <i className="fas fa-trash"></i>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="p-3 text-gray-600 uppercase text-xs font-bold">
+                        {item.agentType === 'agent' ? <span className="text-blue-600">Agent</span> : <span className="text-purple-600">Broker</span>}
+                      </td>
+                      <td className="p-3 text-gray-600">
+                        {renewDates.find(d => d.id === item.dateId)?.courseDateDisplay || (item.dateId ? `ID: ${item.dateId}` : '-')}
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className={`px-2 py-1 rounded text-xs font-semibold ${item.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                          {item.status ? item.status.toUpperCase() : 'UNKNOWN'}
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <button 
+                          onClick={() => openDetailsModal(item)} 
+                          className="px-2 py-1 text-xs bg-blue-50 text-blue-700 border border-blue-200 rounded hover:bg-blue-100 mx-1"
+                          title="จัดการรหัสหลักสูตรและวิชาย่อย OIC"
+                        >
+                          <i className="fas fa-tags"></i>
+                        </button>
+                        <button onClick={() => openEditModal(item)} className="text-primary hover:text-blue-700 mx-1.5" title="แก้ไข">
+                          <i className="fas fa-edit"></i>
+                        </button>
+                        <button onClick={() => handleDelete(item.id)} className="text-danger hover:text-red-700 mx-1.5" title="ลบ">
+                          <i className="fas fa-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
                 {data.length === 0 && (
                   <tr>
                     <td colSpan="7" className="text-center p-8 text-gray-500">ไม่มีข้อมูล</td>
@@ -355,28 +469,49 @@ export default function RenewBasicCrud() {
         )}
       </div>
 
-      {/* Main Add/Edit Modal */}
+      {/* Main Renew Basic Add/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-            <h3 className="text-xl font-bold mb-4 text-warning border-b pb-2">{editItem ? 'แก้ไขข้อมูล' : 'เพิ่มข้อมูล'}</h3>
+            <h3 className="text-xl font-bold mb-4 text-gray-800 border-b pb-2">
+              {editItem ? 'แก้ไขหลักสูตรพื้นฐาน' : 'เพิ่มหลักสูตรพื้นฐาน'}
+            </h3>
             <form onSubmit={handleSave}>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อหลักสูตร <span className="text-red-500">*</span></label>
-                <input type="text" required value={formData.courseName || ''} onChange={e => setFormData({...formData, courseName: e.target.value})} className="w-full border rounded p-2 focus:ring-2 focus:ring-warning outline-none" placeholder="เช่น ขอรับใบอนุญาตเป็นตัวแทนประกันวินาศภัย" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  ชื่อหลักสูตร <span className="text-danger">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  required 
+                  value={formData.courseName} 
+                  onChange={e => setFormData({...formData, courseName: e.target.value})} 
+                  className="w-full border rounded p-2 focus:ring-2 focus:ring-warning outline-none" 
+                  placeholder="เช่น ขอรับใบอนุญาตตัวแทนประกันวินาศภัย"
+                />
               </div>
 
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">ประเภท</label>
-                <select required value={formData.agentType || 'agent'} onChange={e => setFormData({...formData, agentType: e.target.value})} className="w-full border rounded p-2 focus:ring-2 focus:ring-warning outline-none text-sm">
-                  <option value="agent">Agent (ตัวแทน)</option>
-                  <option value="broker">Broker (นายหน้า)</option>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  ประเภท (Agent / Broker) <span className="text-danger">*</span>
+                </label>
+                <select 
+                  value={formData.agentType} 
+                  onChange={e => setFormData({...formData, agentType: e.target.value})} 
+                  className="w-full border rounded p-2 focus:ring-2 focus:ring-warning outline-none bg-white font-medium"
+                >
+                  <option value="agent">ตัวแทน (Agent)</option>
+                  <option value="broker">นายหน้า (Broker)</option>
                 </select>
               </div>
 
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">วันที่รอบอบรม</label>
-                <select value={formData.dateId || ''} onChange={e => setFormData({...formData, dateId: e.target.value})} className="w-full border rounded p-2 focus:ring-2 focus:ring-warning outline-none text-sm">
+                <label className="block text-sm font-medium text-gray-700 mb-1">วันที่เปิดอบรม</label>
+                <select 
+                  value={formData.dateId} 
+                  onChange={e => setFormData({...formData, dateId: e.target.value})} 
+                  className="w-full border rounded p-2 focus:ring-2 focus:ring-warning outline-none bg-white"
+                >
                   <option value="">-- ไม่ระบุ --</option>
                   {renewDates.map(d => (
                     <option key={d.id} value={d.id}>{d.courseDateDisplay}</option>
@@ -386,144 +521,241 @@ export default function RenewBasicCrud() {
 
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-1">สถานะ</label>
-                <select value={formData.status || 'active'} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full border rounded p-2 focus:ring-2 focus:ring-warning outline-none text-sm">
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
+                <select 
+                  value={formData.status} 
+                  onChange={e => setFormData({...formData, status: e.target.value})} 
+                  className="w-full border rounded p-2 focus:ring-2 focus:ring-warning outline-none bg-white"
+                >
+                  <option value="active">Active (เปิดใช้งาน)</option>
+                  <option value="inactive">Inactive (ปิดใช้งาน)</option>
                 </select>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border rounded hover:bg-gray-100 text-gray-600">ยกเลิก</button>
-                <button type="submit" className="px-5 py-2 bg-yellow-600 text-white font-medium rounded hover:bg-yellow-700">บันทึก</button>
+              <div className="flex justify-end gap-3 border-t pt-4">
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border rounded hover:bg-gray-100 transition">
+                  ยกเลิก
+                </button>
+                <button type="submit" className="px-4 py-2 bg-warning text-white rounded hover:bg-yellow-600 transition">
+                  บันทึก
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* Course Details (OIC Codes) Modal */}
+      {/* NORMALIZED CURRICULUM & SUB-COURSES MODAL */}
       {showDetailsModal && selectedCourseForDetails && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-lg shadow-2xl w-full max-w-3xl p-6 animate-in fade-in zoom-in-95 duration-150 my-8">
-            <div className="flex justify-between items-start border-b pb-3 mb-4">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl my-8 p-6 animate-in fade-in duration-150">
+            <div className="flex justify-between items-center border-b pb-3 mb-4">
               <div>
-                <h3 className="text-xl font-bold text-gray-800">
-                  <i className="fas fa-tags text-yellow-600 mr-2"></i>
-                  จัดการรหัส OIC / รายละเอียดหลักสูตร
+                <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                  <i className="fas fa-sitemap text-blue-600"></i>
+                  จัดการหลักสูตรและวิชาย่อย (Normalized Curriculums)
                 </h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  หลักสูตร: <span className="font-semibold text-warning">{selectedCourseForDetails.courseName}</span> (ID: #{selectedCourseForDetails.id})
-                </p>
-                <p className="text-xs text-gray-500">
-                  * 1 หลักสูตรสามารถผูกได้หลายรหัสประกาศ, รหัสหลักสูตร, และรหัสวิชา OIC (เก็บในตาราง <code className="bg-gray-100 px-1 py-0.5 rounded font-mono">mst_course_detail</code>)
+                <p className="text-xs text-gray-500 mt-0.5">
+                  หลักสูตร: <span className="font-bold text-gray-800">{selectedCourseForDetails.courseName}</span> (ID: #{selectedCourseForDetails.id})
                 </p>
               </div>
               <button 
-                onClick={() => { setShowDetailsModal(false); resetDetailForm(); }}
-                className="text-gray-400 hover:text-gray-600 text-xl"
+                onClick={() => setShowDetailsModal(false)}
+                className="text-gray-400 hover:text-gray-600 text-2xl"
               >
-                <i className="fas fa-times"></i>
+                &times;
               </button>
             </div>
 
-            {/* Existing Details List */}
+            {/* List of Curriculum Packages */}
             <div className="mb-6">
-              <h4 className="text-sm font-bold text-gray-700 mb-2">รายการรหัส OIC ที่ผูกไว้ ({courseDetailsList.length} รายการ):</h4>
+              <h4 className="text-sm font-bold text-gray-700 mb-2">1. รายการแพ็กเกจหลักสูตร (Curriculum Packages)</h4>
+              
               {detailsLoading ? (
-                <div className="text-center py-6"><i className="fas fa-spinner fa-spin text-yellow-600 text-xl"></i></div>
+                <div className="text-center py-6"><i className="fas fa-spinner fa-spin text-2xl text-blue-600"></i></div>
+              ) : curriculumsList.length === 0 ? (
+                <div className="p-6 bg-gray-50 rounded-lg text-center text-gray-400 text-sm">
+                  ยังไม่มีแพ็กเกจหลักสูตร กรุณาเพิ่มข้อมูลด้านล่าง
+                </div>
               ) : (
-                <div className="overflow-x-auto border rounded-lg">
-                  <table className="w-full text-left text-xs">
-                    <thead>
-                      <tr className="bg-gray-100 text-gray-700">
-                        <th className="p-2.5 border-b">ประเภท</th>
-                        <th className="p-2.5 border-b">รหัสประกาศ</th>
-                        <th className="p-2.5 border-b">ชื่อย่อหลักสูตร</th>
-                        <th className="p-2.5 border-b">รหัสหลักสูตร</th>
-                        <th className="p-2.5 border-b">รหัสวิชา</th>
-                        <th className="p-2.5 border-b">รหัสวิชา OIC</th>
-                        <th className="p-2.5 border-b text-center w-16">สถานะ</th>
-                        <th className="p-2.5 border-b text-center w-20">จัดการ</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {courseDetailsList.map(detail => (
-                        <tr key={detail.id} className={`border-b hover:bg-gray-50 ${editingDetailId === detail.id ? 'bg-yellow-50/60' : ''}`}>
-                          <td className="p-2.5">
-                            {detail.agentType === 'broker' ? (
-                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">นายหน้า (Broker)</span>
-                            ) : detail.agentType === 'both' ? (
-                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-800">ตัวแทน + นายหน้า</span>
-                            ) : (
-                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">ตัวแทน (Agent)</span>
-                            )}
-                          </td>
-                          <td className="p-2.5 font-mono">{detail.announcementCode || <span className="text-gray-400">-</span>}</td>
-                          <td className="p-2.5">{detail.courseShortName || <span className="text-gray-400">-</span>}</td>
-                          <td className="p-2.5 font-mono">{detail.curriculumCode || <span className="text-gray-400">-</span>}</td>
-                          <td className="p-2.5 font-mono">{detail.courseCode || <span className="text-gray-400">-</span>}</td>
-                          <td className="p-2.5 font-mono font-bold text-rose-700">{detail.oicCourseCode || <span className="text-gray-400 font-normal">-</span>}</td>
-                          <td className="p-2.5 text-center">
-                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${detail.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                              {detail.status?.toUpperCase()}
-                            </span>
-                          </td>
-                          <td className="p-2.5 text-center">
-                            <button 
-                              onClick={() => handleEditDetail(detail)}
-                              className="text-blue-600 hover:text-blue-800 mx-1" 
-                              title="แก้ไข"
-                            >
-                              <i className="fas fa-edit"></i>
-                            </button>
-                            <button 
-                              onClick={() => handleDeleteDetail(detail.id)}
-                              className="text-red-600 hover:text-red-800 mx-1" 
-                              title="ลบ"
-                            >
-                              <i className="fas fa-trash"></i>
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                      {courseDetailsList.length === 0 && (
-                        <tr>
-                          <td colSpan="8" className="text-center p-6 text-gray-500">
-                            ยังไม่มีรายการรหัส OIC กรุณาเพิ่มข้อมูลด้านล่าง
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                <div className="space-y-4">
+                  {curriculumsList.map((curr, idx) => (
+                    <div key={curr.id} className="border border-blue-200 rounded-xl p-4 bg-white shadow-xs">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-3 mb-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-mono text-gray-400 font-bold text-xs">#{idx + 1}</span>
+                          {curr.agentType === 'broker' ? (
+                            <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800">นายหน้า (Broker)</span>
+                          ) : curr.agentType === 'both' ? (
+                            <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-100 text-indigo-800">Agent+Broker</span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-800">ตัวแทน (Agent)</span>
+                          )}
+                          <span className="font-bold text-base text-gray-900">{curr.courseShortName}</span>
+                          <span className="bg-purple-100 text-purple-800 font-mono px-2 py-0.5 rounded text-xs font-bold" title="รหัสในระบบอบรม (Col R)">
+                            <i className="fas fa-desktop mr-1 text-[10px]"></i>รหัสระบบอบรม: {curr.trainingCourseCode || '-'}
+                          </span>
+                          <span className="bg-teal-50 text-teal-700 px-2 py-0.5 rounded text-xs font-mono" title="รหัสหลักสูตร คปภ.">
+                            คปภ: {curr.curriculumCode || '-'}
+                          </span>
+                          <span className="text-amber-700 font-mono text-xs">
+                            [{curr.announcementCode || '-'}]
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => openAddSubDetail(curr)}
+                            className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded hover:bg-emerald-100 text-xs font-semibold flex items-center gap-1"
+                          >
+                            <i className="fas fa-plus text-[10px]"></i> เพิ่มวิชาย่อย
+                          </button>
+                          <button
+                            onClick={() => handleEditCurriculum(curr)}
+                            className="px-2 py-1 text-blue-600 hover:bg-blue-50 rounded text-xs"
+                            title="แก้ไขหลักสูตร"
+                          >
+                            <i className="fas fa-edit"></i>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCurriculum(curr.id)}
+                            className="px-2 py-1 text-red-600 hover:bg-red-50 rounded text-xs"
+                            title="ลบหลักสูตร"
+                          >
+                            <i className="fas fa-trash"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Sub-courses under this curriculum */}
+                      <div>
+                        <div className="text-xs font-bold text-gray-500 mb-2 flex items-center justify-between">
+                          <span>วิชาย่อย คปภ. ({curr.subDetails?.length || 0} รายวิชา):</span>
+                        </div>
+                        {curr.subDetails && curr.subDetails.length > 0 ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                            {curr.subDetails.map((sub, sIdx) => (
+                              <div key={sub.id} className="p-2.5 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between gap-2 text-xs">
+                                <div>
+                                  <div className="font-bold text-rose-700 font-mono">{sub.oicCourseCode}</div>
+                                  <div className="text-gray-800 font-medium line-clamp-1" title={sub.subCourseName}>
+                                    {sub.subCourseName || '-'}
+                                  </div>
+                                </div>
+                                <div className="flex items-center shrink-0">
+                                  <button
+                                    onClick={() => handleEditSubDetail(curr, sub)}
+                                    className="text-blue-600 hover:text-blue-800 p-1"
+                                    title="แก้ไขวิชาย่อย"
+                                  >
+                                    <i className="fas fa-edit text-[11px]"></i>
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteSubDetail(sub.id)}
+                                    className="text-red-600 hover:text-red-800 p-1"
+                                    title="ลบวิชาย่อย"
+                                  >
+                                    <i className="fas fa-trash text-[11px]"></i>
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="p-3 bg-gray-50 rounded text-center text-gray-400 text-xs italic">
+                            ยังไม่มีวิชาย่อย คลิก "เพิ่มวิชาย่อย" เพื่อกำหนดรายวิชา
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
 
-            {/* Add / Edit Detail Form */}
-            <div className="bg-gray-50 border rounded-lg p-4">
+            {/* Sub Detail Add/Edit Dialog (Level 2) */}
+            {selectedCurriculumForSub && (
+              <div className="mb-6 p-4 bg-emerald-50/80 border border-emerald-200 rounded-xl animate-in fade-in duration-150">
+                <h4 className="text-sm font-bold text-emerald-900 mb-3 flex items-center justify-between">
+                  <span>
+                    <i className="fas fa-book-reader mr-1.5"></i>
+                    {editingSubDetailId ? 'แก้ไขวิชาย่อย' : `เพิ่มวิชาย่อย ภายใต้หลักสูตร: ${selectedCurriculumForSub.courseShortName} (${selectedCurriculumForSub.trainingCourseCode})`}
+                  </span>
+                  <button
+                    onClick={() => { setSelectedCurriculumForSub(null); setEditingSubDetailId(null); }}
+                    className="text-xs text-emerald-700 hover:text-emerald-900 underline"
+                  >
+                    ปิดฟอร์ม
+                  </button>
+                </h4>
+                <form onSubmit={handleSaveSubDetail} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      รหัสวิชา OIC (เช่น นว264ก) <span className="text-red-600">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={subDetailForm.oicCourseCode}
+                      onChange={e => setSubDetailForm({...subDetailForm, oicCourseCode: e.target.value})}
+                      placeholder="เช่น นว264ก"
+                      className="w-full border rounded p-2 text-xs font-mono bg-white outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      ชื่อรายวิชาย่อย (Sub Course Name)
+                    </label>
+                    <input
+                      type="text"
+                      value={subDetailForm.subCourseName}
+                      onChange={e => setSubDetailForm({...subDetailForm, subCourseName: e.target.value})}
+                      placeholder="เช่น กฎหมายที่เกี่ยวข้องกับการประกันวินาศภัย"
+                      className="w-full border rounded p-2 text-xs bg-white outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                  <div className="sm:col-span-3 flex justify-end gap-2 mt-2">
+                    <button
+                      type="button"
+                      onClick={() => { setSelectedCurriculumForSub(null); setEditingSubDetailId(null); }}
+                      className="px-3 py-1.5 border rounded text-xs hover:bg-gray-100"
+                    >
+                      ยกเลิก
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold shadow-xs"
+                    >
+                      {editingSubDetailId ? 'บันทึกการแก้ไข' : 'เพิ่มวิชาย่อย'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* Curriculum Package Form (Level 1) */}
+            <div className="bg-gray-50 border rounded-xl p-4">
               <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center justify-between">
                 <span>
-                  <i className={`fas ${editingDetailId ? 'fa-edit text-blue-600' : 'fa-plus-circle text-green-600'} mr-1.5`}></i>
-                  {editingDetailId ? 'แก้ไขรหัส OIC' : 'เพิ่มรหัส OIC / รายละเอียดใหม่'}
+                  <i className={`fas ${editingCurriculumId ? 'fa-edit text-blue-600' : 'fa-plus-circle text-blue-600'} mr-1.5`}></i>
+                  {editingCurriculumId ? 'แก้ไขแพ็กเกจหลักสูตร' : 'เพิ่มแพ็กเกจหลักสูตรใหม่'}
                 </span>
-                {editingDetailId && (
+                {editingCurriculumId && (
                   <button 
                     type="button" 
-                    onClick={resetDetailForm}
+                    onClick={resetCurriculumForm}
                     className="text-xs text-gray-500 hover:text-gray-700 underline font-normal"
                   >
                     ยกเลิกการแก้ไข (เพิ่มใหม่)
                   </button>
                 )}
               </h4>
-              <form onSubmit={handleSaveDetail}>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+              <form onSubmit={handleSaveCurriculum}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-3">
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">ประเภท (Agent / Broker)</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">ประเภท</label>
                     <select 
-                      value={detailFormData.agentType || 'agent'} 
-                      onChange={e => setDetailFormData({...detailFormData, agentType: e.target.value})}
-                      className="w-full border rounded p-2 text-xs font-semibold focus:ring-1 focus:ring-warning outline-none bg-white text-gray-800"
+                      value={curriculumForm.agentType || 'agent'} 
+                      onChange={e => setCurriculumForm({...curriculumForm, agentType: e.target.value})}
+                      className="w-full border rounded p-2 text-xs font-semibold focus:ring-1 focus:ring-blue-600 outline-none bg-white text-gray-800"
                     >
                       <option value="agent">ตัวแทน (Agent)</option>
                       <option value="broker">นายหน้า (Broker)</option>
@@ -531,103 +763,64 @@ export default function RenewBasicCrud() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">รหัสประกาศ</label>
-                    <input 
-                      type="text" 
-                      value={detailFormData.announcementCode} 
-                      onChange={e => setDetailFormData({...detailFormData, announcementCode: e.target.value})}
-                      placeholder="เช่น ANN-2567-01"
-                      className="w-full border rounded p-2 text-xs font-mono focus:ring-1 focus:ring-warning outline-none bg-white" 
-                    />
-                  </div>
-                  <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">ชื่อย่อหลักสูตร</label>
                     <input 
                       type="text" 
-                      value={detailFormData.courseShortName} 
-                      onChange={e => setDetailFormData({...detailFormData, courseShortName: e.target.value})}
-                      placeholder="เช่น ปรภ.1"
-                      className="w-full border rounded p-2 text-xs focus:ring-1 focus:ring-warning outline-none bg-white" 
+                      value={curriculumForm.courseShortName} 
+                      onChange={e => setCurriculumForm({...curriculumForm, courseShortName: e.target.value})}
+                      placeholder="เช่น นว2, ตว2"
+                      className="w-full border rounded p-2 text-xs focus:ring-1 focus:ring-blue-600 outline-none bg-white font-medium" 
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">รหัสหลักสูตร</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">รหัสในระบบอบรม (Col R)</label>
                     <input 
                       type="text" 
-                      value={detailFormData.curriculumCode} 
-                      onChange={e => setDetailFormData({...detailFormData, curriculumCode: e.target.value})}
-                      placeholder="เช่น CURR-101"
-                      className="w-full border rounded p-2 text-xs font-mono focus:ring-1 focus:ring-warning outline-none bg-white" 
+                      value={curriculumForm.trainingCourseCode} 
+                      onChange={e => setCurriculumForm({...curriculumForm, trainingCourseCode: e.target.value})}
+                      placeholder="เช่น B2N0G00"
+                      className="w-full border rounded p-2 text-xs font-mono focus:ring-1 focus:ring-blue-600 outline-none bg-white font-bold text-purple-700" 
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">รหัสวิชา (Course Code)</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">รหัสหลักสูตร คปภ.</label>
                     <input 
                       type="text" 
-                      value={detailFormData.courseCode} 
-                      onChange={e => setDetailFormData({...detailFormData, courseCode: e.target.value})}
-                      placeholder="เช่น BASIC-01"
-                      className="w-full border rounded p-2 text-xs font-mono focus:ring-1 focus:ring-warning outline-none bg-white" 
+                      value={curriculumForm.curriculumCode} 
+                      onChange={e => setCurriculumForm({...curriculumForm, curriculumCode: e.target.value})}
+                      placeholder="เช่น นว2649991"
+                      className="w-full border rounded p-2 text-xs font-mono focus:ring-1 focus:ring-blue-600 outline-none bg-white" 
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">รหัสวิชา OIC</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">รหัสประกาศ</label>
                     <input 
                       type="text" 
-                      value={detailFormData.oicCourseCode} 
-                      onChange={e => setDetailFormData({...detailFormData, oicCourseCode: e.target.value})}
-                      placeholder="เช่น OIC-SUBJ-001"
-                      className="w-full border rounded p-2 text-xs font-mono focus:ring-1 focus:ring-warning outline-none bg-white" 
+                      value={curriculumForm.announcementCode} 
+                      onChange={e => setCurriculumForm({...curriculumForm, announcementCode: e.target.value})}
+                      placeholder="เช่น NLGA-2564"
+                      className="w-full border rounded p-2 text-xs font-mono focus:ring-1 focus:ring-blue-600 outline-none bg-white" 
                     />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">ลำดับ</label>
-                    <input 
-                      type="number" 
-                      value={detailFormData.displayOrder} 
-                      onChange={e => setDetailFormData({...detailFormData, displayOrder: e.target.value})}
-                      className="w-full border rounded p-2 text-xs focus:ring-1 focus:ring-warning outline-none text-center bg-white" 
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">สถานะ</label>
-                    <select 
-                      value={detailFormData.status} 
-                      onChange={e => setDetailFormData({...detailFormData, status: e.target.value})}
-                      className="w-full border rounded p-2 text-xs focus:ring-1 focus:ring-warning outline-none bg-white"
-                    >
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                    </select>
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-2 pt-2 border-t border-gray-200">
-                  {editingDetailId && (
-                    <button 
-                      type="button" 
-                      onClick={resetDetailForm}
-                      className="px-3 py-1.5 border rounded text-xs text-gray-600 hover:bg-gray-100"
-                    >
-                      ยกเลิก
-                    </button>
-                  )}
+                <div className="flex justify-end gap-2">
                   <button 
                     type="submit" 
-                    className="px-4 py-1.5 bg-yellow-600 text-white font-medium rounded text-xs hover:bg-yellow-700 shadow-sm"
+                    className="px-5 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition shadow-xs"
                   >
-                    <i className="fas fa-save mr-1"></i>
-                    {editingDetailId ? 'บันทึกการแก้ไข' : 'เพิ่มรหัส OIC นี้'}
+                    <i className="fas fa-save mr-1.5"></i>
+                    {editingCurriculumId ? 'บันทึกการแก้ไขหลักสูตร' : 'เพิ่มแพ็กเกจหลักสูตร'}
                   </button>
                 </div>
               </form>
             </div>
 
-            <div className="flex justify-end mt-4 pt-3 border-t">
-              <button 
-                type="button" 
-                onClick={() => { setShowDetailsModal(false); resetDetailForm(); }}
-                className="px-5 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm font-medium"
+            <div className="mt-6 flex justify-end border-t pt-4">
+              <button
+                type="button"
+                onClick={() => setShowDetailsModal(false)}
+                className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-300 transition"
               >
                 ปิดหน้าต่าง
               </button>

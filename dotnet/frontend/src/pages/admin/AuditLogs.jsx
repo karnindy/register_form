@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import HistorySnapshotViewer from '../../components/HistorySnapshotViewer';
 
 const API_BASE_URL = 'http://localhost:8085/api';
 
@@ -123,19 +124,12 @@ export default function AuditLogs() {
                 <i className="fas fa-times text-xl"></i>
               </button>
             </div>
-            <div className="p-4 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h4 className="font-semibold text-red-600 mb-2">ข้อมูลเดิม (Old Data)</h4>
-                <pre className="bg-red-50 p-3 rounded text-xs overflow-x-auto h-[500px] border border-red-100">
-                  {formatJson(selectedLog.oldData)}
-                </pre>
-              </div>
-              <div>
-                <h4 className="font-semibold text-green-600 mb-2">ข้อมูลใหม่ (New Data)</h4>
-                <pre className="bg-green-50 p-3 rounded text-xs overflow-x-auto h-[500px] border border-green-100">
-                  {formatJson(selectedLog.newData)}
-                </pre>
-              </div>
+            <div className="p-4 overflow-y-auto flex-1">
+              <HistorySnapshotViewer 
+                oldData={selectedLog.oldData} 
+                newData={selectedLog.newData}
+                title={`ประวัติการแก้ไข #${selectedLog.id} (รหัสผู้สมัคร #${selectedLog.registerId})`}
+              />
             </div>
           </div>
         </div>

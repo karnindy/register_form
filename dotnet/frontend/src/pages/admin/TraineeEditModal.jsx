@@ -68,25 +68,28 @@ export default function TraineeEditModal({ nationId, onClose, onSuccess }) {
         setLoading(true);
         const token = localStorage.getItem('authToken') || localStorage.getItem('admin_token');
         
+        const safeFetchArray = (url, opts) => 
+          fetch(url, opts).then(r => r.ok ? r.json() : []).then(data => Array.isArray(data) ? data : []).catch(() => []);
+
         const [
           titles, religions, genders, bloods, provinces, courses, agentBranches, 
           territories, expertises, companies, renewCourseCheckboxes, renewOtherOptions, fullData
         ] = await Promise.all([
-          fetch('http://localhost:8085/api/masterdata/titles').then(r => r.json()).catch(() => []),
-          fetch('http://localhost:8085/api/masterdata/religion').then(r => r.json()).catch(() => []),
-          fetch('http://localhost:8085/api/masterdata/gender').then(r => r.json()).catch(() => []),
-          fetch('http://localhost:8085/api/masterdata/blood').then(r => r.json()).catch(() => []),
-          fetch('http://localhost:8085/api/masterdata/provinces').then(r => r.json()).catch(() => []),
-          fetch('http://localhost:8085/api/masterdata/renew-courses').then(r => r.json()).catch(() => []),
-          fetch('http://localhost:8085/api/masterdata/agent-branches').then(r => r.json()).catch(() => []),
-          fetch('http://localhost:8085/api/masterdata/territory').then(r => r.json()).catch(() => []),
-          fetch('http://localhost:8085/api/masterdata/expertise').then(r => r.json()).catch(() => []),
-          fetch('http://localhost:8085/api/masterdata/company').then(r => r.json()).catch(() => []),
-          fetch('http://localhost:8085/api/masterdata/renewcourse').then(r => r.json()).catch(() => []),
-          fetch('http://localhost:8085/api/masterdata/renew-other-courses').then(r => r.json()).catch(() => []),
+          safeFetchArray('http://localhost:8085/api/masterdata/titles'),
+          safeFetchArray('http://localhost:8085/api/masterdata/religion'),
+          safeFetchArray('http://localhost:8085/api/masterdata/gender'),
+          safeFetchArray('http://localhost:8085/api/masterdata/blood'),
+          safeFetchArray('http://localhost:8085/api/masterdata/provinces'),
+          safeFetchArray('http://localhost:8085/api/masterdata/renew-courses'),
+          safeFetchArray('http://localhost:8085/api/masterdata/agent-branches'),
+          safeFetchArray('http://localhost:8085/api/masterdata/territories'),
+          safeFetchArray('http://localhost:8085/api/masterdata/expertises'),
+          safeFetchArray('http://localhost:8085/api/masterdata/companies'),
+          safeFetchArray('http://localhost:8085/api/masterdata/renewcourse'),
+          safeFetchArray('http://localhost:8085/api/masterdata/renew-other-courses'),
           fetch(`http://localhost:8085/api/admin/trainees/${nationId}/full`, { 
             headers: token ? { 'Authorization': `Bearer ${token}` } : {} 
-          }).then(r => r.json()).catch(() => ({}))
+          }).then(r => r.ok ? r.json() : {}).catch(() => ({}))
         ]);
 
         // Ensure addresses has A and C/M
@@ -114,8 +117,18 @@ export default function TraineeEditModal({ nationId, onClose, onSuccess }) {
         fullData.registrations = fullData.registrations?.length > 0 ? fullData.registrations : [{ DeductionPrivilege: null, MasterDegreeStatus: null }];
 
         setMasterData({ 
-          titles, religions, genders, bloods, provinces, courses, agentBranches, 
-          territories, expertises, companies, renewCourseCheckboxes, renewOtherOptions 
+          titles: Array.isArray(titles) ? titles : [],
+          religions: Array.isArray(religions) ? religions : [],
+          genders: Array.isArray(genders) ? genders : [],
+          bloods: Array.isArray(bloods) ? bloods : [],
+          provinces: Array.isArray(provinces) ? provinces : [],
+          courses: Array.isArray(courses) ? courses : [],
+          agentBranches: Array.isArray(agentBranches) ? agentBranches : [],
+          territories: Array.isArray(territories) ? territories : [],
+          expertises: Array.isArray(expertises) ? expertises : [],
+          companies: Array.isArray(companies) ? companies : [],
+          renewCourseCheckboxes: Array.isArray(renewCourseCheckboxes) ? renewCourseCheckboxes : [],
+          renewOtherOptions: Array.isArray(renewOtherOptions) ? renewOtherOptions : []
         });
         setFormData(fullData);
       } catch (err) {
@@ -1574,7 +1587,7 @@ export default function TraineeEditModal({ nationId, onClose, onSuccess }) {
                   <div className="pt-2">
                     <label className="block text-xs font-bold text-gray-600 mb-2">เขตพื้นที่ขาย</label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {masterData?.territories?.map((territory, idx) => {
+                      {(Array.isArray(masterData?.territories) ? masterData.territories : []).map((territory, idx) => {
                         const checked = formData?.others?.[0]?.salesAreas?.some(sa => sa.territoriesId?.toString() === territory.id.toString());
                         return (
                           <label key={idx} className="flex items-center gap-2 p-2 border rounded-lg bg-gray-50 hover:bg-gray-100 cursor-pointer text-xs">
@@ -1595,7 +1608,7 @@ export default function TraineeEditModal({ nationId, onClose, onSuccess }) {
                   <div className="pt-2">
                     <label className="block text-xs font-bold text-gray-600 mb-2">ความเชี่ยวชาญประกันภัย</label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {masterData?.expertises?.map((specialty, idx) => {
+                      {(Array.isArray(masterData?.expertises) ? masterData.expertises : []).map((specialty, idx) => {
                         const checked = formData?.others?.[0]?.specialties?.some(sp => sp.expertiseId?.toString() === specialty.id.toString());
                         return (
                           <label key={idx} className="flex items-center gap-2 p-2 border rounded-lg bg-gray-50 hover:bg-gray-100 cursor-pointer text-xs">
@@ -1616,7 +1629,7 @@ export default function TraineeEditModal({ nationId, onClose, onSuccess }) {
                   <div className="pt-2">
                     <label className="block text-xs font-bold text-gray-600 mb-2">บริษัทประกันภัยอื่นที่ท่านส่งงานในปัจจุบัน</label>
                     <div className="max-h-52 overflow-y-auto p-3 border rounded-xl bg-gray-50 grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {masterData?.companies?.map((company, idx) => {
+                      {(Array.isArray(masterData?.companies) ? masterData.companies : []).map((company, idx) => {
                         const checked = formData?.others?.[0]?.otherCompanies?.some(oc => oc.companyId?.toString() === company.id.toString());
                         return (
                           <label key={idx} className="flex items-center gap-2 p-2 bg-white border rounded-lg hover:bg-gray-100 cursor-pointer text-xs">

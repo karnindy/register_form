@@ -113,7 +113,9 @@ export default function CascadingAddress({ prefix = "", errors = {} }) {
   return (
     <>
       <div className="mb-5" id={provinceIdField}>
-        <label className="block mb-2 font-medium text-textMain after:content-['_*'] after:text-error">จังหวัด</label>
+        <label className="block mb-2 font-medium text-textMain">
+          จังหวัด <span className="text-red-500 font-bold ml-1">*</span>
+        </label>
         <Select
           options={provinceOptions}
           value={provinceOptions.find(o => String(o.value) === String(formData[provinceIdField])) || null}
@@ -127,7 +129,9 @@ export default function CascadingAddress({ prefix = "", errors = {} }) {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
         <div className="mb-5" id={districtIdField}>
-          <label className="block mb-2 font-medium text-textMain after:content-['_*'] after:text-error">อำเภอ/เขต</label>
+          <label className="block mb-2 font-medium text-textMain">
+            อำเภอ/เขต <span className="text-red-500 font-bold ml-1">*</span>
+          </label>
           <Select
             options={districts}
             value={districts.find(o => String(o.value) === String(formData[districtIdField])) || null}
@@ -142,7 +146,9 @@ export default function CascadingAddress({ prefix = "", errors = {} }) {
           {errors[districtIdField] && <p className="text-error text-sm mt-1">{errors[districtIdField]}</p>}
         </div>
         <div className="mb-5" id={subDistrictIdField}>
-          <label className="block mb-2 font-medium text-textMain after:content-['_*'] after:text-error">ตำบล/แขวง</label>
+          <label className="block mb-2 font-medium text-textMain">
+            ตำบล/แขวง <span className="text-red-500 font-bold ml-1">*</span>
+          </label>
           <Select
             options={subDistricts}
             value={subDistricts.find(o => String(o.value) === String(formData[subDistrictIdField])) || null}
@@ -157,7 +163,9 @@ export default function CascadingAddress({ prefix = "", errors = {} }) {
           {errors[subDistrictIdField] && <p className="text-error text-sm mt-1">{errors[subDistrictIdField]}</p>}
         </div>
         <div className="mb-5">
-          <label className="block mb-2 font-medium text-textMain after:content-['_*'] after:text-error">รหัสไปรษณีย์</label>
+          <label className="block mb-2 font-medium text-textMain">
+            รหัสไปรษณีย์ <span className="text-red-500 font-bold ml-1">*</span>
+          </label>
           <input
             id={zipcodeField}
             type="text"

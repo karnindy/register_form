@@ -21,7 +21,8 @@ export default function MasterDataDashboard() {
     { type: 'renewdates', title: 'วันที่เปิดอบรม', icon: 'fa-calendar-alt', color: 'text-warning', custom: true },
     { type: 'renewbasic', title: 'หลักสูตรพื้นฐาน', icon: 'fa-book', color: 'text-warning', custom: true },
     { type: 'renewcourse', title: 'ชื่อวิชา (Subjects)', icon: 'fa-book-open', color: 'text-warning' },
-    { type: 'renewmappings', title: 'จับคู่วิชาต่ออายุ', icon: 'fa-link', color: 'text-warning', custom: true }
+    { type: 'renewmappings', title: 'จับคู่วิชาต่ออายุ', icon: 'fa-link', color: 'text-warning', custom: true },
+    { path: '/admin/training-import', title: 'นำเข้าผลการอบรม (Stamp)', icon: 'fa-file-import', color: 'text-blue-600', isDirectPath: true }
   ];
 
   const oicDataLinks = [
@@ -58,13 +59,13 @@ export default function MasterDataDashboard() {
         <h3 className="text-2xl font-bold text-warning">จัดการวิชาต่ออายุ (Renew Other & Past Training)</h3>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {renewDataLinks.map((link) => (
-          <div key={link.type} className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 flex flex-col items-center text-center transition-shadow hover:shadow-md h-full">
+        {renewDataLinks.map((link, idx) => (
+          <div key={link.type || link.path || idx} className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 flex flex-col items-center text-center transition-shadow hover:shadow-md h-full">
             <i className={`fas ${link.icon} text-5xl ${link.color} mb-4`}></i>
             <h4 className="text-lg font-bold text-gray-800 mb-2">{link.title}</h4>
-            <p className="text-gray-500 text-xs mb-6 flex-1">เพิ่ม ลบ หรือแก้ไขข้อมูลในระบบ</p>
-            <Link to={`/admin/master-data/${link.type}`} className="px-6 py-2 border border-warning text-warning rounded hover:bg-warning hover:text-white transition-colors text-sm w-full">
-              จัดการข้อมูล
+            <p className="text-gray-500 text-xs mb-6 flex-1">{link.isDirectPath ? 'นำเข้าผลและ Stamp การอบรม' : 'เพิ่ม ลบ หรือแก้ไขข้อมูลในระบบ'}</p>
+            <Link to={link.path || `/admin/master-data/${link.type}`} className={`px-6 py-2 border rounded transition-colors text-sm w-full ${link.isDirectPath ? 'border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white' : 'border-warning text-warning hover:bg-warning hover:text-white'}`}>
+              {link.isDirectPath ? 'เข้าสู่ระบบนำเข้า' : 'จัดการข้อมูล'}
             </Link>
           </div>
         ))}

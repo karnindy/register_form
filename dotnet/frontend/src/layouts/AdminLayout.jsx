@@ -63,6 +63,10 @@ export default function AdminLayout() {
                 </NavLink>
               )}
 
+              <NavLink to="/admin/training-import" className={navLinkClass}>
+                <i className="fas fa-file-import w-5 text-center text-[#ffc107]"></i> นำเข้าผลการอบรม (Stamp ผล)
+              </NavLink>
+
               {canViewMenu('reports') && (
                 <NavLink to="/admin/reports" className={navLinkClass}>
                   <i className="fas fa-file-excel w-5 text-center"></i> รายงาน (Reports)

@@ -193,7 +193,7 @@ export default function Tab5Course() {
       
       <form onSubmit={handleNext} noValidate>
         <div className="mb-6">
-          <label className="block mb-2 font-medium text-textMain after:content-['_*'] after:text-error">ระดับคอร์ส</label>
+          <label className="block mb-2 font-medium text-textMain">ระดับคอร์ส <span className="text-red-500 font-bold">*</span></label>
           <div className="flex flex-col gap-3">
             {courseOptions.map((course, idx) => (
               <label key={idx} className={`flex items-center gap-3 cursor-pointer p-3 border rounded-md transition-colors bg-white ${errors.courseType ? 'border-error' : 'hover:bg-gray-50'}`}>
@@ -254,7 +254,7 @@ export default function Tab5Course() {
               ))}
             </div>
 
-            <label className="block mb-3 font-medium text-primary text-lg">{selectedCourseObj.courseName} <span className="text-error">*</span></label>
+            <label className="block mb-3 font-medium text-primary text-lg">{selectedCourseObj.courseName} <span className="text-red-500 font-bold">*</span></label>
             <div className="mb-4">
               <span className="text-error text-sm block mb-1">* เลือกได้มากกว่า 1 วิชา *</span>
               <span className="text-error text-sm block mb-2">* หากเลือกวิชาที่เคยอบรม จะไม่นับรวมรอบปัจจุบัน (5 ปี) *</span>
@@ -294,7 +294,7 @@ export default function Tab5Course() {
 
         {formData.courseType && !isComplexCourse && selectedCourseObj?.dateDisplay && (
           <div className="mb-6 animate-[fadeIn_0.3s]" id="trainingDate">
-            <label className="block mb-3 font-medium text-primary after:content-['_*'] after:text-error text-lg">{selectedCourseObj.courseName}</label>
+            <label className="block mb-3 font-medium text-primary text-lg">{selectedCourseObj.courseName} <span className="text-red-500 font-bold">*</span></label>
             <div className="flex flex-col gap-3">
               <label className={`flex items-center gap-3 cursor-pointer p-3 border rounded-md bg-white ${errors.trainingDate ? 'border-error' : 'hover:bg-gray-50'}`}>
                 <input type="radio" name="trainingDate" className="w-4 h-4 accent-primary" value={selectedCourseObj.dateId?.toString()} checked={formData.trainingDate === selectedCourseObj.dateId?.toString()} onChange={(e) => { updateData({ trainingDate: e.target.value }); if (errors.trainingDate) setErrors(prev => ({ ...prev, trainingDate: '' })); }} />
@@ -309,7 +309,7 @@ export default function Tab5Course() {
           <>
             <hr className="border-t border-border my-8" />
             <div className="mb-6 animate-[fadeIn_0.3s]">
-              <label className="block mb-3 font-medium text-textMain after:content-['_*'] after:text-error">สำเร็จการศึกษาตั้งแต่ระดับปริญญาโทขึ้นไป หรือ ไม่</label>
+              <label className="block mb-3 font-medium text-textMain">สำเร็จการศึกษาตั้งแต่ระดับปริญญาโทขึ้นไป หรือ ไม่ <span className="text-red-500 font-bold">*</span></label>
               <div className="flex flex-col gap-3 p-4 border border-border rounded-md bg-white">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
@@ -341,7 +341,7 @@ export default function Tab5Course() {
 
               {(formData.deductionPrivilege || []).includes('MasterDegree') && (
                 <div className="mt-6 animate-[fadeIn_0.3s]" id="masterDegreeStatus">
-                  <label className="block mb-1 font-medium text-textMain after:content-['_*'] after:text-error">สถานะการยื่นเอกสาร</label>
+                  <label className="block mb-1 font-medium text-textMain">สถานะการยื่นเอกสาร <span className="text-red-500 font-bold">*</span></label>
                   <span className="text-error text-sm block mb-4">* หากท่านเคยยื่นเอกสารและบันทึกในระบบของสำนักงาน คปภ. แล้วไม่ต้องยื่นซ้ำ</span>
                   <div className="flex flex-col gap-3">
                     <label className="flex items-center gap-3 cursor-pointer p-3 border rounded-md bg-white hover:bg-gray-50">

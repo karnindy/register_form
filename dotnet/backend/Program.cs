@@ -39,6 +39,7 @@ builder.Services.AddDbContext<MySqlDbContext>(options =>
 // Dependency Injection for Repositories
 builder.Services.AddScoped<IRegisterRepository, RegisterRepository>();
 builder.Services.AddScoped<IRegisterHistoryRepository, RegisterHistoryRepository>();
+builder.Services.AddScoped<backend.Services.TrainingImportService>();
 builder.Services.AddHttpClient<backend.Services.OicApiService>();
 builder.Services.AddHostedService<backend.Services.OicFileWatcherService>();
 
@@ -103,10 +104,9 @@ using (var scope = app.Services.CreateScope())
         "IF OBJECT_ID('mst_renew_basic', 'U') IS NOT NULL AND COL_LENGTH('mst_renew_basic', 'course_code') IS NOT NULL BEGIN ALTER TABLE mst_renew_basic DROP COLUMN course_code; END",
         "IF OBJECT_ID('mst_renew_basic', 'U') IS NOT NULL AND COL_LENGTH('mst_renew_basic', 'announcement_code') IS NOT NULL BEGIN ALTER TABLE mst_renew_basic DROP COLUMN announcement_code; END",
         "IF OBJECT_ID('mst_renew_basic', 'U') IS NOT NULL AND COL_LENGTH('mst_renew_basic', 'course_short_name') IS NOT NULL BEGIN ALTER TABLE mst_renew_basic DROP COLUMN course_short_name; END",
-        "IF OBJECT_ID('mst_renew_basic', 'U') IS NOT NULL AND COL_LENGTH('mst_renew_basic', 'curriculum_code') IS NOT NULL BEGIN ALTER TABLE mst_renew_basic DROP COLUMN curriculum_code; END",
-        "IF OBJECT_ID('mst_renew_basic', 'U') IS NOT NULL AND COL_LENGTH('mst_renew_basic', 'oic_course_code') IS NOT NULL BEGIN ALTER TABLE mst_renew_basic DROP COLUMN oic_course_code; END",
-        "IF OBJECT_ID('mst_course_detail', 'U') IS NULL BEGIN CREATE TABLE mst_course_detail (id INT IDENTITY(1,1) PRIMARY KEY, course_type NVARCHAR(20) NOT NULL, course_id INT NOT NULL, agent_type NVARCHAR(20) NULL, announcement_code NVARCHAR(100) NULL, course_short_name NVARCHAR(100) NULL, curriculum_code NVARCHAR(100) NULL, course_code NVARCHAR(100) NULL, oic_course_code NVARCHAR(100) NULL, display_order INT DEFAULT 0, status NVARCHAR(20) DEFAULT 'active'); END",
-        "IF OBJECT_ID('mst_course_detail', 'U') IS NOT NULL AND COL_LENGTH('mst_course_detail', 'agent_type') IS NULL BEGIN ALTER TABLE mst_course_detail ADD agent_type NVARCHAR(20) NULL; END"
+        "IF OBJECT_ID('mst_course_curriculum', 'U') IS NULL BEGIN CREATE TABLE mst_course_curriculum (id INT IDENTITY(1,1) PRIMARY KEY, course_type NVARCHAR(20) NOT NULL, course_id INT NOT NULL, agent_type NVARCHAR(20) NULL, training_course_code NVARCHAR(100) NULL, announcement_code NVARCHAR(100) NULL, curriculum_code NVARCHAR(100) NULL, course_short_name NVARCHAR(100) NULL, display_order INT DEFAULT 0, status NVARCHAR(20) DEFAULT 'active'); END",
+        "IF OBJECT_ID('mst_course_sub_detail', 'U') IS NULL BEGIN CREATE TABLE mst_course_sub_detail (id INT IDENTITY(1,1) PRIMARY KEY, curriculum_id INT NOT NULL, oic_course_code NVARCHAR(100) NULL, sub_course_name NVARCHAR(500) NULL, hours DECIMAL(5,2) NULL, display_order INT DEFAULT 0, status NVARCHAR(20) DEFAULT 'active'); END",
+        "IF OBJECT_ID('trn_training_result', 'U') IS NULL BEGIN CREATE TABLE trn_training_result (id INT IDENTITY(1,1) PRIMARY KEY, nation_id NVARCHAR(13) NULL, person_registration_id INT NULL, original_license_no NVARCHAR(50) NULL, training_course_code NVARCHAR(100) NULL, training_course_name NVARCHAR(500) NULL, training_date_display NVARCHAR(100) NULL, training_status NVARCHAR(50) NULL, deduction_privilege NVARCHAR(10) NULL, deduction_doc_status NVARCHAR(50) NULL, progress_percent NVARCHAR(20) NULL, score_percent NVARCHAR(20) NULL, enrollment_url NVARCHAR(1000) NULL, verified_title_th NVARCHAR(100) NULL, verified_first_name_th NVARCHAR(200) NULL, verified_last_name_th NVARCHAR(200) NULL, verified_license_no NVARCHAR(50) NULL, verified_license_issue_date NVARCHAR(50) NULL, verified_license_expiry_date NVARCHAR(50) NULL, verified_applicant_type NVARCHAR(100) NULL, verified_license_type NVARCHAR(200) NULL, verified_insurance_type NVARCHAR(200) NULL, stamp_date DATETIME DEFAULT GETDATE(), import_file_name NVARCHAR(500) NULL, is_data_mismatch NVARCHAR(10) DEFAULT 'N'); END"
     };
 
     foreach (var sql in schemaMigrations)
@@ -119,6 +119,50 @@ using (var scope = app.Services.CreateScope())
         {
             Console.WriteLine($"Warning: Migration '{sql}' skipped: {ex.Message}");
         }
+    }
+
+    try
+    {
+        context.Database.ExecuteSqlRaw(@"
+            IF OBJECT_ID('mst_course_curriculum', 'U') IS NOT NULL AND OBJECT_ID('mst_course_detail', 'U') IS NOT NULL
+            BEGIN
+                -- 1. Insert any missing curriculum packages from mst_course_detail
+                INSERT INTO mst_course_curriculum (course_type, course_id, agent_type, training_course_code, announcement_code, curriculum_code, course_short_name, display_order, status)
+                SELECT d.course_type, d.course_id, d.agent_type, d.course_code, d.announcement_code, d.curriculum_code, d.course_short_name, MIN(d.display_order), 'active'
+                FROM mst_course_detail d
+                LEFT JOIN mst_course_curriculum c ON 
+                    d.course_type = c.course_type AND 
+                    d.course_id = c.course_id AND 
+                    ISNULL(d.agent_type,'') = ISNULL(c.agent_type,'') AND
+                    ISNULL(d.course_code,'') = ISNULL(c.training_course_code,'') AND
+                    ISNULL(d.curriculum_code,'') = ISNULL(c.curriculum_code,'')
+                WHERE c.id IS NULL
+                GROUP BY d.course_type, d.course_id, d.agent_type, d.course_code, d.announcement_code, d.curriculum_code, d.course_short_name;
+
+                -- 2. Insert any missing sub-details linked by curriculum ID
+                INSERT INTO mst_course_sub_detail (curriculum_id, oic_course_code, sub_course_name, display_order, status)
+                SELECT c.id, d.oic_course_code, d.sub_course_name, d.display_order, d.status
+                FROM mst_course_detail d
+                INNER JOIN mst_course_curriculum c ON 
+                    d.course_type = c.course_type AND 
+                    d.course_id = c.course_id AND 
+                    ISNULL(d.agent_type,'') = ISNULL(c.agent_type,'') AND
+                    ISNULL(d.course_code,'') = ISNULL(c.training_course_code,'') AND
+                    ISNULL(d.curriculum_code,'') = ISNULL(c.curriculum_code,'')
+                LEFT JOIN mst_course_sub_detail s ON
+                    s.curriculum_id = c.id AND
+                    ISNULL(s.oic_course_code,'') = ISNULL(d.oic_course_code,'') AND
+                    ISNULL(s.sub_course_name,'') = ISNULL(d.sub_course_name,'')
+                WHERE s.id IS NULL;
+
+                -- 3. Drop legacy mst_course_detail table
+                DROP TABLE mst_course_detail;
+            END
+        ");
+    }
+    catch (Exception ex)
+    {
+        Serilog.Log.Error(ex, "Failed to execute mst_course_curriculum migration from mst_course_detail");
     }
 
     try 

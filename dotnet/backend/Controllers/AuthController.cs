@@ -542,6 +542,9 @@ namespace backend.Controllers
                 } : null
             };
 
+            // 1. Snapshot OLD Data for History
+            var oldSnapshotDict = BuildPersonSnapshotDict(p, "ก่อนแก้ไขข้อมูลส่วนตัว");
+
             // 2. Update user account info
             if (!string.IsNullOrWhiteSpace(request.FullName)) user.FullName = request.FullName.Trim();
             if (!string.IsNullOrWhiteSpace(request.Phone)) user.Phone = request.Phone.Trim();
@@ -714,125 +717,16 @@ namespace backend.Controllers
             var selectedSubjs = (request.PersonData?.Courses ?? p?.Courses)?.Select(c => c.RenewOtherId?.ToString()).Where(s => !string.IsNullOrEmpty(s)).Select(s => s!).Distinct().OrderBy(x => x).ToList() ?? new List<string>();
             var regObj = request.PersonData?.Registrations?.FirstOrDefault() ?? p?.Registrations?.FirstOrDefault();
 
-            var newSnapshotDict = new Dictionary<string, object?>
+            var newSnapshotDict = BuildPersonSnapshotDict(p, "แก้ไขข้อมูลส่วนตัว");
+
+            var jsonOptions = new System.Text.Json.JsonSerializerOptions
             {
-                ["TitleTh"] = p?.TitleTh,
-                ["titleTh"] = p?.TitleTh,
-                ["FirstNameTh"] = p?.FirstNameTh,
-                ["firstNameTh"] = p?.FirstNameTh,
-                ["MiddleNameTh"] = p?.MiddleNameTh,
-                ["middleNameTh"] = p?.MiddleNameTh,
-                ["LastNameTh"] = p?.LastNameTh,
-                ["lastNameTh"] = p?.LastNameTh,
-                ["TitleOldTh"] = p?.TitleOldTh,
-                ["titleOldTh"] = p?.TitleOldTh,
-                ["FirstNameOldTh"] = p?.FirstNameOldTh,
-                ["firstNameOldTh"] = p?.FirstNameOldTh,
-                ["MiddleNameOldTh"] = p?.MiddleNameOldTh,
-                ["middleNameOldTh"] = p?.MiddleNameOldTh,
-                ["LastNameOldTh"] = p?.LastNameOldTh,
-                ["lastNameOldTh"] = p?.LastNameOldTh,
-                ["BirthDate"] = p?.BirthDate?.ToString("yyyy-MM-dd"),
-                ["IdCardExpiry"] = p?.IdCardExpiry?.ToString("yyyy-MM-dd"),
-                ["idCardExpiry"] = p?.IdCardExpiry?.ToString("yyyy-MM-dd"),
-                ["GenderId"] = p?.GenderId,
-                ["ReligionId"] = p?.ReligionId,
-                ["BloodGroupId"] = p?.BloodGroupId,
-                ["FoodAllergy"] = p?.FoodAllergy,
-                ["foodAllergy"] = p?.FoodAllergy,
-                ["MedicalCondition"] = p?.MedicalCondition,
-                ["medicalCondition"] = p?.MedicalCondition,
-                ["PhoneOtp"] = p?.PhoneOtp ?? user.Phone,
-                ["phone"] = p?.PhoneOtp ?? user.Phone,
-                ["EmailAlt"] = p?.EmailAlt ?? user.Email,
-                ["email"] = p?.EmailAlt ?? user.Email,
-                ["LineId"] = p?.LineId,
-                ["lineId"] = p?.LineId,
-                ["Facebook"] = p?.Facebook,
-                ["Instagram"] = p?.Instagram,
-                ["EmergencyContactName"] = p?.EmergencyContactName,
-                ["EmergencyContactPhone"] = p?.EmergencyContactPhone,
-                ["HouseNo"] = addrA?.HouseNo,
-                ["houseNo"] = addrA?.HouseNo,
-                ["Moo"] = addrA?.Moo,
-                ["moo"] = addrA?.Moo,
-                ["Village"] = addrA?.Village,
-                ["village"] = addrA?.Village,
-                ["Soi"] = addrA?.Soi,
-                ["soi"] = addrA?.Soi,
-                ["Road"] = addrA?.Road,
-                ["road"] = addrA?.Road,
-                ["ProvinceId"] = addrA?.ProvinceId,
-                ["provinceId"] = addrA?.ProvinceId,
-                ["DistrictId"] = addrA?.DistrictId,
-                ["districtId"] = addrA?.DistrictId,
-                ["SubDistrictId"] = addrA?.SubDistrictId,
-                ["subDistrictId"] = addrA?.SubDistrictId,
-                ["Postcode"] = addrA?.Postcode,
-                ["postcode"] = addrA?.Postcode,
-                ["ContactHouseNo"] = addrC?.HouseNo,
-                ["contactHouseNo"] = addrC?.HouseNo,
-                ["ContactMoo"] = addrC?.Moo,
-                ["contactMoo"] = addrC?.Moo,
-                ["ContactVillage"] = addrC?.Village,
-                ["contactVillage"] = addrC?.Village,
-                ["ContactSoi"] = addrC?.Soi,
-                ["contactSoi"] = addrC?.Soi,
-                ["ContactRoad"] = addrC?.Road,
-                ["contactRoad"] = addrC?.Road,
-                ["ContactProvinceId"] = addrC?.ProvinceId,
-                ["contactProvinceId"] = addrC?.ProvinceId,
-                ["ContactDistrictId"] = addrC?.DistrictId,
-                ["contactDistrictId"] = addrC?.DistrictId,
-                ["ContactSubDistrictId"] = addrC?.SubDistrictId,
-                ["contactSubDistrictId"] = addrC?.SubDistrictId,
-                ["ContactPostcode"] = addrC?.Postcode,
-                ["contactPostcode"] = addrC?.Postcode,
-                ["AgentBranch"] = affil?.BranchId,
-                ["agentBranch"] = affil?.BranchId,
-                ["BrokerType"] = affil?.BrokerType,
-                ["brokerType"] = affil?.BrokerType,
-                ["BrokerCompany"] = affil?.BrokerCompany,
-                ["brokerCompany"] = affil?.BrokerCompany,
-                ["BrokerBranch"] = affil?.BrokerBranch,
-                ["brokerBranch"] = affil?.BrokerBranch,
-                ["viriyahAgentCode"] = affil?.ViriyahAgentCode,
-                ["agentType"] = lic?.CourseType ?? "agent",
-                ["AgentType"] = lic?.CourseType ?? "agent",
-                ["LicenseNo"] = lic?.LicenseNo,
-                ["licenseNo"] = lic?.LicenseNo,
-                ["LicenseIssueDate"] = lic?.LicenseIssueDate?.ToString("yyyy-MM-dd"),
-                ["licenseIssueDate"] = lic?.LicenseIssueDate?.ToString("yyyy-MM-dd"),
-                ["LicenseExpiryDate"] = lic?.LicenseExpiryDate?.ToString("yyyy-MM-dd"),
-                ["licenseExpiryDate"] = lic?.LicenseExpiryDate?.ToString("yyyy-MM-dd"),
-                ["CourseType"] = course?.CourseId?.ToString(),
-                ["courseType"] = course?.CourseId?.ToString(),
-                ["CourseId"] = course?.CourseId,
-                ["courseId"] = course?.CourseId,
-                ["CourseDateId"] = course?.CourseDateId,
-                ["courseDateId"] = course?.CourseDateId,
-                ["PreviousCourses"] = string.Join(",", prevTrainings),
-                ["previousCourses"] = string.Join(",", prevTrainings),
-                ["SelectedSubjects"] = string.Join(",", selectedSubjs),
-                ["selectedSubjects"] = string.Join(",", selectedSubjs),
-                ["SalesArea"] = string.Join(",", salesAreas),
-                ["salesArea"] = string.Join(",", salesAreas),
-                ["InsuranceSpecialty"] = string.Join(",", specialties),
-                ["insuranceSpecialty"] = string.Join(",", specialties),
-                ["OtherInsuranceCompanies"] = string.Join(",", companies),
-                ["otherInsuranceCompanies"] = string.Join(",", companies),
-                ["MainBusiness"] = otherObj?.OtherBusiness,
-                ["mainBusiness"] = otherObj?.OtherBusiness,
-                ["InsuranceExperienceYears"] = otherObj?.InsuranceExperienceYears?.ToString(),
-                ["insuranceExperienceYears"] = otherObj?.InsuranceExperienceYears?.ToString(),
-                ["DeductionPrivilege"] = regObj?.DeductionPrivilege,
-                ["deductionPrivilege"] = regObj?.DeductionPrivilege,
-                ["MasterDegreeStatus"] = regObj?.MasterDegreeStatus,
-                ["masterDegreeStatus"] = regObj?.MasterDegreeStatus,
-                ["Action"] = "แก้ไขข้อมูลส่วนตัว"
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                WriteIndented = false
             };
 
-            var historyJson = System.Text.Json.JsonSerializer.Serialize(newSnapshotDict);
+            var oldHistoryJson = System.Text.Json.JsonSerializer.Serialize(oldSnapshotDict, jsonOptions);
+            var newHistoryJson = System.Text.Json.JsonSerializer.Serialize(newSnapshotDict, jsonOptions);
 
             // 5. Create RegisterHistory & RegistrationHistoryModel entry
             var registerId = p?.Registrations?.FirstOrDefault()?.Id ?? 0;
@@ -841,8 +735,8 @@ namespace backend.Controllers
                 RegisterId = registerId,
                 EditedByType = user.Role?.ToLower() ?? "applicant",
                 CreatedBy = user.Username,
-                OldData = historyJson,
-                NewData = historyJson,
+                OldData = oldHistoryJson,
+                NewData = newHistoryJson,
                 CreatedAt = DateTime.UtcNow
             };
             _context.RegisterHistories.Add(historyRecord);
@@ -855,8 +749,8 @@ namespace backend.Controllers
                     NationId = nationId,
                     EditedByType = user.Role?.ToLower() ?? "applicant",
                     CreatedBy = user.Username,
-                    OldData = historyJson,
-                    NewData = historyJson,
+                    OldData = oldHistoryJson,
+                    NewData = newHistoryJson,
                     CreatedAt = DateTime.UtcNow
                 };
                 _context.RegistrationHistoriesNew.Add(historyRecordNew);
@@ -937,6 +831,93 @@ namespace backend.Controllers
             }
             int checkDigit = (11 - (sum % 11)) % 10;
             return checkDigit == (id[12] - '0');
+        }
+
+        private static Dictionary<string, object?> BuildPersonSnapshotDict(Person? p, string actionName = "แก้ไขข้อมูลส่วนตัว")
+        {
+            if (p == null) return new Dictionary<string, object?>();
+
+            var addrA = p.Addresses?.FirstOrDefault(a => a.AddressType != null && a.AddressType.ToUpper() == "A") 
+                        ?? p.Addresses?.FirstOrDefault();
+            var addrC = p.Addresses?.FirstOrDefault(a => a.AddressType != null && (a.AddressType.ToUpper() == "C" || a.AddressType.ToUpper() == "M")) 
+                        ?? p.Addresses?.LastOrDefault(a => a.AddressType != null && (a.AddressType.ToUpper() == "C" || a.AddressType.ToUpper() == "M"));
+            var affil = p.Affiliations?.FirstOrDefault() ?? p.Affiliations?.LastOrDefault();
+            var lic = p.Licenses?.FirstOrDefault() ?? p.Licenses?.LastOrDefault();
+            var course = p.Courses?.FirstOrDefault() ?? p.Courses?.LastOrDefault();
+            var otherObj = p.Others?.FirstOrDefault() ?? p.Others?.LastOrDefault();
+            var salesAreas = otherObj?.SalesAreas?.Select(s => s.TerritoriesId?.ToString()).Where(s => !string.IsNullOrEmpty(s)).Select(s => s!).Distinct().OrderBy(x => x).ToList() ?? new List<string>();
+            var companies = otherObj?.OtherCompanies?.Select(c => c.CompanyId?.ToString()).Where(s => !string.IsNullOrEmpty(s)).Select(s => s!).Distinct().OrderBy(x => x).ToList() ?? new List<string>();
+            var specialties = otherObj?.Specialties?.Select(s => s.ExpertiseId?.ToString()).Where(s => !string.IsNullOrEmpty(s)).Select(s => s!).Distinct().OrderBy(x => x).ToList() ?? new List<string>();
+            var prevTrainings = p.Trainings?.Select(t => t.CourseId?.ToString()).Where(s => !string.IsNullOrEmpty(s)).Select(s => s!).Distinct().OrderBy(x => x).ToList() ?? new List<string>();
+            var selectedSubjs = p.Courses?.Select(c => c.RenewOtherId?.ToString()).Where(s => !string.IsNullOrEmpty(s)).Select(s => s!).Distinct().OrderBy(x => x).ToList() ?? new List<string>();
+            var regObj = p.Registrations?.FirstOrDefault();
+
+            return new Dictionary<string, object?>
+            {
+                ["NationId"] = p.NationId,
+                ["TitleTh"] = p.TitleTh,
+                ["FirstNameTh"] = p.FirstNameTh,
+                ["MiddleNameTh"] = p.MiddleNameTh,
+                ["LastNameTh"] = p.LastNameTh,
+                ["TitleOldTh"] = p.TitleOldTh,
+                ["FirstNameOldTh"] = p.FirstNameOldTh,
+                ["MiddleNameOldTh"] = p.MiddleNameOldTh,
+                ["LastNameOldTh"] = p.LastNameOldTh,
+                ["BirthDate"] = p.BirthDate?.ToString("yyyy-MM-dd"),
+                ["IdCardExpiry"] = p.IdCardExpiry?.ToString("yyyy-MM-dd"),
+                ["GenderId"] = p.GenderId,
+                ["ReligionId"] = p.ReligionId,
+                ["BloodGroupId"] = p.BloodGroupId,
+                ["FoodAllergy"] = p.FoodAllergy,
+                ["MedicalCondition"] = p.MedicalCondition,
+                ["PhoneOtp"] = p.PhoneOtp,
+                ["EmailAlt"] = p.EmailAlt,
+                ["LineId"] = p.LineId,
+                ["Facebook"] = p.Facebook,
+                ["Instagram"] = p.Instagram,
+                ["EmergencyContactName"] = p.EmergencyContactName,
+                ["EmergencyContactPhone"] = p.EmergencyContactPhone,
+                ["HouseNo"] = addrA?.HouseNo,
+                ["Moo"] = addrA?.Moo,
+                ["Village"] = addrA?.Village,
+                ["Soi"] = addrA?.Soi,
+                ["Road"] = addrA?.Road,
+                ["ProvinceId"] = addrA?.ProvinceId,
+                ["DistrictId"] = addrA?.DistrictId,
+                ["SubDistrictId"] = addrA?.SubDistrictId,
+                ["Postcode"] = addrA?.Postcode,
+                ["ContactHouseNo"] = addrC?.HouseNo,
+                ["ContactMoo"] = addrC?.Moo,
+                ["ContactVillage"] = addrC?.Village,
+                ["ContactSoi"] = addrC?.Soi,
+                ["ContactRoad"] = addrC?.Road,
+                ["ContactProvinceId"] = addrC?.ProvinceId,
+                ["ContactDistrictId"] = addrC?.DistrictId,
+                ["ContactSubDistrictId"] = addrC?.SubDistrictId,
+                ["ContactPostcode"] = addrC?.Postcode,
+                ["AgentBranch"] = affil?.BranchId,
+                ["BrokerType"] = affil?.BrokerType,
+                ["BrokerCompany"] = affil?.BrokerCompany,
+                ["BrokerBranch"] = affil?.BrokerBranch,
+                ["viriyahAgentCode"] = affil?.ViriyahAgentCode,
+                ["AgentType"] = lic?.CourseType ?? "agent",
+                ["LicenseNo"] = lic?.LicenseNo,
+                ["LicenseIssueDate"] = lic?.LicenseIssueDate?.ToString("yyyy-MM-dd"),
+                ["LicenseExpiryDate"] = lic?.LicenseExpiryDate?.ToString("yyyy-MM-dd"),
+                ["CourseType"] = course?.CourseId?.ToString(),
+                ["CourseId"] = course?.CourseId,
+                ["CourseDateId"] = course?.CourseDateId,
+                ["PreviousCourses"] = string.Join(",", prevTrainings),
+                ["SelectedSubjects"] = string.Join(",", selectedSubjs),
+                ["SalesArea"] = string.Join(",", salesAreas),
+                ["InsuranceSpecialty"] = string.Join(",", specialties),
+                ["OtherInsuranceCompanies"] = string.Join(",", companies),
+                ["MainBusiness"] = otherObj?.OtherBusiness,
+                ["InsuranceExperienceYears"] = otherObj?.InsuranceExperienceYears?.ToString(),
+                ["DeductionPrivilege"] = regObj?.DeductionPrivilege,
+                ["MasterDegreeStatus"] = regObj?.MasterDegreeStatus,
+                ["Action"] = actionName
+            };
         }
     }
 }

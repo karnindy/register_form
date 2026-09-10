@@ -23,12 +23,13 @@ namespace backend.Controllers
                 .OrderBy(x => x.CourseName)
                 .ToListAsync();
 
-            var details = await _context.CourseDetails
-                .Where(d => d.CourseType == "basic")
-                .OrderBy(d => d.DisplayOrder)
+            var curriculums = await _context.CourseCurriculums
+                .Include(c => c.SubDetails)
+                .Where(c => c.CourseType == "basic")
+                .OrderBy(c => c.DisplayOrder)
                 .ToListAsync();
 
-            var detailsByCourseId = details.GroupBy(d => d.CourseId).ToDictionary(g => g.Key, g => g.ToList());
+            var curriculumsByCourseId = curriculums.GroupBy(c => c.CourseId).ToDictionary(g => g.Key, g => g.ToList());
 
             var result = data.Select(b => new {
                 b.Id,
@@ -36,7 +37,7 @@ namespace backend.Controllers
                 b.Status,
                 b.DateId,
                 b.AgentType,
-                Details = detailsByCourseId.GetValueOrDefault(b.Id, new List<MstCourseDetail>())
+                Curriculums = curriculumsByCourseId.GetValueOrDefault(b.Id, new List<MstCourseCurriculum>())
             });
 
             return Ok(result);

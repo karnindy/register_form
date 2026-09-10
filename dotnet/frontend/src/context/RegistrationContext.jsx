@@ -70,22 +70,32 @@ export function RegistrationProvider({ children }) {
           fetch('http://localhost:8085/api/config')
         ]);
         
-        const provinces = provRes.ok ? await provRes.json() : [];
-        const titles = titlesRes.ok ? await titlesRes.json() : [];
-        const blood = bloodRes.ok ? await bloodRes.json() : [];
-        const gender = genderRes.ok ? await genderRes.json() : [];
-        const religion = religionRes.ok ? await religionRes.json() : [];
-        const agentBranches = branchesRes.ok ? await branchesRes.json() : [];
-        const territories = territoriesRes.ok ? await territoriesRes.json() : [];
-        const expertises = expertisesRes.ok ? await expertisesRes.json() : [];
-        const companies = companiesRes.ok ? await companiesRes.json() : [];
-        const configArray = configRes.ok ? await configRes.json() : [];
+        const safeJson = async (res) => {
+          if (!res || !res.ok) return [];
+          try {
+            const data = await res.json();
+            return Array.isArray(data) ? data : [];
+          } catch {
+            return [];
+          }
+        };
+
+        const provinces = await safeJson(provRes);
+        const titles = await safeJson(titlesRes);
+        const blood = await safeJson(bloodRes);
+        const gender = await safeJson(genderRes);
+        const religion = await safeJson(religionRes);
+        const agentBranches = await safeJson(branchesRes);
+        const territories = await safeJson(territoriesRes);
+        const expertises = await safeJson(expertisesRes);
+        const companies = await safeJson(companiesRes);
+        const configArray = configRes.ok ? await configRes.json().catch(() => []) : [];
         const configData = {};
         if (Array.isArray(configArray)) {
           configArray.forEach(item => {
             configData[item.key] = item.value;
           });
-        } else {
+        } else if (configArray && typeof configArray === 'object') {
           Object.assign(configData, configArray); // Fallback in case backend is changed
         }
         

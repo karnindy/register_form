@@ -1,9 +1,39 @@
+export function renderLabelWithAsterisk(label, required) {
+  if (!label) return null;
+  if (typeof label !== 'string') {
+    return (
+      <>
+        {label}
+        {required && <span className="text-red-500 font-bold ml-1">*</span>}
+      </>
+    );
+  }
+
+  if (label.includes('*')) {
+    const parts = label.split('*');
+    return (
+      <>
+        {parts[0]}
+        <span className="text-red-500 font-bold ml-0.5">*</span>
+        {parts.slice(1).join('*')}
+      </>
+    );
+  }
+
+  return (
+    <>
+      {label}
+      {required && <span className="text-red-500 font-bold ml-1">*</span>}
+    </>
+  );
+}
+
 export default function Input({ label, id, required, type = "text", error, className = "", inputClassName = "", ...props }) {
   return (
     <div className={`mb-5 ${className}`}>
       {label && (
-        <label htmlFor={id} className={`block mb-2 font-medium text-textMain ${required ? "after:content-['_*'] after:text-error" : ""}`}>
-          {label}
+        <label htmlFor={id} className="block mb-2 font-medium text-textMain">
+          {renderLabelWithAsterisk(label, required)}
         </label>
       )}
       <input

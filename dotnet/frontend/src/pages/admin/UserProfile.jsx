@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import Select from 'react-select';
 import ThaiDatePicker from '../../components/ThaiDatePicker';
+import HistorySnapshotViewer from '../../components/HistorySnapshotViewer';
 import { useAuth } from '../../context/AuthContext';
 
 export default function UserProfile() {
@@ -113,28 +114,41 @@ export default function UserProfile() {
   const fetchProfile = async () => {
     setLoading(true);
     try {
+      const safeFetchArray = (url, opts) => 
+        fetch(url, opts).then(r => r.ok ? r.json() : []).then(data => Array.isArray(data) ? data : []).catch(() => []);
+
       const [
         titles, religions, genders, bloods, provinces, courses, agentBranches, 
         territories, expertises, companies, renewCourseCheckboxes, renewOtherOptions, profileRes
       ] = await Promise.all([
-        fetch('http://localhost:8085/api/masterdata/titles').then(r => r.json()).catch(() => []),
-        fetch('http://localhost:8085/api/masterdata/religion').then(r => r.json()).catch(() => []),
-        fetch('http://localhost:8085/api/masterdata/gender').then(r => r.json()).catch(() => []),
-        fetch('http://localhost:8085/api/masterdata/blood').then(r => r.json()).catch(() => []),
-        fetch('http://localhost:8085/api/masterdata/provinces').then(r => r.json()).catch(() => []),
-        fetch('http://localhost:8085/api/masterdata/renew-courses').then(r => r.json()).catch(() => []),
-        fetch('http://localhost:8085/api/masterdata/agent-branches').then(r => r.json()).catch(() => []),
-        fetch('http://localhost:8085/api/masterdata/territory').then(r => r.json()).catch(() => []),
-        fetch('http://localhost:8085/api/masterdata/expertise').then(r => r.json()).catch(() => []),
-        fetch('http://localhost:8085/api/masterdata/company').then(r => r.json()).catch(() => []),
-        fetch('http://localhost:8085/api/masterdata/renewcourse').then(r => r.json()).catch(() => []),
-        fetch('http://localhost:8085/api/masterdata/renew-other-courses').then(r => r.json()).catch(() => []),
-        fetch('http://localhost:8085/api/auth/profile', { headers: getAuthHeaders() }).then(r => r.json()).catch(() => ({}))
+        safeFetchArray('http://localhost:8085/api/masterdata/titles'),
+        safeFetchArray('http://localhost:8085/api/masterdata/religion'),
+        safeFetchArray('http://localhost:8085/api/masterdata/gender'),
+        safeFetchArray('http://localhost:8085/api/masterdata/blood'),
+        safeFetchArray('http://localhost:8085/api/masterdata/provinces'),
+        safeFetchArray('http://localhost:8085/api/masterdata/renew-courses'),
+        safeFetchArray('http://localhost:8085/api/masterdata/agent-branches'),
+        safeFetchArray('http://localhost:8085/api/masterdata/territories'),
+        safeFetchArray('http://localhost:8085/api/masterdata/expertises'),
+        safeFetchArray('http://localhost:8085/api/masterdata/companies'),
+        safeFetchArray('http://localhost:8085/api/masterdata/renewcourse'),
+        safeFetchArray('http://localhost:8085/api/masterdata/renew-other-courses'),
+        fetch('http://localhost:8085/api/auth/profile', { headers: getAuthHeaders() }).then(r => r.ok ? r.json() : {}).catch(() => ({}))
       ]);
 
       setMasterData({
-        titles, religions, genders, bloods, provinces, courses, agentBranches, 
-        territories, expertises, companies, renewCourseCheckboxes, renewOtherOptions
+        titles: Array.isArray(titles) ? titles : [],
+        religions: Array.isArray(religions) ? religions : [],
+        genders: Array.isArray(genders) ? genders : [],
+        bloods: Array.isArray(bloods) ? bloods : [],
+        provinces: Array.isArray(provinces) ? provinces : [],
+        courses: Array.isArray(courses) ? courses : [],
+        agentBranches: Array.isArray(agentBranches) ? agentBranches : [],
+        territories: Array.isArray(territories) ? territories : [],
+        expertises: Array.isArray(expertises) ? expertises : [],
+        companies: Array.isArray(companies) ? companies : [],
+        renewCourseCheckboxes: Array.isArray(renewCourseCheckboxes) ? renewCourseCheckboxes : [],
+        renewOtherOptions: Array.isArray(renewOtherOptions) ? renewOtherOptions : []
       });
 
       if (profileRes.user) {
@@ -1824,7 +1838,7 @@ export default function UserProfile() {
             <div className="pt-2">
               <label className="block text-xs font-bold text-gray-600 mb-2">เขตพื้นที่ขาย</label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {masterData?.territories?.map((territory, idx) => {
+                {(Array.isArray(masterData?.territories) ? masterData.territories : []).map((territory, idx) => {
                   const checked = personData?.others?.[0]?.salesAreas?.some(sa => sa.territoriesId?.toString() === territory.id.toString());
                   return (
                     <label key={idx} className="flex items-center gap-2 p-2 border rounded-xl bg-gray-50 hover:bg-gray-100 cursor-pointer text-xs">
@@ -1845,7 +1859,7 @@ export default function UserProfile() {
             <div className="pt-2">
               <label className="block text-xs font-bold text-gray-600 mb-2">ความเชี่ยวชาญประกันภัย</label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {masterData?.expertises?.map((specialty, idx) => {
+                {(Array.isArray(masterData?.expertises) ? masterData.expertises : []).map((specialty, idx) => {
                   const checked = personData?.others?.[0]?.specialties?.some(sp => sp.expertiseId?.toString() === specialty.id.toString());
                   return (
                     <label key={idx} className="flex items-center gap-2 p-2 border rounded-xl bg-gray-50 hover:bg-gray-100 cursor-pointer text-xs">
@@ -1866,7 +1880,7 @@ export default function UserProfile() {
             <div className="pt-2">
               <label className="block text-xs font-bold text-gray-600 mb-2">บริษัทประกันภัยอื่นที่ท่านส่งงานในปัจจุบัน</label>
               <div className="max-h-52 overflow-y-auto p-3 border rounded-xl bg-gray-50 grid grid-cols-1 md:grid-cols-2 gap-2">
-                {masterData?.companies?.map((company, idx) => {
+                {(Array.isArray(masterData?.companies) ? masterData.companies : []).map((company, idx) => {
                   const checked = personData?.others?.[0]?.otherCompanies?.some(oc => oc.companyId?.toString() === company.id.toString());
                   return (
                     <label key={idx} className="flex items-center gap-2 p-2 bg-white border rounded-xl hover:bg-gray-100 cursor-pointer text-xs">
@@ -2065,41 +2079,57 @@ export default function UserProfile() {
               ยังไม่มีประวัติการแก้ไขข้อมูล
             </div>
           ) : (
-            <div className="divide-y divide-slate-100 border rounded-xl overflow-hidden">
-              {histories.map((h, i) => (
-                <div key={h.id || i} className="p-4 hover:bg-slate-50 transition-colors flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded font-bold uppercase">
-                        {h.editedByType || 'applicant'}
-                      </span>
-                      <span className="text-sm font-bold text-slate-800">
-                        แก้ไขโดย: {h.createdBy || authUser?.username}
-                      </span>
+            <div className="space-y-3">
+              {histories.map((h, i) => {
+                const isSelected = selectedHistory?.id === (h.id || i);
+                return (
+                  <div key={h.id || i} className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-xs">
+                    <div className="p-4 bg-slate-50/70 hover:bg-slate-50 transition-colors flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs px-2.5 py-0.5 rounded font-bold uppercase ${
+                            h.editedByType === 'admin' 
+                              ? 'bg-purple-100 text-purple-800' 
+                              : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {h.editedByType || 'applicant'}
+                          </span>
+                          <span className="text-sm font-bold text-slate-800">
+                            แก้ไขโดย: {h.createdBy || authUser?.username}
+                          </span>
+                        </div>
+                        <div className="text-xs text-slate-400 flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" />
+                          {new Date(h.createdAt).toLocaleString('th-TH')}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setSelectedHistory(isSelected ? null : { ...h, id: h.id || i })}
+                        className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all border ${
+                          isSelected 
+                            ? 'bg-primary text-white border-primary shadow-sm' 
+                            : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+                        }`}
+                      >
+                        {isSelected ? 'ซ่อนรายละเอียด' : 'ดูรายละเอียด Snapshot'}
+                      </button>
                     </div>
-                    <div className="text-xs text-slate-400 flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" />
-                      {new Date(h.createdAt).toLocaleString('th-TH')}
-                    </div>
+
+                    {isSelected && (
+                      <div className="p-4 border-t border-slate-200 bg-slate-50/30">
+                        <HistorySnapshotViewer 
+                          oldData={h.oldData} 
+                          newData={h.newData} 
+                          masterData={masterData}
+                          title={`ข้อมูลการเปลี่ยนแปลง #${h.id || i + 1} (${new Date(h.createdAt).toLocaleString('th-TH')})`}
+                        />
+                      </div>
+                    )}
                   </div>
-
-                  <button
-                    onClick={() => setSelectedHistory(selectedHistory?.id === h.id ? null : h)}
-                    className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg transition-all"
-                  >
-                    {selectedHistory?.id === h.id ? 'ซ่อนรายละเอียด' : 'ดู Snapshot'}
-                  </button>
-
-                  {selectedHistory?.id === h.id && (
-                    <div className="w-full bg-slate-900 text-slate-200 p-4 rounded-xl font-mono text-xs overflow-x-auto mt-3 max-h-60">
-                      <div className="font-bold text-amber-400 mb-1">Old Data (ก่อนแก้):</div>
-                      <pre className="text-slate-400 mb-3 whitespace-pre-wrap text-[11px]">{h.oldData || '-'}</pre>
-                      <div className="font-bold text-green-400 mb-1">New Data (หลังแก้):</div>
-                      <pre className="text-slate-300 whitespace-pre-wrap text-[11px]">{h.newData || '-'}</pre>
-                    </div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

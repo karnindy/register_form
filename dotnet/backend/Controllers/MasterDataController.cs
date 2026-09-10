@@ -139,7 +139,7 @@ namespace backend.Controllers
             public string Name { get; set; } = string.Empty;
             public string Status { get; set; } = "active";
             public int DisplayOrder { get; set; }
-            public List<MstCourseDetail> Details { get; set; } = new();
+            public List<MstCourseCurriculum> Curriculums { get; set; } = new();
         }
 
         [HttpGet("{type}")]
@@ -149,23 +149,27 @@ namespace backend.Controllers
             switch (type.ToLower())
             {
                 case "blood":
+                case "bloods":
                     return Ok(await _context.BloodTypes
                         .Where(b => queryStatus == null || b.Status == queryStatus)
                         .OrderBy(b => b.DisplayOrder)
                         .Select(b => new MasterDataDto { Id = b.Id, Name = b.Name, Status = b.Status, DisplayOrder = b.DisplayOrder })
                         .ToListAsync());
                 case "gender":
+                case "genders":
                     return Ok(await _context.Genders
                         .Where(g => queryStatus == null || g.Status == queryStatus)
                         .OrderBy(g => g.DisplayOrder)
                         .Select(g => new MasterDataDto { Id = g.Id, Name = g.Name, Status = g.Status, DisplayOrder = g.DisplayOrder })
                         .ToListAsync());
                 case "religion":
+                case "religions":
                     return Ok(await _context.Religions
                         .Where(r => queryStatus == null || r.Status == queryStatus)
                         .OrderBy(r => r.DisplayOrder)
                         .Select(r => new MasterDataDto { Id = r.Id, Name = r.Name, Status = r.Status, DisplayOrder = r.DisplayOrder })
                         .ToListAsync());
+                case "title":
                 case "titles":
                     return Ok(await _context.Titles
                         .Where(t => queryStatus == null || t.Status == queryStatus)
@@ -173,24 +177,28 @@ namespace backend.Controllers
                         .Select(t => new MasterDataDto { Id = t.Id, Name = t.Name, Status = t.Status, DisplayOrder = t.DisplayOrder })
                         .ToListAsync());
                 case "territory":
+                case "territories":
                     return Ok(await _context.Territories
                         .Where(t => queryStatus == null || t.Status == queryStatus)
                         .OrderBy(t => t.DisplayOrder)
                         .Select(t => new MasterDataDto { Id = t.Id, Name = t.Name, Status = t.Status, DisplayOrder = t.DisplayOrder })
                         .ToListAsync());
                 case "expertise":
+                case "expertises":
                     return Ok(await _context.Expertises
                         .Where(e => queryStatus == null || e.Status == queryStatus)
                         .OrderBy(e => e.DisplayOrder)
                         .Select(e => new MasterDataDto { Id = e.Id, Name = e.Name, Status = e.Status, DisplayOrder = e.DisplayOrder })
                         .ToListAsync());
                 case "company":
+                case "companies":
                     return Ok(await _context.Companies
                         .Where(c => queryStatus == null || c.Status == queryStatus)
                         .OrderBy(c => c.DisplayOrder)
                         .Select(c => new MasterDataDto { Id = c.Id, Name = c.Name, Status = c.Status, DisplayOrder = c.DisplayOrder })
                         .ToListAsync());
                 case "renewcourse":
+                case "renewcourses":
                     var renewCourses = await _context.RenewCourses
                         .Where(c => queryStatus == null || c.Status == queryStatus)
                         .OrderBy(c => c.DisplayOrder)
@@ -204,11 +212,13 @@ namespace backend.Controllers
                         .ToListAsync();
 
                     var pillarDict = await _context.RenewPillars.ToDictionaryAsync(p => p.Id, p => p.Name);
-                    var details = await _context.CourseDetails
-                        .Where(d => d.CourseType == "renew" && (queryStatus == null || d.Status == queryStatus))
-                        .OrderBy(d => d.DisplayOrder)
+
+                    var curriculums = await _context.CourseCurriculums
+                        .Include(c => c.SubDetails)
+                        .Where(c => c.CourseType == "renew" && (queryStatus == null || c.Status == queryStatus))
+                        .OrderBy(c => c.DisplayOrder)
                         .ToListAsync();
-                    var detailsByCourseId = details.GroupBy(d => d.CourseId).ToDictionary(g => g.Key, g => g.ToList());
+                    var curriculumsByCourseId = curriculums.GroupBy(c => c.CourseId).ToDictionary(g => g.Key, g => g.ToList());
 
                     foreach (var c in renewCourses)
                     {
@@ -216,12 +226,13 @@ namespace backend.Controllers
                         {
                             c.DefaultPillarName = pName;
                         }
-                        if (detailsByCourseId.TryGetValue(c.Id, out var dList))
+                        if (curriculumsByCourseId.TryGetValue(c.Id, out var cList))
                         {
-                            c.Details = dList;
+                            c.Curriculums = cList;
                         }
                     }
                     return Ok(renewCourses);
+                case "pillar":
                 case "pillars":
                     return Ok(await _context.RenewPillars
                         .Where(p => queryStatus == null || p.Status == queryStatus)
@@ -239,18 +250,23 @@ namespace backend.Controllers
             switch (type.ToLower())
             {
                 case "blood":
+                case "bloods":
                     var b = new Models.MstBlood { Name = dto.Name, Status = dto.Status, DisplayOrder = dto.DisplayOrder };
                     _context.BloodTypes.Add(b); break;
                 case "gender":
+                case "genders":
                     var g = new Models.MstGender { Name = dto.Name, Status = dto.Status, DisplayOrder = dto.DisplayOrder };
                     _context.Genders.Add(g); break;
                 case "religion":
+                case "religions":
                     var r = new Models.MstReligion { Name = dto.Name, Status = dto.Status, DisplayOrder = dto.DisplayOrder };
                     _context.Religions.Add(r); break;
+                case "title":
                 case "titles":
                     var t = new Models.MstTitle { Name = dto.Name, Status = dto.Status, DisplayOrder = dto.DisplayOrder };
                     _context.Titles.Add(t); break;
                 case "renewcourse":
+                case "renewcourses":
                     var c = new Models.MstRenewCourse { 
                         Name = dto.Name, 
                         DefaultPillarId = dto.DefaultPillarId,
@@ -259,14 +275,18 @@ namespace backend.Controllers
                     };
                     _context.RenewCourses.Add(c); break;
                 case "territory":
+                case "territories":
                     var territory = new Models.MstTerritory { Name = dto.Name, Status = dto.Status, DisplayOrder = dto.DisplayOrder };
                     _context.Territories.Add(territory); break;
                 case "expertise":
+                case "expertises":
                     var expertise = new Models.MstExpertise { Name = dto.Name, Status = dto.Status, DisplayOrder = dto.DisplayOrder };
                     _context.Expertises.Add(expertise); break;
                 case "company":
+                case "companies":
                     var company = new Models.MstCompany { Name = dto.Name, Status = dto.Status, DisplayOrder = dto.DisplayOrder };
                     _context.Companies.Add(company); break;
+                case "pillar":
                 case "pillars":
                     var pillar = new Models.MstRenewPillar { Name = dto.Name, Status = dto.Status, DisplayOrder = dto.DisplayOrder };
                     _context.RenewPillars.Add(pillar); break;
@@ -283,26 +303,31 @@ namespace backend.Controllers
             switch (type.ToLower())
             {
                 case "blood":
+                case "bloods":
                     var b = await _context.BloodTypes.FindAsync(id);
                     if (b == null) return NotFound();
                     b.Name = dto.Name; b.Status = dto.Status; b.DisplayOrder = dto.DisplayOrder;
                     break;
                 case "gender":
+                case "genders":
                     var g = await _context.Genders.FindAsync(id);
                     if (g == null) return NotFound();
                     g.Name = dto.Name; g.Status = dto.Status; g.DisplayOrder = dto.DisplayOrder;
                     break;
                 case "religion":
+                case "religions":
                     var r = await _context.Religions.FindAsync(id);
                     if (r == null) return NotFound();
                     r.Name = dto.Name; r.Status = dto.Status; r.DisplayOrder = dto.DisplayOrder;
                     break;
+                case "title":
                 case "titles":
                     var t = await _context.Titles.FindAsync(id);
                     if (t == null) return NotFound();
                     t.Name = dto.Name; t.Status = dto.Status; t.DisplayOrder = dto.DisplayOrder;
                     break;
                 case "renewcourse":
+                case "renewcourses":
                     var c = await _context.RenewCourses.FindAsync(id);
                     if (c == null) return NotFound();
                     c.Name = dto.Name; 
@@ -311,20 +336,24 @@ namespace backend.Controllers
                     c.DisplayOrder = dto.DisplayOrder;
                     break;
                 case "territory":
+                case "territories":
                     var territory = await _context.Territories.FindAsync(id);
                     if (territory == null) return NotFound();
                     territory.Name = dto.Name; territory.Status = dto.Status; territory.DisplayOrder = dto.DisplayOrder;
                     break;
                 case "expertise":
+                case "expertises":
                     var expertise = await _context.Expertises.FindAsync(id);
                     if (expertise == null) return NotFound();
                     expertise.Name = dto.Name; expertise.Status = dto.Status; expertise.DisplayOrder = dto.DisplayOrder;
                     break;
                 case "company":
+                case "companies":
                     var company = await _context.Companies.FindAsync(id);
                     if (company == null) return NotFound();
                     company.Name = dto.Name; company.Status = dto.Status; company.DisplayOrder = dto.DisplayOrder;
                     break;
+                case "pillar":
                 case "pillars":
                     var pillar = await _context.RenewPillars.FindAsync(id);
                     if (pillar == null) return NotFound();
@@ -344,29 +373,38 @@ namespace backend.Controllers
             switch (type.ToLower())
             {
                 case "blood":
+                case "bloods":
                     var b = await _context.BloodTypes.FindAsync(id);
                     if (b != null) { b.Status = "inactive"; } break;
                 case "gender":
+                case "genders":
                     var g = await _context.Genders.FindAsync(id);
                     if (g != null) { g.Status = "inactive"; } break;
                 case "religion":
+                case "religions":
                     var r = await _context.Religions.FindAsync(id);
                     if (r != null) { r.Status = "inactive"; } break;
+                case "title":
                 case "titles":
                     var t = await _context.Titles.FindAsync(id);
                     if (t != null) { t.Status = "inactive"; } break;
                 case "renewcourse":
+                case "renewcourses":
                     var c = await _context.RenewCourses.FindAsync(id);
                     if (c != null) { c.Status = "inactive"; } break;
                 case "territory":
+                case "territories":
                     var territory = await _context.Territories.FindAsync(id);
                     if (territory != null) { territory.Status = "inactive"; } break;
                 case "expertise":
+                case "expertises":
                     var expertise = await _context.Expertises.FindAsync(id);
                     if (expertise != null) { expertise.Status = "inactive"; } break;
                 case "company":
+                case "companies":
                     var company = await _context.Companies.FindAsync(id);
                     if (company != null) { company.Status = "inactive"; } break;
+                case "pillar":
                 case "pillars":
                     var pillar = await _context.RenewPillars.FindAsync(id);
                     if (pillar != null) { pillar.Status = "inactive"; } break;
